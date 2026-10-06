@@ -1,11 +1,10 @@
 /* Housebook kit: hb-scene.js. 3D-блоки страницы на three.js r128 (глобальный THREE с cdnjs; если его нет, файл подгружает r128 сам).
    Один WebGL-контекст на страницу: каждый блок рисуется в угол закадрового холста (viewport и scissor) и в той же задаче копируется в 2D-холст блока.
-   Пять типов блоков (разметка и атрибуты в README):
+   Три типа блоков (разметка и атрибуты в README):
      a) планета      [data-globe]    data-aim="lat,lon" data-pins="all|uae,thailand" data-markets="all|none|dubai,phuket" data-place="right" data-pin-href="url"
-     b) задник       .bg3d[data-view="gorod|bashni|ulica|sverhu"] data-city="dubai|phuket|canggu|istanbul|paphos|batumi"
-     c) объект       [data-object="tower|villa"] data-floors="9" data-floor="0" data-interactive data-floor-slider
-     d) башни-столбики [data-bars='[{"label":"Дубай","v":5375}]'] data-prefix="$" data-suffix="&nbsp;м²"; поле "tip" у значения заменяет подсказку при наведении
-     e) кровли       [data-roofs]: поле крыш в изометрии, медленный дрейф
+     b) объект       [data-object="tower|villa"] data-floors="9" data-floor="0" data-interactive data-floor-slider
+     c) башни-столбики [data-bars='[{"label":"Дубай","v":5375}]'] data-prefix="$" data-suffix="&nbsp;м²"; поле "tip" у значения заменяет подсказку при наведении
+   Задники .bg3d и кровли [data-roofs] сцена не рисует: это плоские паттерны CSS (решения владельца 06-07.10.2026).
    Деградация: Save-Data, телефон (сенсор, до 899 px) или слабый ПК (до 4 ГБ памяти или до 4 ядер) -> html.no-3d, картинки вместо 3D, three.js не грузится; нет WebGL или ошибка -> html.no-webgl и window.__sceneErr; в обоих случаях CSS показывает паттерн брендбука.
    prefers-reduced-motion: один статичный кадр, перерисовка только по делу (тема, размер, жест). Живые блоки не чаще 30 кадров в секунду,
    рисуются только в кадре, пауза при скрытой вкладке; pixelRatio не больше 1,5. Палитра читается из CSS-токенов hb.css; на тёмной теме акцент сцены мятой. */
@@ -13,7 +12,8 @@
 'use strict';
 const root = document.documentElement;
 // [data-roofs] больше не рисуется в 3D (решение владельца 06.10.2026): блок показывает плоский паттерн «Кровли» средствами CSS
-const SEL = '[data-globe], .bg3d[data-view], [data-object], [data-bars]';
+// задники-улицы .bg3d с 07.10.2026 плоский паттерн CSS (решение владельца), сцена их не трогает; 2D-график .chart[data-bars] рисует hb-ui.js
+const SEL = '[data-globe], [data-object], .hb3d[data-bars]';
 const els = [...document.querySelectorAll(SEL)];
 if (!els.length) return;
 
@@ -21,13 +21,11 @@ if (!els.length) return;
 const fmt = v => Number(v).toLocaleString('ru-RU').replace(/\s/g, ' ');
 const barsData = el => { try { const a = JSON.parse(el.dataset.bars); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
 const barText = (el, d) => d.t || (el.dataset.prefix || '') + fmt(d.v) + (el.dataset.suffix || '');
-// подсказки при наведении (window.hbTip из hb-ui.js): у столбика место в ряду и отрыв от лидера, у страны число проектов и рынок
+// подсказки при наведении (window.hbTip из hb-ui.js): у столбика его поле tip или подпись и значение, у страны число проектов и рынок
 const plural = (n, f1, f2, f5) => { const m = n % 100, k = n % 10; return m > 10 && m < 20 ? f5 : k === 1 ? f1 : k > 1 && k < 5 ? f2 : f5; };
-const barTip = (el, data, i) => { const d = data[i]; if (d.tip) return d.tip; const val = x => +x.v || 0, top = data.reduce((a, c) => val(c) > val(a) ? c : a);
-  const rank = data.filter(x => val(x) > val(d)).length + 1;
-  return `${d.label}\n${barText(el, d)}\n${rank}-е место из ${data.length}` + (d === top ? '' : `, на ${Math.round((1 - val(d) / val(top)) * 100)}% ниже, чем ${top.label}`); };
+const barTip = (el, data, i) => data[i].tip || `${data[i].label}\n${barText(el, data[i])}`;
 const pinTip = p => { const n = +p.c.n || 0; return `${p.c.name}\n${p.c.n} ${plural(n, 'проект', 'проекта', 'проектов')} в каталоге` + (p.market ? `\nРынок с медианой цены: ${p.market.city}` : ''); };
-for (const el of document.querySelectorAll('[data-bars]')) if (!el.querySelector('.hb3d__list')) {
+for (const el of document.querySelectorAll('.hb3d[data-bars]')) if (!el.querySelector('.hb3d__list')) {
   const ul = document.createElement('ul'); ul.className = 'hb3d__list bars3d-list';
   const data = barsData(el); data.forEach((d, i) => { const li = document.createElement('li'), s = document.createElement('span'), b = document.createElement('b'); s.textContent = d.label; b.textContent = barText(el, d); li.dataset.tip = barTip(el, data, i); li.append(s, b); ul.appendChild(li); });
   el.appendChild(ul);
@@ -614,6 +612,14 @@ function buildLandmark(g, key) {
     add(new THREE.SphereGeometry(.55, 24, 16), white, cx, y0 + H + .15, cz);
   }
 }
+// дерево у дома: ствол и крона светлой зеленью, общие материалы
+let treeM = null;
+function tree(H, x, y, z, k = 1) {
+  treeM ||= { trunk: wall(V.ink3, { rough: 1 }), leaf: wall(V.accent2, { rough: .95 }), geo: [new THREE.CylinderGeometry(.035, .05, .34, 6), new THREE.IcosahedronGeometry(.26, 1)] };
+  const t = new THREE.Mesh(treeM.geo[0], treeM.trunk), c = new THREE.Mesh(treeM.geo[1], treeM.leaf);
+  t.position.set(x, y + .17 * k, z); t.scale.setScalar(k); c.position.set(x, y + .46 * k, z); c.scale.set(k, k * 1.15, k);
+  for (const o of [t, c]) { o.castShadow = o.receiveShadow = true; H.add(o); }
+}
 function buildHome(g, m, z = homeZ, opt = {}) {
   const home = { group: new THREE.Group(), glass: [], frames: [], floors: [], type: m.home.type }; homes.push(home); home.group.position.set(0, 0, z); g.add(home.group); const H = home.group;
   const FH = .72, floors = m.home.floors, apt = m.home.apt;
@@ -670,24 +676,44 @@ function buildHome(g, m, z = homeZ, opt = {}) {
     ip(.04, .72, .06, .52, .48, 1.3, V.ink3); ip(.04, .72, .06, 1.08, .48, 1.3, V.ink3); ip(.6, .04, .06, .8, .86, 1.3, V.ink3);
   } else {
     // башня: этажи с балконными плитами, лента остекления, парапет, крыша с бассейном
+    // opt.look меняет облик (столбики графика): стиль и тон фасада, плиты без балконов, без ленты стекла, своя кровля
+    const lk = opt.look || {}, wStyle = lk.style || 'ribbon', wTone = lk.tone || 'paper', PW = lk.plate ?? 2.9, panes = lk.panes !== false, rails = lk.rails !== false;
     for (let i = 0; i < floors; i++) {
       if (opt.perFloor) { HT = new THREE.Group(); H.add(HT); home.floors.push(HT); HWc = wallMesh(4, makeFacade()); HT.add(HWc); HWs.push(HWc); }
-      if (i) hput('ribbon', 'paper', { tall: true, noDoor: true }, 0, i * FH + .36, 0, 2.4, .62, 2.4);
-      else { hput('ribbon', 'paper', { tall: true, noDoor: true }, 0, .36, -.45, 2.4, .62, 1.5); ip(.92, .62, .9, -.74, .36, .75); ip(.98, .62, .9, .71, .36, .75); }
-      const plate = box(2.9, .06, 2.9, i ? V.sunken : floorTone, { edgeAlpha: .14, ao: false }); plate.position.y = i * FH + .03; HT.add(plate);
-      if (i > 0) for (const [x, z, w, d] of [[0, 1.42, 2.9, .04], [1.42, 0, .04, 2.9]]) { const rail = new THREE.Mesh(new THREE.BoxGeometry(w, .3, d), new THREE.MeshStandardMaterial({ color: V.line, transparent: true, opacity: .55, roughness: .3, metalness: .4 })); rail.position.set(x, i * FH + .2, z); rail.userData.baseAlpha = .55; HT.add(rail); }
+      if (i) hput(wStyle, wTone, { tall: true, noDoor: true }, 0, i * FH + .36, 0, 2.4, .62, 2.4);
+      else { hput(wStyle, wTone, { tall: true, noDoor: true }, 0, .36, -.45, 2.4, .62, 1.5); ip(.92, .62, .9, -.74, .36, .75); ip(.98, .62, .9, .71, .36, .75); }
+      const plate = box(i ? PW : 2.9, .06, i ? PW : 2.9, i ? V.sunken : floorTone, { edgeAlpha: .14, ao: false }); plate.position.y = i * FH + .03; HT.add(plate);
+      if (i > 0 && rails) for (const [x, z, w, d] of [[0, 1.42, 2.9, .04], [1.42, 0, .04, 2.9]]) { const rail = new THREE.Mesh(new THREE.BoxGeometry(w, .3, d), new THREE.MeshStandardMaterial({ color: V.line, transparent: true, opacity: .55, roughness: .3, metalness: .4 })); rail.position.set(x, i * FH + .2, z); rail.userData.baseAlpha = .55; HT.add(rail); }
       // на первом этаже фасадной ленты нет: там дверной проём и витрины лобби по бокам, лента шла бы поперёк входа
-      const gl = new THREE.Mesh(new THREE.BoxGeometry(2, .34, .05), paneMat()); gl.position.set(0, i * FH + .36, 1.22); if (i) { HT.add(gl); home.glass.push(gl); }
-      const glX = new THREE.Mesh(new THREE.BoxGeometry(.05, .34, 2), paneMat()); glX.position.set(1.22, i * FH + .36, 0); HT.add(glX); home.glass.push(glX);
+      const gl = new THREE.Mesh(new THREE.BoxGeometry(2, .34, .05), paneMat()); gl.position.set(0, i * FH + .36, 1.22); if (i && panes) { HT.add(gl); home.glass.push(gl); }
+      const glX = new THREE.Mesh(new THREE.BoxGeometry(.05, .34, 2), paneMat()); glX.position.set(1.22, i * FH + .36, 0); if (panes || !i) { HT.add(glX); home.glass.push(glX); }
       if (i === apt) { home.frame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(2.94, .7, 2.94)), ng(new THREE.LineBasicMaterial({ color: V.accent, transparent: true, opacity: 0 }))); home.frame.position.y = i * FH + .36; HT.add(home.frame); home.aptY = i * FH + .36; home.aptGlass = i ? [gl, glX] : [glX]; }
     }
     HT = H; HWc = HW;
     home.roofY = floors * FH;
     const roof = box(2.9, .06, 2.9, V.sunken, { edgeAlpha: .14, ao: false }); roof.position.y = home.roofY + .03; H.add(roof);
     const par = box(2.96, .16, 2.96, V.paper, { edgeAlpha: .2, ao: false }); par.position.y = home.roofY + .1; H.add(par);
-    const pool = new THREE.Mesh(new THREE.BoxGeometry(1.3, .05, .9), ng(new THREE.MeshStandardMaterial({ color: V.accent, transparent: true, opacity: .35, roughness: .1, metalness: .3 }))); pool.position.set(-.5, home.roofY + .09, .3); H.add(pool);
-    for (const [x, z] of [[.5, -.8], [1.2, -.8], [.5, -.1], [1.2, -.1]]) { const p = box(.05, .5, .05, V.ink3, { edges: false, ao: false }); p.position.set(x, home.roofY + .3, z); H.add(p); }
-    const pergola = box(.9, .04, .9, V.control, { alpha: .7, edgeAlpha: .2, ao: false }); pergola.position.set(.85, home.roofY + .56, -.45); H.add(pergola);
+    const crown = lk.crown || 'pool', ry = home.roofY; home.topY = ry + .6;
+    if (crown === 'setback') {
+      // надстройка с отступом от края и мачта: силуэт стеклянной башни
+      hput(wStyle, wTone, { tall: true, noDoor: true }, -.2, ry + .5, -.25, 1.7, .62, 1.6);
+      ip(1.84, .05, 1.74, -.2, ry + .84, -.25, V.sunken);
+      ip(.05, .9, .05, .45, ry + 1.3, -.6, V.ink3); const tip = box(.09, .09, .09, V.accent, { edges: false, ao: false }); ng(tip.material); tip.position.set(.45, ry + 1.78, -.6); H.add(tip);
+      home.topY = ry + .9;
+    } else if (crown === 'garden') {
+      // сад на крыше: кадки и кроны по углам
+      for (const [x, z, k] of [[-.75, .7, 1], [.7, .65, .8], [-.6, -.7, .85], [.75, -.6, 1.05]]) { ip(.5 * k, .14, .5 * k, x, ry + .19, z, V.control); tree(H, x, ry + .26, z, .9 * k); }
+    } else if (crown === 'tank') {
+      // бак с водой на опорах и навес
+      const tank = new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, .5, 18), wall(V.control, { rough: .7 })); tank.position.set(-.6, ry + .58, -.5); tank.castShadow = tank.receiveShadow = true; H.add(tank);
+      for (const [x, z] of [[-.82, -.72], [-.38, -.72], [-.82, -.28], [-.38, -.28]]) ip(.04, .2, .04, x, ry + .2, z, V.ink3);
+      const awn = box(1.1, .04, .7, V.sunken, { edgeAlpha: .2, ao: false }); awn.position.set(.6, ry + .5, .5); H.add(awn);
+      for (const [x, z] of [[.15, .25], [1.05, .25], [.15, .75], [1.05, .75]]) ip(.04, .32, .04, x, ry + .33, z, V.ink3);
+    } else {
+      const pool = new THREE.Mesh(new THREE.BoxGeometry(1.3, .05, .9), ng(new THREE.MeshStandardMaterial({ color: V.accent, transparent: true, opacity: .35, roughness: .1, metalness: .3 }))); pool.position.set(-.5, ry + .09, .3); H.add(pool);
+      for (const [x, z] of [[.5, -.8], [1.2, -.8], [.5, -.1], [1.2, -.1]]) { const p = box(.05, .5, .05, V.ink3, { edges: false, ao: false }); p.position.set(x, ry + .3, z); H.add(p); }
+      const pergola = box(.9, .04, .9, V.control, { alpha: .7, edgeAlpha: .2, ao: false }); pergola.position.set(.85, ry + .56, -.45); H.add(pergola);
+    }
     const canopy = box(1.3, .05, .7, V.sunken, { edgeAlpha: .2, ao: false }); canopy.position.set(0, .69, 1.5); H.add(canopy);
     for (const lx of [-.72, .72]) { const lobby = new THREE.Mesh(new THREE.BoxGeometry(.76, .5, .05), paneMat()); lobby.position.set(lx, .4, 1.23); H.add(lobby); }
     home.pivot = new THREE.Group(); home.pivot.position.set(-.28, .06, 1.26); H.add(home.pivot);
@@ -766,6 +792,13 @@ function objectCam(b, w, h) {
 }
 
 // ---------- башни-столбики: высота линейна значению, подпись значения обязательна ----------
+// облики башен по очереди: высоту задаёт только значение, разные фасад, тон, ширина, кровля и посадка деревьев
+const BAR_LOOKS = [
+  { w: 1, trees: [[-1.75, 1.1, 1], [1.8, .6, .8]] },
+  { w: .86, style: 'glass', tone: 'tint', plate: 2.46, panes: false, rails: false, crown: 'setback', trees: [[1.6, 1.2, .9]] },
+  { w: 1.08, style: 'balcony', tone: 'tint', plate: 2.5, panes: false, rails: false, crown: 'garden', trees: [[-1.8, .9, .85], [-1.5, -.9, 1], [1.8, 1.1, .75]] },
+  { w: .94, style: 'bands', tone: 'sunken', rails: true, panes: false, crown: 'tank', trees: [[1.75, -.6, 1], [-1.75, 1.2, .9]] },
+];
 function buildBars(b) {
   const data = barsData(b.el); const g = new THREE.Group(); g.visible = false; scene.add(g); seed = 17;
   // каждый столбик - башня из buildHome (плиты, стёкла, перила, парапет), уменьшенная до S; число этажей по значению, точную высоту добирает масштаб по y
@@ -774,8 +807,10 @@ function buildBars(b) {
   const bars = data.map((d, i) => { const h = Math.max(.02, (+d.v || 0) / max * 7); const lab = callout(b.el, 'co--bar'); lab.el.textContent = ''; const strong = document.createElement('b'); strong.textContent = barText(b.el, d); lab.el.append(strong);
     // подпись категории - на оси под своей башней, как у обычного графика
     const ax = document.createElement('div'); ax.className = 'bar-axis'; ax.textContent = d.label; ax.setAttribute('aria-hidden', 'true'); b.el.appendChild(ax);
-    const home = buildHome(g, { home: { type: 'tower', floors: Math.max(1, Math.round(h / FHs)), apt: -1 } }, 0); home.group.position.x = -W / 2 + i * STEP;
-    return { x: -W / 2 + i * STEP, h, lab, ax, home, sy: h / (home.roofY * S), top: new THREE.Vector3() }; });
+    const lk = BAR_LOOKS[i % BAR_LOOKS.length], home = buildHome(g, { home: { type: 'tower', floors: Math.max(1, Math.round(h / FHs)), apt: -1 } }, 0, { look: lk }); home.group.position.x = -W / 2 + i * STEP;
+    // у подножия деревья: у каждой башни своя посадка
+    for (const [x, z, k] of lk.trees) tree(home.group, x, .06, z, k);
+    return { x: -W / 2 + i * STEP, h, lab, ax, home, wk: lk.w, sy: h / (home.roofY * S), top: new THREE.Vector3() }; });
   const L = new THREE.DirectionalLight(0xfff6e8, 1.0); L.position.set(-5, 11, 9); L.castShadow = true; L.shadow.mapSize.set(2048, 1024); L.shadow.bias = -.0004; L.shadow.normalBias = .05;
   Object.assign(L.shadow.camera, { left: -W / 2 - 3, right: W / 2 + 3, top: 9, bottom: -4, near: 1, far: 40 }); g.add(L); g.add(L.target); objLights.push(L);
   b.r = { g, bars, W, W0: W, base, L, step: STEP, S, k: live ? 0 : 1, cam: new THREE.PerspectiveCamera(30, 1, .1, 200) };
@@ -794,7 +829,7 @@ function buildBars(b) {
 function setBarK(b, k) {
   // рост: башня вытягивается по y от земли; тени пересчитываются на каждом шаге, иначе остаются от прошлого кадра
   const r = b.r; r.k = k; const e = smooth(k);
-  r.bars.forEach(s => { const sy = Math.max(.003, s.sy * e); s.home.group.scale.set(r.S, r.S * sy, r.S); s.top.set(s.x, s.home.roofY * r.S * sy + .22 * r.S, 0); });
+  r.bars.forEach(s => { const sy = Math.max(.003, s.sy * e); s.home.group.scale.set(r.S * s.wk, r.S * sy, r.S * s.wk); s.top.set(s.x, (s.home.topY ?? s.home.roofY) * r.S * sy + .22 * r.S, 0); });
   renderer.shadowMap.needsUpdate = true;
 }
 // узкий режим включается, когда в обычном подписи соседних столбиков пересеклись; запоминается для этой ширины блока
@@ -803,7 +838,6 @@ function barsCam(b, w, h) {
   // узкий блок: сверху два ряда подписей, сцена вписывается в оставшуюся высоту и сдвигается под них
   // снизу полоса под подписи оси
   const r = b.r, c = r.cam, tight = barsTight(b, w), top = tight ? Math.min(h * .45, 2 * (r.bars[0]?.lab.el.offsetHeight || 36) + 22) : 0, bot = (r.axh || 20) + 6, hh = h - top - bot, a = w / hh; c.aspect = a;
-  c.setViewOffset(w, hh, 0, -top, w, h); c.updateProjectionMatrix();
   // широкий блок: ряд раздвигается на ширину кадра, иначе башни жмутся в середину и подписям оси не хватает места
   const n = r.bars.length, t = Math.tan(c.fov * Math.PI / 360), halfH = 4.5;
   if (n > 1) { const vis = halfH * 1.08 * a, step = tight ? 2.5 : Math.min(4.5, Math.max(2.5, (vis * .82 - 1.6) * 2 / (n - 1)));
@@ -813,7 +847,10 @@ function barsCam(b, w, h) {
   const halfW = r.W / 2 + 1.6, dist = Math.max(halfH / t, halfW / (t * a)) * 1.08;
   // камера на три четверти справа: видно две грани башен, правая в тени, объём читается
   // камера прямо перед рядом и сверху: ось башен горизонтальна, как у обычного графика; объём читается по крышам и боковым граням крайних башен
-  c.position.set(0, 3.9 + dist * .3, dist); c.lookAt(0, 3.8, 0);
+  // сдвиг кадра вместо наклона: камера смотрит горизонтально, середина ряда опускается в центр кадра сдвигом окна, вертикали башен остаются вертикальными
+  const Y = 3.9 + dist * .3, shift = (Y - 3.8) / (dist * t) * hh / 2;
+  c.position.set(0, Y, dist); c.lookAt(0, Y, 0);
+  c.setViewOffset(w, hh, 0, -top + shift, w, h); c.updateProjectionMatrix();
 }
 
 // ---------- кровли: изометрия поля домов, медленный дрейф ----------

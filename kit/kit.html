@@ -42,9 +42,7 @@
 .k-sw div { display: grid; gap: 4px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font-size: 12px; line-height: 16px; color: var(--ink-3); }
 .k-sw i { display: block; height: 44px; border-radius: 8px; border: 1px solid var(--line); }
 .k-type > * + * { margin-top: 10px; }
-.k-back { position: relative; height: 260px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--page); }
-.k-back .bg3d { height: 100%; }
-.k-back b { position: absolute; left: 12px; top: 12px; z-index: 1; padding: 4px 9px; border-radius: 6px; background: var(--glass); font: 600 13px/18px "IBM Plex Sans", sans-serif; }
+.k-box .band--pat, .k-box .band { margin: 0; border: 1px solid var(--line); }
 @media (max-width: 899px) { .k-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -247,7 +245,7 @@
   <nav class="pager" aria-label="Страницы"><a href="#tekst" aria-label="Предыдущая страница"><svg class="ic" aria-hidden="true"><use href="#i-chevron-left"/></svg></a><a href="#tekst">1</a><span aria-current="page">2</span><a href="#tekst">3</a><span class="gap">...</span><a href="#tekst">12</a><a href="#tekst" aria-label="Следующая страница"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></a></nav>
 </div></section>
 <section class="sec sec--paper" id="tri-d" aria-labelledby="tri-d-h"><div class="wrap">
-  <div class="sec__head"><p class="eyebrow">3D</p><h2 id="tri-d-h">Режимы сцены hb-scene.js</h2><p class="lead">Все блоки страницы рисует один WebGL-контекст. Блок задаётся атрибутом, холст создаётся сам.</p></div>
+  <div class="sec__head"><p class="eyebrow">3D</p><h2 id="tri-d-h">3D, паттерны, график и карта</h2><p class="lead">Все блоки страницы рисует один WebGL-контекст. Блок задаётся атрибутом, холст создаётся сам.</p></div>
   <p class="k-cap">Без WebGL или при ошибке на <code>html</code> ставится <code>.no-webgl</code>, при Save-Data <code>.no-3d</code>: вместо сцены статичный паттерн брендбука. На телефоне и при reduced-motion один статичный кадр. Проверка из консоли: <code>HBScene.ready()</code>, <code>HBScene.info()</code>.</p>
   <div class="k-grid">
     <div class="k-box"><div class="hb3d hb3d--globe" data-globe data-pins="all" data-markets="all" data-pin-href="../nedvizhimost-strana.html"><canvas role="img" aria-label="Планета с отмеченными странами каталога"></canvas></div>
@@ -255,23 +253,29 @@
     <div class="k-box"><div class="hb3d hb3d--globe" data-globe data-aim="24.4,54.4" data-pins="uae" data-markets="dubai" data-pin-href="../nedvizhimost-strana.html"><canvas role="img" aria-label="Планета, повёрнутая к ОАЭ"></canvas></div>
       <p class="k-cap">Планета страны: <code>data-aim="24.4,54.4"</code> (широта, долгота) поворачивает к стране, <code>data-pins="uae"</code>. Для страницы страны.</p></div>
   </div>
-  <div class="k-row"><label class="field" for="k-cityset" style="min-width:220px"><span class="field__l">Город задников (HBScene.setCity)</span><select class="select" id="k-cityset"><option value="dubai">Дубай</option><option value="phuket">Пхукет</option><option value="canggu">Чангу</option><option value="istanbul">Стамбул</option><option value="paphos">Пафос</option><option value="batumi">Батуми</option></select></label></div>
-  <div class="k-grid"><div class="k-box"><div class="k-back"><b>data-view="gorod"</b><div class="bg3d" data-view="gorod" data-city="dubai" aria-hidden="true"></div></div><p class="k-cap">Город: квартал с набережной</p></div><div class="k-box"><div class="k-back"><b>data-view="bashni"</b><div class="bg3d" data-view="bashni" aria-hidden="true"></div></div><p class="k-cap">Башни: силуэт высоток</p></div><div class="k-box"><div class="k-back"><b>data-view="ulica"</b><div class="bg3d" data-view="ulica" aria-hidden="true"></div></div><p class="k-cap">Улица: взгляд с уровня пешехода</p></div><div class="k-box"><div class="k-back"><b>data-view="sverhu"</b><div class="bg3d" data-view="sverhu" aria-hidden="true"></div></div><p class="k-cap">Сверху: план квартала</p></div></div>
-  <p class="k-cap">Задник: <code>&lt;div class="bg3d" data-view="gorod|bashni|ulica|sverhu" data-city="dubai" aria-hidden="true"&gt;</code> первым ребёнком секции <code>.sec--3d</code>; <code>.bg3d--fade</code> растворяет низ в бумагу. Город на странице один: берётся <code>data-city</code> первого задника, сменить можно через <code>HBScene.setCity(key)</code>.</p>
+  <h3>Паттерны бренда вместо задников-улиц</h3>
+  <p class="k-cap">С 07.10.2026 задники секций (квартал, башни, улица, вид сверху) рисуются плоским паттерном брендбука, без WebGL. Восемь паттернов: атрибут <code>data-pat</code> у <code>.bg3d</code>, у ленты <code>.band.band--pat</code> или у фона <code>.patbg</code> (<code>.patbg--jade</code> на нефрите).</p>
+  <div class="k-grid"><div class="k-box"><div class="band band--pat" data-pat="krovli" aria-hidden="true"></div><p class="k-cap">Кровли: <code>data-pat="krovli"</code></p></div><div class="k-box"><div class="band band--pat" data-pat="znaki" aria-hidden="true"></div><p class="k-cap">Знаки: <code>data-pat="znaki"</code></p></div><div class="k-box"><div class="band band--pat" data-pat="planeta" aria-hidden="true"></div><p class="k-cap">Планета: <code>data-pat="planeta"</code></p></div><div class="k-box"><div class="band band--pat" data-pat="izo" aria-hidden="true"></div><p class="k-cap">Изометрия: <code>data-pat="izo"</code></p></div><div class="k-box"><div class="band band--pat" data-pat="shah" aria-hidden="true"></div><p class="k-cap">Шахматка: <code>data-pat="shah"</code></p></div><div class="k-box"><div class="band band--pat" data-pat="liniya" aria-hidden="true"></div><p class="k-cap">Линия улицы: <code>data-pat="liniya"</code></p></div><div class="k-box"><div class="band band--pat" data-pat="galochki" aria-hidden="true"></div><p class="k-cap">Галочки: <code>data-pat="galochki"</code></p></div><div class="k-box"><div class="band band--pat" data-pat="nadpis" aria-hidden="true"></div><p class="k-cap">Надпись: <code>data-pat="nadpis"</code></p></div></div>
+  <p class="k-cap">Задник секции: <code>&lt;div class="bg3d" data-pat="izo" aria-hidden="true"&gt;</code> первым ребёнком секции <code>.sec--3d</code>; <code>.bg3d--fade</code> растворяет низ в бумагу, в финале паттерн нефритовый.</p>
   <div class="k-grid">
     <div class="k-box"><div class="hb3d hb3d--object" data-object="tower" data-floors="9" data-floor="3" data-interactive data-floor-slider id="k-tower"><canvas role="img" aria-label="Башня в девять этажей, выделен этаж"></canvas></div>
       <div class="k-row" id="k-floors"><button class="btn btn--s" type="button" data-floor="0">Все этажи</button><button class="btn btn--s" type="button" data-floor="2">Этаж 2</button><button class="btn btn--s" type="button" data-floor="7">Этаж 7</button></div>
       <p class="k-cap">Объект: <code>data-object="tower"</code>, <code>data-floors</code>, <code>data-floor</code> (выделенный этаж, 0 = все), <code>data-interactive</code> (поворот мышью), <code>data-floor-slider</code> (ползунок этажа). Снаружи: <code>HBScene.highlightFloor(n, el)</code>, например из строки таблицы лотов.</p></div>
     <div class="k-box"><div class="hb3d hb3d--object" data-object="villa" data-interactive><canvas role="img" aria-label="Вилла на подиуме"></canvas></div>
       <p class="k-cap">Вилла: <code>data-object="villa"</code>, этажей нет.</p></div>
-    <div class="k-box k-wide"><div class="hb3d hb3d--bars" data-bars='[{"label":"Дубай","v":5375},{"label":"Стамбул","v":5015},{"label":"Пафос","v":4053},{"label":"Пхукет","v":3047},{"label":"Чангу","v":2504},{"label":"Батуми","v":2391}]' data-prefix="$" role="img" aria-label="Медиана цены за м² по шести городам, выше всех Дубай $5 375, ниже всех Батуми $2 391"></div>
+    <div class="k-box k-wide"><div class="hb3d hb3d--bars" data-bars='[{"label":"Дубай","v":5375,"tip":"Дубай\nМедиана $5 375 за м²\nПоловина проектов города дешевле, половина дороже"},{"label":"Стамбул","v":5015,"tip":"Стамбул\nМедиана $5 015 за м²\nПоловина проектов города дешевле, половина дороже"},{"label":"Пафос","v":4053,"tip":"Пафос\nМедиана $4 053 за м²\nПоловина проектов города дешевле, половина дороже"},{"label":"Пхукет","v":3047,"tip":"Пхукет\nМедиана $3 047 за м²\nПоловина проектов города дешевле, половина дороже"},{"label":"Чангу","v":2504,"tip":"Чангу\nМедиана $2 504 за м²\nПоловина проектов города дешевле, половина дороже"},{"label":"Батуми","v":2391,"tip":"Батуми\nМедиана $2 391 за м²\nПоловина проектов города дешевле, половина дороже"}]' data-prefix="$" role="img" aria-label="Медиана цены за м² по шести городам, выше всех Дубай $5 375, ниже всех Батуми $2 391"></div>
       <p class="k-cap">Башни-столбики: <code>data-bars</code> JSON <code>[{"label","v"}]</code>, <code>data-prefix</code>, <code>data-suffix</code>. Высота линейна значению, подпись значения обязательна. Список значений строится сам: при живой сцене для скринридера, без WebGL виден вместо башен.</p></div>
-    <div class="k-box"><div class="hb3d hb3d--roofs" data-roofs aria-hidden="true"></div>
-      <p class="k-cap">Кровли: <code>data-roofs</code>, поле крыш в изометрии с медленным дрейфом. Декор, поэтому <code>aria-hidden</code>.</p></div>
+  </div>
+  <h3>Плоский график и точечная карта</h3>
+  <div class="k-grid">
+    <div class="k-box k-wide"><div class="band"><div class="chart" data-bars='[{"label":"Регистрация","v":4580},{"label":"Сбор DLD 4%","v":60000},{"label":"Бюджет 7%","v":105000},{"label":"Бюджет 10%","v":150000}]' data-suffix="&nbsp;AED" role="img" aria-label="Пример расходов на квартиру за 1 500 000 AED"></div><p class="band__cap">Пример для квартиры за 1&nbsp;500&nbsp;000 AED</p></div>
+      <p class="k-cap">График 2D: <code>class="chart" data-bars</code> (тот же JSON, что у 3D, плюс поле <code>tip</code>), рисует <code>hb-ui.js</code>. Для подписей длиннее двух слов и сумм с разным порядком, где 3D-столбики не читаются.</p></div>
+    <div class="k-box k-wide"><div class="band"><div class="dmap" data-dmap data-countries="all" data-href="../nedvizhimost-strana.html" role="group" aria-label="Карта: 11 стран каталога"></div><p class="band__cap">11 стран каталога</p></div>
+      <p class="k-cap">Карта рынков: <code>data-dmap data-countries="all|uae,thailand"</code> и <code>data-href</code>, или свои метки <code>data-pins='[[шир,долг,"Подпись","url"]]'</code>. Вместо Leaflet там, где показаны рынки, а не дома.</p></div>
   </div>
 </div></section>
 
-<section class="sec final sec--3d" aria-labelledby="final-h"><div class="bg3d" data-view="bashni" aria-hidden="true"></div><div class="wrap">
+<section class="sec final sec--3d" aria-labelledby="final-h"><div class="bg3d" data-pat="krovli" data-view="bashni" aria-hidden="true"></div><div class="wrap">
   <h2 id="final-h">Финальный блок на нефрите</h2>
   <p>Нефрит #0E6A40, белый текст. Кнопки <code>.btn--inv</code> и <code>.btn--ghost</code>. Задник умножается на нефрит слабо.</p>
   <div class="contact"><a class="btn btn--big btn--inv" href="https://wa.me/447418316042?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%2C%20%D1%85%D0%BE%D1%87%D1%83%20%D0%BF%D0%B5%D1%80%D1%81%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%83%D1%8E%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8E." target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Написать в WhatsApp</a><a class="btn btn--big btn--inv" href="https://t.me/charlie_hb_bot?start=c1_ru_hb_general" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Написать в Telegram</a><a class="btn btn--big btn--ghost" href="../nedvizhimost.html">Открыть каталог</a></div>
@@ -301,8 +305,7 @@
 <script src="hb-scene.js"></script>
 <script src="hb-ui.js"></script>
 <script>
-/* демо витрины: город задников и кнопки этажей; HBScene есть только после успешного старта сцены */
-document.getElementById('k-cityset').addEventListener('change', e => { if (window.HBScene) HBScene.setCity(e.target.value); });
+/* демо витрины: кнопки этажей; HBScene есть только после успешного старта сцены */
 document.getElementById('k-floors').addEventListener('click', e => { const b = e.target.closest('[data-floor]'); if (b && window.HBScene) HBScene.highlightFloor(+b.dataset.floor, document.getElementById('k-tower')); });
 </script>
 </body>

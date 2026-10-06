@@ -150,6 +150,11 @@
       pop.addEventListener('toggle', e => { const on = e.newState === 'open'; btn.setAttribute('aria-expanded', String(on));
         if (on) { place(); addEventListener('scroll', place, true); addEventListener('resize', place); } else { removeEventListener('scroll', place, true); removeEventListener('resize', place); } });
       return { dd, btn, pop, body, n: $('.fbtn__n', btn) }; });
+    // на компьютере строка не прокручивается: кнопки, которым не хватило места, прячутся с конца, их группы остаются в «Все фильтры»
+    const row = $('.fbar__row', bar);
+    const fit = () => { for (const d of dds) d.dd.hidden = false; if (!row || mob.matches) return;
+      for (let i = dds.length - 1; i > 0 && row.scrollWidth > row.clientWidth + 1; i--) dds[i].dd.hidden = true; };
+    if (row) { fit(); new ResizeObserver(fit).observe(bar); mob.addEventListener('change', fit); }
     // панель «Все фильтры»: группы переезжают в неё и возвращаются при закрытии, поля и их значения остаются те же
     let panel = null, home = [];
     const groups = () => [...dds.map(d => d.body), ...extra];
@@ -274,6 +279,62 @@
     if (thumbs.length) go(0);
     // полноэкранный просмотр кадра
     $('[data-full]', g)?.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : $('.gallery__main', g).requestFullscreen?.());
+  }
+
+  // просмотр картинок на месте: a[data-zoom] (группа по значению атрибута) и листы планировок a.p-plans__i открываются поверх страницы.
+  // Колесо, кнопки +/-, двойной клик и щипок увеличивают к точке, перетаскивание двигает, стрелки и свайп листают, Esc закрывает
+  {
+    const SEL = 'a[data-zoom], a.p-plans__i', links = $$(SEL);
+    if (links.length && window.HTMLDialogElement) {
+      const ic = d => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+      const dlg = document.createElement('dialog'); dlg.className = 'zoom'; dlg.setAttribute('aria-label', 'Просмотр изображения');
+      dlg.innerHTML = `<div class="zoom__bar"><span class="zoom__n" aria-live="polite"></span><span class="zoom__tools">
+<button type="button" class="zoom__b" data-z="-1" aria-label="Уменьшить">${ic('<path d="M5 12h14"/>')}</button><button type="button" class="zoom__b zoom__pct" data-z="0" aria-label="Вписать в экран">100%</button><button type="button" class="zoom__b" data-z="1" aria-label="Увеличить">${ic('<path d="M5 12h14"/><path d="M12 5v14"/>')}</button><button type="button" class="zoom__b" data-close aria-label="Закрыть" autofocus>${ic('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>')}</button></span></div>
+<div class="zoom__stage"><img alt="" draggable="false"></div>
+<button type="button" class="zoom__nav zoom__nav--p" data-step="-1" aria-label="Предыдущее">${ic('<path d="m15 18-6-6 6-6"/>')}</button><button type="button" class="zoom__nav zoom__nav--n" data-step="1" aria-label="Следующее">${ic('<path d="m9 18 6-6-6-6"/>')}</button>`;
+      document.body.append(dlg);
+      const stage = $('.zoom__stage', dlg), img = $('img', stage), num = $('.zoom__n', dlg), pct = $('.zoom__pct', dlg);
+      let set = [], cur = 0, s = 1, x = 0, y = 0;
+      // сдвиг не даёт картинке уйти с экрана: край увеличенной картинки не заходит внутрь сцены
+      const draw = () => { const r = stage.getBoundingClientRect(), mx = Math.max(0, (img.offsetWidth * s - r.width) / 2), my = Math.max(0, (img.offsetHeight * s - r.height) / 2);
+        x = Math.min(mx, Math.max(-mx, x)); y = Math.min(my, Math.max(-my, y));
+        img.style.transform = `translate(${x}px, ${y}px) scale(${s})`; pct.textContent = Math.round(s * 100) + '%'; stage.classList.toggle('is-zoomed', s > 1); };
+      // масштаб к точке окна (cx, cy), без точки к центру сцены: точка под курсором остаётся на месте
+      const zoomTo = (ns, cx, cy) => { ns = Math.min(6, Math.max(1, ns)); const r = stage.getBoundingClientRect();
+        const px = cx == null ? 0 : cx - r.left - r.width / 2, py = cy == null ? 0 : cy - r.top - r.height / 2;
+        x = px - (px - x) * ns / s; y = py - (py - y) * ns / s; s = ns; if (s === 1) x = y = 0; draw(); };
+      const show = i => { cur = (i + set.length) % set.length; const a = set[cur], t = a.querySelector('img');
+        img.src = a.href; img.alt = t ? t.alt : ''; s = 1; x = y = 0; draw();
+        num.textContent = set.length > 1 ? `${cur + 1} из ${set.length}` : ''; for (const b of $$('.zoom__nav', dlg)) b.hidden = set.length < 2; };
+      document.addEventListener('click', e => { const a = e.target.closest(SEL); if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return; e.preventDefault();
+        set = a.dataset.zoom ? links.filter(l => l.dataset.zoom === a.dataset.zoom) : links.filter(l => l.parentElement === a.parentElement);
+        dlg.showModal(); show(set.indexOf(a)); });
+      let moved = false;
+      dlg.addEventListener('click', e => { const b = e.target.closest('button');
+        if (b && b.dataset.step) show(cur + Number(b.dataset.step));
+        else if (b && b.dataset.z) { const z = Number(b.dataset.z); zoomTo(z ? s * (z > 0 ? 1.5 : 1 / 1.5) : 1); }
+        else if ((b && b.hasAttribute('data-close')) || (e.target === stage && !moved)) dlg.close(); });
+      dlg.addEventListener('keydown', e => { const k = e.key;
+        if (k === 'ArrowLeft' || k === 'ArrowRight') { if (set.length > 1) show(cur + (k === 'ArrowLeft' ? -1 : 1)); }
+        else if (k === '+' || k === '=') zoomTo(s * 1.5); else if (k === '-') zoomTo(s / 1.5); else if (k === '0') zoomTo(1); else return;
+        e.preventDefault(); });
+      stage.addEventListener('wheel', e => { e.preventDefault(); zoomTo(s * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY); }, { passive: false });
+      img.addEventListener('dblclick', e => zoomTo(s > 1 ? 1 : 2.5, e.clientX, e.clientY));
+      // мышь и один палец двигают увеличенную картинку, на исходном масштабе свайп листает; два пальца масштабируют
+      const pts = new Map(); let pinch = null, start = null;
+      stage.addEventListener('pointerdown', e => { moved = false; if (e.target !== img) return; try { img.setPointerCapture(e.pointerId); } catch { /* указатель уже отпущен: двигаем без захвата */ }
+        pts.set(e.pointerId, [e.clientX, e.clientY]); start = pts.size === 1 ? [e.clientX, s] : null;
+        if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, s }; } });
+      stage.addEventListener('pointermove', e => { const p = pts.get(e.pointerId); if (!p) return;
+        const dx = e.clientX - p[0], dy = e.clientY - p[1]; pts.set(e.pointerId, [e.clientX, e.clientY]); if (Math.abs(dx) + Math.abs(dy) > 1) moved = true;
+        if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; zoomTo(pinch.s * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); }
+        else if (s > 1) { x += dx; y += dy; draw(); } });
+      const up = e => { if (!pts.delete(e.pointerId)) return; if (pts.size < 2) pinch = null;
+        if (!pts.size && start && start[1] === 1 && s === 1 && set.length > 1 && Math.abs(e.clientX - start[0]) > 60) show(cur + (e.clientX < start[0] ? 1 : -1));
+        if (!pts.size) start = null; };
+      stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+      addEventListener('resize', () => dlg.open && draw());
+    }
   }
 
   // избранное: переключатель aria-pressed
@@ -459,6 +520,90 @@
       r.start();
     });
   });
+  // столбики [data-bars] без класса .hb3d плоским графиком (владелец 07.10.2026: AED-столбики 3D разъезжались); 3D-столбики .hb3d[data-bars] рисует hb-scene.js.
+  // data-bars='[{"label":"Дубай","v":5375,"t":"текст значения","tip":"подсказка"}]' data-prefix="$" data-suffix=" м²"; значение над столбиком, подпись под ним,
+  // подсказка из поля tip или подписи со значением; самый высокий столбик нефритом. Столбик в фокусе с клавиатуры показывает ту же подсказку.
+  const nfmt = v => Number(v).toLocaleString('ru-RU').replace(/\s/g, ' ');
+  const plural = (n, f1, f2, f5) => { const m = n % 100, k = n % 10; return m > 10 && m < 20 ? f5 : k === 1 ? f1 : k > 1 && k < 5 ? f2 : f5; };
+  const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  for (const el of $$('[data-bars]:not(.hb3d)')) {
+    let data = []; try { data = JSON.parse(el.dataset.bars); } catch (_) { continue; }
+    const max = Math.max(...data.map(d => +d.v), 1), txt = d => d.t || (el.dataset.prefix || '') + nfmt(d.v) + (el.dataset.suffix || '');
+    const cols = mk('div', 'chart__cols');
+    for (const d of data) {
+      const c = mk('div', 'chart__c' + (+d.v === max ? ' is-max' : '')); c.tabIndex = 0; c.dataset.tip = d.tip || `${d.label}\n${txt(d)}`; c.style.setProperty('--h', (+d.v / max * 100).toFixed(1));
+      c.append(mk('b', '', txt(d)), mk('i'), mk('span', '', d.label)); cols.append(c);
+    }
+    el.classList.add('chart'); el.replaceChildren(cols);
+  }
+
+  // карта рынков [data-dmap] (решение владельца 07.10.2026: вместо Leaflet со странами и 3D-планеты): точки в стиле паттерна «Планета»,
+  // суша из LAND (hb-data.js), рамка по меткам. Метки: data-countries="all|uae,thailand" (HB_COUNTRIES, число проектов в подсказке)
+  // или data-pins='[[lat,lon,"Страна: пояснение","ссылка"]]'; data-href - ссылка у меток стран; data-ratio - пропорция на широком экране.
+  // Подпись у метки ставится справа, слева, сверху или снизу, где не налезает на соседние; иначе прячется, текст остаётся в подсказке.
+  const dmaps = $$('[data-dmap]');
+  if (dmaps.length && window.LAND) {
+    const isLand = (lat, lon) => { const row = LAND.rows[Math.round((lat - LAND.lat0) / LAND.step)]; if (!row) return false;
+      const j = Math.floor((((lon + 180) % 360) + 360) % 360 / 360 * row[0]); for (let k = 1; k < row.length; k += 2) if (j >= row[k] && j < row[k] + row[k + 1]) return true; return false; };
+    const pinsOf = el => { const d = el.dataset;
+      if (d.countries) { const keys = d.countries === 'all' ? null : d.countries.split(',').map(s => s.trim());
+        return (window.HB_COUNTRIES || []).filter(c => !keys || keys.includes(c.path.split('/').pop())).map(c => ({ lat: c.lat, lon: c.lon, name: c.name, n: +c.n, href: d.href, tip: `${c.name}\n${c.n} ${plural(+c.n, 'проект', 'проекта', 'проектов')} в каталоге` })); }
+      let a = []; try { a = JSON.parse(d.pins || '[]'); } catch (_) {}
+      return a.map(([lat, lon, t, u]) => { const [name, ...r] = String(t).split(': '); return { lat, lon, name, n: 0, href: u, tip: name + (r.length ? '\n' + r.join(': ') : '') }; }); };
+    const drawDmap = el => {
+      const pins = pinsOf(el); if (!pins.length) return;
+      const wide = el.clientWidth >= 640, R = wide ? (+el.dataset.ratio || 2.4) : 1.5;
+      let x0 = Math.min(...pins.map(p => p.lon)), x1 = Math.max(...pins.map(p => p.lon)), y0 = Math.min(...pins.map(p => p.lat)), y1 = Math.max(...pins.map(p => p.lat));
+      const pad = Math.max(10, (x1 - x0) * .14); x0 -= pad; x1 += pad; y0 -= pad * .8; y1 += pad * .8;
+      if ((x1 - x0) / (y1 - y0) < R) { const c = (x0 + x1) / 2, h = (y1 - y0) * R / 2; x0 = c - h; x1 = c + h; } else { const c = (y0 + y1) / 2, h = (x1 - x0) / R / 2; y0 = c - h; y1 = c + h; }
+      const st = Math.max(wide ? 1 : 1.5, (x1 - x0) / (wide ? 110 : 64)), W = Math.round((x1 - x0) / st), H = Math.round((y1 - y0) / st);
+      let land = '', sea = ''; const dot = (x, y, r) => `M${x - r} ${y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0`;
+      for (let i = 0; i < H; i++) for (let j = 0; j < W; j++) { const x = j + .5, y = i + .5; if (isLand(y1 - y * st, x0 + x * st)) land += dot(x, y, .34); else sea += dot(x, y, .13); }
+      const box = mk('div', 'dmap__box'); box.style.aspectRatio = `${W} / ${H}`;
+      box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true" focusable="false"><path class="dmap__sea" d="${sea}"/><path class="dmap__land" d="${land}"/></svg>`;
+      // метки ближе 24px на этой ширине касаются кольцами (метка 20px плюс ободок): Кипр и Северный Кипр, на телефоне весь Ближний Восток. Такие сливаются в одну метку
+      // в среднем месте: названия с общим словом сворачиваются до него («Кипр»), подпись «А, Б» или «А и ещё N»; в подсказке каждая часть своей строкой
+      const cw = el.clientWidth || 600, px = p => [(p.lon - x0) / (x1 - x0) * cw, (y1 - p.lat) / (y1 - y0) * cw * H / W], groups = [];
+      for (const p of pins.sort((a, b) => b.n - a.n)) { const g = groups.find(g => Math.hypot(px(g[0])[0] - px(p)[0], px(g[0])[1] - px(p)[1]) < 24); g ? g.push(p) : groups.push([p]); }
+      const merged = groups.map(g => { if (g.length === 1) return g[0];
+        const words = g.map(p => p.name.split(/[\s()]+/)), short = words.map(ws => ws.find(w => w.length > 3 && words.some(o => o !== ws && o.includes(w))));
+        const names = [...new Set(g.map((p, i) => short[i] || p.name))], name = names.length < 3 ? names.join(', ') : `${names[0]} и ещё ${names.length - 1}`;
+        return { lat: g.reduce((s, p) => s + p.lat, 0) / g.length, lon: g.reduce((s, p) => s + p.lon, 0) / g.length, n: g.reduce((s, p) => s + p.n, 0), href: g[0].href,
+          name, tip: name + '\n' + g.map(p => p.tip.replace('\n', ': ').replace(' в каталоге', '')).join('\n') }; });
+      const items = merged.map(p => { const a = mk(p.href ? 'a' : 'span', 'dmap__pin'); if (p.href) a.href = p.href; else a.tabIndex = 0;
+        a.dataset.tip = p.tip; a.setAttribute('aria-label', p.tip.replace('\n', ': ')); a.style.left = ((p.lon - x0) / (x1 - x0) * 100).toFixed(2) + '%'; a.style.top = ((y1 - p.lat) / (y1 - y0) * 100).toFixed(2) + '%';
+        a.append(mk('i'), mk('span', 'dmap__l', p.name)); box.append(a); return a; });
+      el.replaceChildren(box);
+      // подписи: первая свободная сторона; занятые места - точки всех меток и уже поставленные подписи
+      const hit = (r, s) => r.left < s.right && s.left < r.right && r.top < s.bottom && s.top < r.bottom, bx = box.getBoundingClientRect(), inside = r => r.left >= bx.left && r.right <= bx.right && r.top >= bx.top && r.bottom <= bx.bottom;
+      const taken = items.map(a => a.firstChild.getBoundingClientRect());
+      for (const a of items) { const l = a.lastChild; let ok = false;
+        for (const side of ['r', 'l', 't', 'b']) { a.dataset.side = side; const r = l.getBoundingClientRect(); if (inside(r) && !taken.some(s => hit(r, s))) { taken.push(r); ok = true; break; } }
+        if (!ok) { a.dataset.side = 'r'; a.classList.add('is-nolabel'); } }
+    };
+    for (const el of dmaps) { drawDmap(el); let w = el.clientWidth, t; new ResizeObserver(() => { if (Math.abs(el.clientWidth - w) < 2) return; w = el.clientWidth; clearTimeout(t); t = setTimeout(() => drawDmap(el), 120); }).observe(el); }
+  }
+
+  // «Полезно» [data-like="id"] data-count: нажатие прибавляет один голос, второе снимает; выбор помнится в браузере (hb-like:id),
+  // все кнопки с тем же id на странице синхронны (крупная карточка и список). Без хранилища кнопка работает до перезагрузки.
+  const likes = $$('[data-like]');
+  if (likes.length) {
+    const get = id => { try { return localStorage.getItem('hb-like:' + id) === '1'; } catch (_) { return false; } };
+    const put = (id, on) => { try { on ? localStorage.setItem('hb-like:' + id, '1') : localStorage.removeItem('hb-like:' + id); } catch (_) {} };
+    const paint = (id, on) => { for (const b of likes) if (b.dataset.like === id) { const n = +b.dataset.count + (on ? 1 : 0);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.querySelector('b').textContent = n; b.setAttribute('aria-label', `Полезно: ${n}`); } };
+    for (const b of likes) if (get(b.dataset.like)) paint(b.dataset.like, true);
+    document.addEventListener('click', e => { const b = e.target.closest('[data-like]'); if (!b) return; e.preventDefault();
+      const id = b.dataset.like, on = b.getAttribute('aria-pressed') !== 'true'; put(id, on); paint(id, on); });
+  }
+
+  // сноски: ссылка [1] на источник в той же статье прокручивает его в центр экрана и коротко подсвечивает; фокус переходит на источник
+  document.addEventListener('click', e => { const a = e.target.closest('sup a[href^="#"]'); if (!a) return;
+    const t = document.getElementById(decodeURIComponent(a.hash.slice(1))); if (!t) return; e.preventDefault();
+    t.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    if (!t.hasAttribute('tabindex')) t.tabIndex = -1; t.focus({ preventScroll: true }); history.replaceState(null, '', a.hash);
+    t.classList.remove('is-flash'); void t.offsetWidth; t.classList.add('is-flash'); setTimeout(() => t.classList.remove('is-flash'), 2600); });
+
   // подсказки графиков: [data-tip] показывает пояснение при наведении, фокусе с клавиатуры и касании; плашка .tip одна на страницу.
   // Перевод строки в тексте (&#10; в атрибуте) начинает вторую, мелкую строку. Сцены hb-scene.js зовут window.hbTip.show(x, y, текст) по точке экрана; их блок помечен [data-tip-area], касание в нём плашку не гасит.
   const tip = document.createElement('div'); tip.className = 'tip'; tip.id = 'hb-tip'; tip.setAttribute('role', 'tooltip'); tip.hidden = true; document.body.appendChild(tip);

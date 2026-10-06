@@ -19,6 +19,8 @@
   --fs-card: 16px; --lh-card: 20px; --fs-num-l: 38px; --fs-num-m: 34px; --fs-num-s: 22px;
   --pat-krovli: url("patterns/krovli-podlozhka.svg"); --pat-krovli-jade: url("patterns/krovli-zelenyy.svg");
   --pat-planeta: url("patterns/planeta-bumaga.svg"); --pat-izo: url("patterns/izometriya-bumaga.svg");
+  --pat-liniya: url("patterns/liniya-bumaga.svg"); --pat-znaki: url("patterns/znaki-bumaga.svg"); --pat-shah: url("patterns/shahmatka-bumaga.svg"); --pat-galochki: url("patterns/galochki-bumaga.svg"); --pat-nadpis: url("patterns/nadpis-bumaga.svg");
+  --pat-izo-jade: url("patterns/izometriya-zelenyy.svg"); --pat-planeta-jade: url("patterns/planeta-zelenyy.svg"); --pat-liniya-jade: url("patterns/liniya-zelenyy.svg"); --pat-znaki-jade: url("patterns/znaki-zelenyy.svg"); --pat-galochki-jade: url("patterns/galochki-zelenyy.svg"); --pat-nadpis-jade: url("patterns/nadpis-zelenyy.svg"); --pat-shah-jade: url("patterns/shahmatka-zelenyy.svg");
   --roof: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 83 28'%3E%3Cpath d='M73.761 27.7616C72.879 27.7612 72.0026 27.6207 71.1648 27.3451L41.4006 17.66L11.4238 27.354C9.36463 27.8506 7.19392 27.5519 5.3455 26.5175C3.49708 25.4831 2.10712 23.7892 1.45343 21.7744C0.799743 19.7596 0.930486 17.5723 1.81953 15.6498C2.70858 13.7272 4.29044 12.211 6.24892 11.4041L41.4183 0L76.3662 11.3687C78.2719 11.985 79.8946 13.2619 80.9418 14.9692C81.9891 16.6765 82.3918 18.7017 82.0775 20.6798C81.7631 22.6578 80.7524 24.4584 79.2275 25.757C77.7026 27.0555 75.7639 27.7664 73.761 27.7616V27.7616Z'/%3E%3C/svg%3E");
   color-scheme: light;
 }
@@ -31,6 +33,7 @@ html.dusk, :root[data-theme="dark"] {
   --glass: rgba(18,21,23,.84); --page-0: rgba(18,21,23,0);
   --e2: 0 10px 30px -12px rgba(0,0,0,.5); --e3: 0 24px 60px -24px rgba(0,0,0,.6);
   --pat-krovli: url("patterns/krovli-temnyy.svg"); --pat-planeta: url("patterns/planeta-temnyy.svg"); --pat-izo: url("patterns/izometriya-temnyy.svg");
+  --pat-liniya: url("patterns/liniya-temnyy.svg"); --pat-znaki: url("patterns/znaki-temnyy.svg"); --pat-shah: url("patterns/shahmatka-temnyy.svg"); --pat-galochki: url("patterns/galochki-temnyy.svg"); --pat-nadpis: url("patterns/nadpis-temnyy.svg");
   color-scheme: dark;
 }
 
@@ -297,11 +300,11 @@ tbody tr:hover td { background: color-mix(in srgb, var(--sunken) 50%, transparen
 .roofs li { display: flex; gap: 10px; align-items: baseline; }
 .roofs li::before { content: ""; flex: 0 0 1em; height: .33em; background: var(--accent); -webkit-mask: var(--roof) center / contain no-repeat; mask: var(--roof) center / contain no-repeat; transform: translateY(-.15em); }
 .who { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-.who a { display: grid; gap: 8px; align-content: start; padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; text-decoration: none; color: inherit; transition: border-color .15s; }
+.who a { display: flex; flex-direction: column; gap: 8px; padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; text-decoration: none; color: inherit; transition: border-color .15s; }
 .who a:hover { border-color: var(--control); }
 .who h3 { font-size: var(--fs-card); line-height: var(--lh-card); }
 .who p { font-size: 14px; line-height: 21px; }
-.who .more { margin-top: auto; font-size: 13px; }
+.who .more { margin-top: auto; align-self: flex-start; font-size: 13px; }
 
 /* ---------- фильтр-панель каталога ---------- */
 .filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 14px; padding: 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--e1); }
@@ -468,6 +471,7 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
 .prose { max-width: 680px; font-size: var(--fs-text); line-height: var(--lh-text); color: var(--ink-2); }
 .prose > * + * { margin-top: 16px; }
 .prose h2 { margin-top: 40px; } .prose h3 { margin-top: 28px; font-size: 20px; line-height: 26px; }
+.prose .dev h3 { margin-top: 0; font-size: var(--fs-card); line-height: var(--lh-card); }
 .prose a { color: var(--accent-text); text-underline-offset: 2px; }
 .prose a:hover { color: var(--accent-hover); }
 .prose ul, .prose ol { display: grid; gap: 8px; padding-left: 0; }
@@ -532,6 +536,7 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
 .sample::before { content: "Пример"; position: absolute; right: 10px; top: -10px; z-index: 3; padding: 3px 8px; border-radius: 6px; font: 600 12px/16px "IBM Plex Sans", sans-serif; background: var(--sunken); color: var(--ink-3); border: 1px dashed var(--control); }
 /* у сцен, таблиц и карточек overflow обрезает всё, что выше края: метка внутри рамки, на свободном месте */
 .hb3d.sample::before { top: 8px; left: 8px; right: auto; }
+.band.sample::before { top: 12px; right: 12px; }
 .tbl.sample::before { top: 8px; }
 .card.sample::before { top: 14px; right: 60px; } /* левее кнопки «В избранное» */
 .sample:has(.badge--sample)::before { display: none; } /* своя метка «Пример» уже в бейджах */
@@ -543,6 +548,8 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
 .notice--warn { border-left-color: var(--orange); } .notice--warn > .ic { color: var(--orange); }
 .notice--reg { border-left-color: var(--control); background: var(--sunken); box-shadow: none; } .notice--reg > .ic { color: var(--ink-3); }
 .notice > :not(.ic) { grid-column: 2; }
+/* действия в плашке отдельной строкой под текстом, а не внутри предложения (правка владельца 07.10.2026) */
+.notice__act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
 /* ---------- финал на нефрите ---------- */
 .final { text-align: center; padding: 88px var(--gutter); background: var(--jade); border-top: 0; color: #FFFFFF; }
@@ -566,22 +573,38 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
 .foot__legal a:hover { color: var(--ink); }
 .foot__legal .right { margin-left: auto; }
 
-/* ---------- 3D: блоки сцены и фолбэки ---------- */
-.bg3d { position: absolute; inset: 0 0 auto; z-index: 0; height: min(100%, 100vh); overflow: hidden; pointer-events: none; }
-.bg3d canvas, .hb3d canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .5s; }
-.bg3d.is-live canvas, .hb3d.is-live canvas { opacity: 1; }
+/* ---------- паттерны вместо 3D (решение владельца 07.10.2026: сцены three.js выглядели пластиком) ---------- */
+/* .bg3d - задник секции паттерном брендбука: квартал и башни изометрией, улица и вид сверху кровлями; в финале нефритовые кровли */
+/* какой паттерн (все 8 из брендбука v2): data-pat="krovli|znaki|planeta|izo|shah|liniya|galochki|nadpis" у .bg3d или .band--pat; по умолчанию квартал изометрией, улица линией улицы */
+[data-pat], .bg3d { --p: var(--pat-izo); --pj: var(--pat-izo-jade); --tw: 1115px; }
+.bg3d[data-view="ulica"], [data-pat="liniya"] { --p: var(--pat-liniya); --pj: var(--pat-liniya-jade); --tw: 1200px; }
+[data-pat="krovli"] { --p: var(--pat-krovli); --pj: var(--pat-krovli-jade); --tw: 1200px; }
+[data-pat="znaki"] { --p: var(--pat-znaki); --pj: var(--pat-znaki-jade); --tw: 1120px; }
+[data-pat="shah"] { --p: var(--pat-shah); --pj: var(--pat-shah-jade); --tw: 800px; }
+[data-pat="galochki"] { --p: var(--pat-galochki); --pj: var(--pat-galochki-jade); --tw: 1180px; }
+[data-pat="nadpis"] { --p: var(--pat-nadpis); --pj: var(--pat-nadpis-jade); --tw: 1200px; }
+[data-pat="planeta"] { --p: var(--pat-planeta); --pj: var(--pat-planeta-jade); --tw: 1200px; }
+/* .patbg - фон-паттерн для блоков страниц: url считается от hb.css, поэтому фон объявляется здесь, а не в стиле страницы */
+/* плитки kit/patterns бесшовные (07.10.2026: лист кратен шагу сетки, scratchpad gen/tile.py), поэтому повторяются без стыков; --tw - ширина плитки.
+   Фон секции в 0,9 натуральной величины, лента в 0,5, чтобы в 160px помещалось два-три ряда. «Планета» - карта, а не узор: одна, по размеру блока. */
+.patbg { background: var(--p) center / calc(var(--tw) * .9) auto repeat; }
+.patbg--jade { background-image: var(--pj); }
+.bg3d { position: absolute; inset: 0 0 auto; z-index: 0; height: min(100%, 100vh); overflow: hidden; pointer-events: none; background: var(--p) center / calc(var(--tw) * .9) auto repeat; opacity: .45; }
+.final .bg3d { height: 100%; background-image: var(--pj); opacity: 1; mask: radial-gradient(ellipse 46% 62% at 50% 50%, rgba(0,0,0,.15) 35%, #000 100%); }
 .sec--3d .wrap { position: relative; z-index: 1; }
 .bg3d--fade::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 45%, var(--paper) 100%); }
-/* секция с задником сверху: шапка секции опущена, чтобы над ней был виден 3D */
-.sec--lift { padding-top: 140px; }
 .glass-head { justify-self: start; padding: 20px 24px; background: var(--glass); border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(6px); }
-/* финал: город умножается на нефрит слабо, средний цвет блока остаётся около #0E6A40 */
-.final .bg3d { height: 100%; mix-blend-mode: multiply; opacity: .4; }
+/* лента-паттерн между секциями: только украшение, без подписи */
+.band--pat { height: 160px; background: var(--paper) var(--p) center / calc(var(--tw) * .5) auto repeat; }
+.patbg[data-pat="planeta"], .bg3d[data-pat="planeta"], .band--pat[data-pat="planeta"] { background-size: cover; background-repeat: no-repeat; }
+@media (max-width: 639px) { .band--pat { height: 112px; } }
 .hb3d { position: relative; overflow: hidden; border-radius: 16px; }
+/* 3D оставлено для планеты, столбиков и дома; задники-улицы .bg3d теперь паттерн (владелец 07.10.2026) */
+.hb3d canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .5s; }
+.hb3d.is-live canvas { opacity: 1; }
 .hb3d--object, .hb3d--bars, .hb3d--roofs { background: var(--paper); border: 1px solid var(--line); }
 .hb3d--object { aspect-ratio: 4 / 3; }
 .hb3d--bars { aspect-ratio: 16 / 9; }
-.hb3d--roofs { aspect-ratio: 21 / 9; }
 .hb3d--globe { aspect-ratio: 1 / 1; }
 .hb3d canvas { position: absolute; inset: 0; }
 .hb3d--object canvas { touch-action: pan-y; cursor: grab; }
@@ -594,17 +617,49 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
 .bars3d-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 10px; border-radius: 6px; background: var(--glass); }
 .bars3d-list b { color: var(--ink); }
 /* без WebGL, при Save-Data: статичный паттерн брендбука вместо сцены */
-.no-webgl .bg3d, .no-3d .bg3d { background: var(--pat-krovli) center / 1100px auto; opacity: .35; }
-.no-webgl .final .bg3d, .no-3d .final .bg3d { background-image: var(--pat-krovli-jade); mix-blend-mode: normal; opacity: 1; }
 .no-webgl .stage, .no-3d .stage { background: var(--pat-planeta) right center / auto 120% no-repeat; }
 .no-webgl .hb3d--globe, .no-3d .hb3d--globe { background: var(--paper) var(--pat-planeta) center / cover; }
 .no-webgl .hb3d--object, .no-3d .hb3d--object { background: var(--paper) var(--pat-izo) center / cover; }
-/* «Кровли» всегда плоским паттерном брендбука, без 3D (решение владельца 06.10.2026) */
-.hb3d--roofs { background: var(--paper) var(--pat-krovli) center / cover; }
 .no-webgl .hb3d--bars, .no-3d .hb3d--bars { background: var(--paper); }
 .no-webgl .hb3d__list, .no-3d .hb3d__list { inset: 16px; width: auto; height: auto; overflow: auto; clip: auto; clip-path: none; white-space: normal; display: grid; align-content: center; }
 .no-webgl .hb3d__ui, .no-3d .hb3d__ui { display: none; }
 .no-webgl .hint, .no-3d .hint { display: none; }
+.hb3d--roofs { aspect-ratio: 21 / 9; background: var(--paper) var(--pat-krovli) center / cover; border: 1px solid var(--line); }
+
+/* 2D-график [data-bars] (hb-ui.js): значение над столбиком, подпись под ним, линия основания; самый высокий нефритом */
+.chart__cols { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; align-items: end; height: 240px;
+  background: linear-gradient(var(--line), var(--line)) 0 calc(100% - 42px) / 100% 1px no-repeat; }
+.chart__c { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%; min-width: 0; text-align: center; border-radius: 6px; }
+.chart__c b { font-size: 14px; line-height: 18px; font-weight: 600; color: var(--ink); }
+.chart__c i { display: block; width: min(100%, 112px); height: max(4px, calc((100% - 72px) * var(--h) / 100)); border-radius: 6px 6px 0 0; background: var(--tint); box-shadow: inset 0 3px 0 var(--accent); transition: background .15s; }
+.chart__c.is-max i { background: var(--jade); box-shadow: none; }
+.chart__c span { min-height: 36px; font-size: 13px; line-height: 18px; color: var(--ink-3); }
+.chart__cols:has(.is-tip) .chart__c:not(.is-tip) i { opacity: .45; }
+.chart__c.is-tip span { color: var(--ink); }
+.band:has(> .chart) { height: auto; display: grid; gap: 16px; padding: 24px; }
+.band:has(> .chart) > .band__cap { position: static; order: -1; max-width: none; padding: 0; border: 0; background: none; font: 600 16px/22px "Geologica", sans-serif; color: var(--ink); }
+@media (max-width: 639px) { .chart__cols { gap: 8px; height: 220px; } .chart__c b { font-size: 12px; line-height: 16px; } .chart__c span { font-size: 12px; line-height: 16px; min-height: 32px; } .chart__cols { background-position: 0 calc(100% - 38px); } .band:has(> .chart) { padding: 16px; } }
+
+/* карта рынков [data-dmap] (hb-ui.js): точки паттерна «Планета», метка страны с подписью, подсказка с числом проектов */
+.dmap { position: relative; align-self: center; }
+.dmap__box { position: relative; width: 100%; }
+.dmap__box svg { display: block; width: 100%; height: 100%; }
+.dmap__land { fill: var(--accent); opacity: .8; }
+.dmap__sea { fill: var(--tint); }
+.dmap__pin { position: absolute; z-index: 1; width: 0; height: 0; color: var(--ink); text-decoration: none; }
+.dmap__pin i { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; border-radius: 50%; background: var(--paper); border: 5px solid var(--jade); box-shadow: 0 0 0 3px var(--paper), var(--e2); transition: transform .15s; }
+.dmap__pin::before { content: ""; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; }
+.dmap__l { position: absolute; white-space: nowrap; padding: 3px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font: 600 13px/18px "Geologica", sans-serif; box-shadow: var(--e1); }
+.dmap__pin[data-side="r"] .dmap__l { left: 16px; top: 0; transform: translateY(-50%); }
+.dmap__pin[data-side="l"] .dmap__l { right: 16px; top: 0; transform: translateY(-50%); }
+.dmap__pin[data-side="t"] .dmap__l { bottom: 16px; left: 0; transform: translateX(-50%); }
+.dmap__pin[data-side="b"] .dmap__l { top: 16px; left: 0; transform: translateX(-50%); }
+.dmap__pin.is-nolabel .dmap__l { display: none; }
+.dmap__pin:hover, .dmap__pin.is-tip { z-index: 2; }
+.dmap__pin:hover i, .dmap__pin.is-tip i { transform: scale(1.15); }
+.dmap__pin:hover .dmap__l, .dmap__pin.is-tip .dmap__l { border-color: var(--accent); }
+.band:has(> .dmap) { height: auto; }
+.band:has(> .dmap) > .band__cap { position: static; margin: 0 16px 16px; }
 
 /* ---------- reveal ---------- */
 .reveal { opacity: 1; transform: none; transition: opacity .6s ease, transform .6s ease; }
@@ -648,7 +703,7 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   .hint { left: var(--gutter); right: var(--gutter); top: 72px; white-space: normal; text-align: center; line-height: 1.4; }
   .co { width: max-content; max-width: min(300px, calc(100vw - 32px)); white-space: normal; text-align: center; }
   .co--pin { display: none; }
-  .sec { padding: 52px var(--gutter); } .sec--band { padding: 32px var(--gutter); } .sec--lift { padding-top: 120px; }
+  .sec { padding: 52px var(--gutter); } .sec--band { padding: 32px var(--gutter); }
   .phead { padding: 12px var(--gutter) 28px; } .phead__grid { grid-template-columns: 1fr; } .band { height: 180px; border-radius: 16px; } .band:has(> .hb3d--bars) { height: 260px; } .no-3d .band:has(> .hb3d--bars), .no-webgl .band:has(> .hb3d--bars) { height: auto; }
   .phero { padding: 12px var(--gutter) 0; } .phero > .wrap { grid-template-columns: 1fr; min-height: 0; }
   .phero__r { position: relative; inset: auto; height: 240px; margin: 8px calc(-1 * var(--gutter)) 0; }
@@ -788,9 +843,9 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
 @media (max-width: 480px) { .cards--3 { grid-template-columns: 1fr; } }
 .ask__bar .ask__mic[hidden] { display: none; }
 /* поиск по названию в строке фильтров */
-.fbar__q { position: relative; flex: 0 1 214px; min-width: 150px; }
+.fbar__q { position: relative; flex: 0 1 190px; min-width: 150px; }
 .fbar__q .ic { position: absolute; left: 12px; top: 50%; width: 18px; height: 18px; margin-top: -9px; color: var(--ink-3); pointer-events: none; }
-.fbar__q .input { min-height: 44px; padding-left: 38px; }
+.fbar__q .input { min-height: 44px; padding-left: 38px; padding-right: 8px; text-overflow: ellipsis; }
 .consult--wide { margin-top: 8px; }
 .qchips { margin-top: 4px; }
 @media (max-width: 899px) { .fbar__q { flex: none; width: 100%; } .fmeta .view { order: 3; } }
@@ -840,3 +895,38 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
 .pscale__band[data-tip]:hover, .pscale__band.is-tip { background: color-mix(in srgb, var(--accent) 30%, var(--tint)); }
 .plan li[data-tip].is-tip, .p-types li[data-tip].is-tip { background: var(--tint); }
 .p-types li[data-tip] { border-radius: 6px; }
+
+/* просмотр картинок на месте (hb-ui: a[data-zoom], листы планировок .p-plans__i) */
+.zoom { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0e1012; color: #fff; overscroll-behavior: contain; }
+.zoom[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.zoom::backdrop { background: transparent; }
+html:has(.zoom[open]) { overflow: hidden; }
+.zoom__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; }
+.zoom__n { font-size: 14px; line-height: 20px; color: rgba(255, 255, 255, .78); }
+.zoom__tools { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.zoom__b, .zoom__nav { display: inline-grid; place-items: center; min-width: 44px; height: 44px; padding: 0 10px; border: 1px solid rgba(255, 255, 255, .24); border-radius: 12px; background: rgba(14, 16, 18, .6); color: #fff; font: 600 14px/1 "IBM Plex Sans", system-ui, sans-serif; cursor: pointer; }
+.zoom__b:hover, .zoom__nav:hover { background: rgba(255, 255, 255, .12); }
+.zoom__b:focus-visible, .zoom__nav:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.zoom__pct { min-width: 66px; font-variant-numeric: tabular-nums; }
+.zoom__stage { display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; padding: 0 76px 24px; touch-action: none; cursor: zoom-out; }
+.zoom__stage img { max-width: 100%; max-height: calc(100dvh - 92px); border-radius: 8px; background: #fff; transform-origin: center; cursor: zoom-in; user-select: none; -webkit-user-drag: none; }
+.zoom__stage.is-zoomed img { cursor: grab; } .zoom__stage.is-zoomed img:active { cursor: grabbing; }
+.zoom__nav { position: absolute; top: 50%; margin-top: -22px; }
+.zoom__nav--p { left: 16px; } .zoom__nav--n { right: 16px; }
+.zoom__nav[hidden] { display: none; }
+@media (max-width: 639px) { .zoom__stage { padding: 0 8px 16px; } .zoom__nav { top: auto; bottom: 24px; margin: 0; } .zoom__nav--p { left: 12px; } .zoom__nav--n { right: 12px; } .zoom__pct { display: none; } }
+
+/* «Полезно» [data-like] (hb-ui.js): счётчик и нажатое состояние; кнопка поверх растянутой ссылки карточки */
+.like { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-2); font: 500 13px/18px "IBM Plex Sans", sans-serif; cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+.like .ic { width: 16px; height: 16px; }
+.like b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.like:hover { border-color: var(--control); color: var(--ink); }
+.like[aria-pressed="true"] { border-color: var(--accent); background: var(--tint); color: var(--accent-text); }
+.like[aria-pressed="true"] .ic { fill: currentColor; fill-opacity: .2; }
+.like--s { min-height: 32px; padding: 0 10px; font-size: 12px; }
+.like--s span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+/* сноска: цель перехода по ссылке [1] вспыхивает подложкой, без движения при reduced-motion */
+.is-flash { animation: hb-flash 2.4s ease-out; border-radius: 8px; }
+.is-flash:focus, [tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
+@keyframes hb-flash { 0%, 35% { background: var(--tint); box-shadow: 0 0 0 6px var(--tint); } 100% { background: transparent; box-shadow: 0 0 0 6px transparent; } }
+@media (prefers-reduced-motion: reduce) { .is-flash { animation: none; background: var(--tint); box-shadow: 0 0 0 6px var(--tint); } }

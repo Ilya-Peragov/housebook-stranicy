@@ -38,7 +38,6 @@
 .p-cond span { font-size: 14px; line-height: 20px; color: var(--ink-2); }
 .p-seg4 { flex-wrap: wrap; }
 .fmeta .p-feat { align-self: center; align-items: center; margin: 0; }
-.p-amap { height: clamp(300px, 34vw, 440px); border-radius: 16px; overflow: hidden; }
 .p-quick { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
 .p-quick p { color: var(--ink-2); }
 @media (max-width: 899px) { .p-split { grid-template-columns: minmax(0, 1fr); } }
@@ -143,9 +142,8 @@
 </div></section>
 
 <section class="sec" id="geo" aria-labelledby="geo-h"><div class="wrap">
-  <div class="band p-band-in sample"><div class="hb3d hb3d--globe" data-globe data-aim="12,90" data-pins="uae,thailand,indonesia,georgia,northern-cyprus" data-markets="none" data-pin-href="nedvizhimost-strana.html"><canvas role="img" aria-label="Пример: планета с метками пяти стран, где показаны примеры предложений"></canvas></div><p class="band__cap">Пять стран, где сейчас показаны примеры: ОАЭ, Таиланд, Индонезия, Грузия, Северный Кипр.</p></div>
   <div class="p-split">
-    <div class="cmap p-amap" data-auto data-zoom="3" data-pins='[[25.2, 55.27, "ОАЭ: пример коммерции", "investitsii-offer.html"], [7.88, 98.39, "Таиланд: примеры земли и финансирования", "investitsii-offer.html"], [-8.65, 115.14, "Индонезия: пример отеля", "investitsii-offer.html"], [41.64, 41.64, "Грузия: пример девелопмента", "investitsii-offer.html"], [35.34, 33.32, "ТРСК (Северный Кипр): пример долей", "investitsii-offer.html"]]' role="region" aria-label="Карта: страны, где показаны примеры предложений, точка открывает пример карточки"></div>
+    <div class="dmap" data-dmap data-pins='[[25.2, 55.27, "ОАЭ: пример коммерции", "investitsii-offer.html"], [7.88, 98.39, "Таиланд: примеры земли и финансирования", "investitsii-offer.html"], [-8.65, 115.14, "Индонезия: пример отеля", "investitsii-offer.html"], [41.64, 41.64, "Грузия: пример девелопмента", "investitsii-offer.html"], [35.34, 33.32, "ТРСК (Северный Кипр): пример долей", "investitsii-offer.html"]]' role="group" aria-label="Карта: страны, где показаны примеры предложений, точка открывает пример карточки"></div>
     <div class="p-side">
       <div class="sec__head"><p class="eyebrow">География</p><h2 id="geo-h">Где сейчас показаны примеры</h2><p class="lead">ОАЭ, Таиланд, Индонезия, Грузия и Северный Кипр. Точка на карте открывает пример карточки.</p></div>
       <div class="notice notice--reg"><svg class="ic" aria-hidden="true"><use href="#i-shield-check"/></svg><p class="notice__t">Почему каталог закрыт</p><p>Предложения приходят от собственников и девелоперов напрямую и часто не публикуются по их условию. Расчёты в карточках показывают допущения, а не обещание дохода: результат зависит от рынка, срока и исполнения проекта.</p></div>
@@ -166,7 +164,7 @@
 </div></section>
 
 <section class="sec sec--tint" id="napisat" aria-labelledby="napisat-h"><div class="wrap">
-  <div class="band p-band-in"><div class="bg3d" data-view="sverhu" aria-hidden="true"></div><p class="band__cap">Иллюстрация: остров сверху.</p></div>
+  <div class="band band--pat p-band-in" data-pat="krovli" aria-hidden="true"></div>
   <div class="p-quick"><div><h2 id="napisat-h" class="p-h3">Обсудим, что Вы ищете</h2><p>Напишите бюджет и интерес, эксперт ответит в течение 30 минут в рабочее время.</p></div><div class="contact"><a class="btn btn--big" href="https://wa.me/447418316042?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%2C%20%D1%85%D0%BE%D1%87%D1%83%20%D0%BF%D0%B5%D1%80%D1%81%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%83%D1%8E%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D0%B8." target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>WhatsApp</a><a class="btn btn--big" href="https://t.me/charlie_hb_bot?start=c1_ru_hb_general" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Telegram</a><a class="btn btn--big btn--ghost" href="investitsii.html">Все рынки</a></div></div>
 </div></section>
 </main>
@@ -191,7 +189,7 @@
   <form class="ask" action="nedvizhimost.html" method="get" role="search"><label class="sr-only" for="aid-q">Ваш запрос</label><div class="ask__bar"><input id="aid-q" name="q" type="text" placeholder="Напишите Ваш запрос" autocomplete="off"><button class="btn btn--acc" type="submit">Спросить AI</button></div><div class="ask__hints"><a href="nedvizhimost-strana.html">Квартира в Грузии до $100&nbsp;000</a><a href="investitsii.html">Объект под сдачу в аренду</a><a href="nedvizhimost-strana.html">Квартира в ОАЭ до $300&nbsp;000</a></div></form>
   <div class="contact"><a class="btn btn--big btn--tint" href="https://wa.me/447418316042?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%2C%20%D1%85%D0%BE%D1%87%D1%83%20%D0%BF%D0%B5%D1%80%D1%81%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%83%D1%8E%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8E." target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Написать в WhatsApp</a><a class="btn btn--big btn--tint" href="https://t.me/charlie_hb_bot?start=c1_ru_hb_general" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Написать в Telegram</a></div>
 </div></dialog>
-<!-- скрипты: порядок важен (данные, сцена, интерфейс; three.js сцена грузит сама и только на сильных устройствах); не менять -->
+<!-- скрипты: порядок важен (данные, интерфейс); не менять -->
 <dialog class="leadm" id="lead" aria-labelledby="lead-t"><div class="leadm__in">
   <div class="leadm__head"><h2 id="lead-t">Получите персональное предложение</h2><button type="button" class="x" data-close aria-label="Закрыть окно"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   <p class="support">Подберём проекты под Ваш бюджет и посчитаем полную стоимость покупки. <span class="leadm__eta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Эксперт свяжется в течение 30 минут</span></p>
@@ -207,7 +205,6 @@
   </form>
 </div></dialog>
 <script src="kit/hb-data.js"></script>
-<script src="kit/hb-scene.js"></script>
 <script src="kit/hb-ui.js"></script>
 </body>
 </html>

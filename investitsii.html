@@ -34,7 +34,6 @@
 .p-ph > .wrap { display: grid; gap: 16px; }
 .p-hf { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .p-atlas { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
-.p-amap { height: clamp(300px, 34vw, 420px); }
 .p-atlas__list { display: grid; gap: 12px; align-content: start; margin: 0; padding: 18px; list-style: none; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
 .p-atlas__r { font: 600 12px/16px "Geologica", sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 .p-atlas__list ul { display: grid; gap: 2px; margin: 4px 0 0; padding: 0; list-style: none; }
@@ -146,7 +145,7 @@
   <p class="lead">Раздел устроен как терминал сравнения: сначала цифры по всем странам из одного источника, потом гид по стране, где право, визы и налоги разобраны со ссылкой на источник. Точки на карте ведут туда, где мы отвечаем за факты.</p>
   <dl class="facts p-hf"><div><dt>стран в каталоге</dt><dd>11</dd></div><div><dt>проектов в продаже</dt><dd>1&nbsp;214</dd></div><div><dt>вилка цены входа</dt><dd>$39&nbsp;780 - $306&nbsp;113</dd></div></dl>
   <div class="p-atlas">
-    <div class="cmap p-amap" data-auto data-zoom="3" data-pins='[[25.2, 55.27, "ОАЭ: 454 проекта", "investitsii-strana.html"], [7.88, 98.39, "Таиланд: 329 проектов", "investitsii-strana.html"], [-8.65, 115.14, "Индонезия: 150 проектов", "investitsii-strana.html"], [41.01, 28.98, "Турция: 70 проектов", "investitsii-strana.html"], [35.34, 33.32, "ТРСК (Северный Кипр): 61 проект", "investitsii-strana.html"], [41.64, 41.64, "Грузия: 40 проектов", "investitsii-strana.html"], [34.77, 32.42, "Республика Кипр: 39 проектов", "investitsii-strana.html"], [40.41, 49.87, "Азербайджан: 23 проекта", "investitsii-strana.html"], [-33.45, -70.67, "Чили: 23 проекта", "investitsii-strana.html"], [24.71, 46.68, "Саудовская Аравия: 17 проектов", "investitsii-strana.html"], [8.98, -79.52, "Панама: 8 проектов", "investitsii-strana.html"]]' role="region" aria-label="Карта стран каталога: точка ведёт в гид страны"></div>
+    <div class="dmap" data-dmap data-pins='[[25.2, 55.27, "ОАЭ: 454 проекта", "investitsii-strana.html"], [7.88, 98.39, "Таиланд: 329 проектов", "investitsii-strana.html"], [-8.65, 115.14, "Индонезия: 150 проектов", "investitsii-strana.html"], [41.01, 28.98, "Турция: 70 проектов", "investitsii-strana.html"], [35.34, 33.32, "ТРСК (Северный Кипр): 61 проект", "investitsii-strana.html"], [41.64, 41.64, "Грузия: 40 проектов", "investitsii-strana.html"], [34.77, 32.42, "Республика Кипр: 39 проектов", "investitsii-strana.html"], [40.41, 49.87, "Азербайджан: 23 проекта", "investitsii-strana.html"], [-33.45, -70.67, "Чили: 23 проекта", "investitsii-strana.html"], [24.71, 46.68, "Саудовская Аравия: 17 проектов", "investitsii-strana.html"], [8.98, -79.52, "Панама: 8 проектов", "investitsii-strana.html"]]' role="group" aria-label="Карта стран каталога: точка ведёт в гид страны"></div>
     <ol class="p-atlas__list"><li><p class="p-atlas__r">Залив</p><ul><li><a href="investitsii-strana.html">ОАЭ</a><span>454 проекта</span></li><li><a href="investitsii-strana.html">Саудовская Аравия</a><span>17 проектов</span></li></ul></li><li><p class="p-atlas__r">Азия и Индийский океан</p><ul><li><a href="investitsii-strana.html">Таиланд</a><span>329 проектов</span></li><li><a href="investitsii-strana.html">Индонезия</a><span>150 проектов</span></li></ul></li><li><p class="p-atlas__r">Средиземноморье</p><ul><li><a href="investitsii-strana.html">Турция</a><span>70 проектов</span></li><li><a href="investitsii-strana.html">ТРСК (Северный Кипр)</a><span>61 проект</span></li><li><a href="investitsii-strana.html">Республика Кипр</a><span>39 проектов</span></li></ul></li><li><p class="p-atlas__r">Кавказ и Каспий</p><ul><li><a href="investitsii-strana.html">Грузия</a><span>40 проектов</span></li><li><a href="investitsii-strana.html">Азербайджан</a><span>23 проекта</span></li></ul></li><li><p class="p-atlas__r">Латинская Америка</p><ul><li><a href="investitsii-strana.html">Чили</a><span>23 проекта</span></li><li><a href="investitsii-strana.html">Панама</a><span>8 проектов</span></li></ul></li></ol>
   </div>
   <p class="note">На карте отмечены только страны, по которым у нас есть активные проекты в каталоге. Агрегаты каталога Housebook, курс снят 6&nbsp;октября 2026&nbsp;г.</p>
@@ -332,7 +331,7 @@
 </div></section>
 
 <section class="sec" id="brifing" aria-labelledby="brifing-h"><div class="wrap">
-  <div class="band p-band-in"><div class="bg3d" data-view="bashni" aria-hidden="true"></div><p class="band__cap">Иллюстрация: квартал башен.</p></div>
+  <div class="band band--pat p-band-in" data-pat="izo" aria-hidden="true"></div>
   <div class="p-split">
     <div class="sec__head"><p class="eyebrow">Брифинг с экспертом</p><h2 id="brifing-h">Личная консультация инвестиционного аналитика</h2><p class="lead">Сравним варианты по цене, площади и локации и ответим на вопросы по сделке. Бесплатно и ни к чему не обязывает.</p></div>
     <form class="form" action="#brifing" method="post">

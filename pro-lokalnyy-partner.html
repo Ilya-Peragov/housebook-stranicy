@@ -45,7 +45,7 @@
 .p-path { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 24px; margin: 0; padding: 0; list-style: none; counter-reset: none; }
 .p-path li { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; align-items: start; }
 .p-path__n { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--ink); border-radius: 50%; font: 600 16px/1 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); }
-.p-path h3 { font-size: 17px; line-height: 23px; margin-bottom: 4px; } .p-path p { font-size: 15px; line-height: 22px; color: var(--ink-2); }
+.p-path h3 { font-size: 17px; line-height: 23px; margin-bottom: 4px; padding-top: 8px; } .p-path p { font-size: 15px; line-height: 22px; color: var(--ink-2); }
 .p-net { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .p-net__c { display: grid; gap: 8px; align-content: start; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
 .p-net__c h3 { font-size: 20px; line-height: 26px; } .p-net__c p { color: var(--ink-2); }
@@ -154,7 +154,7 @@
 </div></section>
 
 <section class="sec" id="komu" aria-labelledby="komu-h"><div class="wrap">
-  <div class="band p-band-in"><div class="bg3d" data-view="ulica" data-city="istanbul" aria-hidden="true"></div><p class="band__cap">Иллюстрация: улица Стамбула. Локальный партнёр работает на рынке, который знает изнутри.</p></div>
+  <div class="band band--pat p-band-in" data-pat="liniya" aria-hidden="true"></div>
   <div class="p-two"><div class="sec__head"><p class="eyebrow">Кому подходит</p><h2 id="komu-h">Кому это подходит</h2><p class="lead">Локальный партнёр закрывает сделку. Это работа для того, кто уже умеет говорить с покупателем и доводить его до подписания, а не для того, кто ищет, где взять первый контакт.</p></div>
   <ul class="p-chk"><li><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><span>Вы работаете с недвижимостью в своей стране и знаете местный рынок новостроек изнутри.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><span>Вы умеете вести покупателя от первого разговора до подписания и не боитесь длинного цикла.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><span>Вы готовы отвечать на заявку в оговорённый срок, а не когда дойдут руки.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><span>Вам нужен поток покупателей и готовый каталог, а не ещё один сайт и ещё один рекламный кабинет.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><span>Вы готовы пройти проверку личности и документов: без неё заявки клиентов не выдаются.</span></li></ul></div>
 </div></section>
@@ -223,7 +223,7 @@
 </div></section>
 
 <section class="sec sec--paper" aria-labelledby="dveri-h"><div class="wrap">
-  <div class="band p-band-in"><div class="bg3d" data-view="ulica" aria-hidden="true"></div><p class="band__cap">Иллюстрация: улица Стамбула.</p></div>
+  <div class="band band--pat p-band-in" data-pat="galochki" aria-hidden="true"></div>
   <div class="p-doors2"><h2 id="dveri-h" class="p-h3">Другие двери Housebook Pro</h2><nav class="p-dl" aria-label="Другие двери"><a href="pro.html">Housebook Pro<svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></a><a href="pro-agent.html">Агент<svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></a><a href="pro-zastroyshchik.html">Застройщик<svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></a><a href="pro-set.html">Реферальная сеть<svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></a><a href="#">Войти в кабинет<svg class="ic" aria-hidden="true"><use href="#i-chevron-right"/></svg></a></nav></div>
 </div></section>
 </main>
@@ -248,7 +248,7 @@
   <form class="ask" action="nedvizhimost.html" method="get" role="search"><label class="sr-only" for="aid-q">Ваш запрос</label><div class="ask__bar"><input id="aid-q" name="q" type="text" placeholder="Напишите Ваш запрос" autocomplete="off"><button class="btn btn--acc" type="submit">Спросить AI</button></div><div class="ask__hints"><a href="nedvizhimost-strana.html">Квартира в Грузии до $100&nbsp;000</a><a href="investitsii.html">Объект под сдачу в аренду</a><a href="nedvizhimost-strana.html">Квартира в ОАЭ до $300&nbsp;000</a></div></form>
   <div class="contact"><a class="btn btn--big btn--tint" href="https://wa.me/447418316042?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%2C%20%D1%85%D0%BE%D1%87%D1%83%20%D0%BF%D0%B5%D1%80%D1%81%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%83%D1%8E%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8E." target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Написать в WhatsApp</a><a class="btn btn--big btn--tint" href="https://t.me/charlie_hb_bot?start=c1_ru_hb_general" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Написать в Telegram</a></div>
 </div></dialog>
-<!-- скрипты: порядок важен (данные, сцена, интерфейс; three.js сцена грузит сама и только на сильных устройствах); не менять -->
+<!-- скрипты: порядок важен (данные, интерфейс); не менять -->
 <dialog class="leadm" id="lead" aria-labelledby="lead-t"><div class="leadm__in">
   <div class="leadm__head"><h2 id="lead-t">Получите персональное предложение</h2><button type="button" class="x" data-close aria-label="Закрыть окно"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   <p class="support">Подберём проекты под Ваш бюджет и посчитаем полную стоимость покупки. <span class="leadm__eta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Эксперт свяжется в течение 30 минут</span></p>
@@ -264,7 +264,6 @@
   </form>
 </div></dialog>
 <script src="kit/hb-data.js"></script>
-<script src="kit/hb-scene.js"></script>
 <script src="kit/hb-ui.js"></script>
 </body>
 </html>

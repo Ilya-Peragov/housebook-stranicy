@@ -26,19 +26,15 @@
 <script>try{if(localStorage.getItem('hb-night')==='1')document.documentElement.classList.add('dusk')}catch(e){}</script>
 <style>
 /* .p- компоненты гида страны */
-.p-hero { position: relative; isolation: isolate; overflow: hidden; padding: 28px var(--gutter) 40px;
-  --ink:#FFFFFF; --ink-2:#E2E7EA; --ink-3:#B0B5B8; --accent-text:#8FC1A3; color: var(--ink-2); background: #121517; }
-.p-hero__bg { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(18,21,23,.92) 0%, rgba(18,21,23,.78) 45%, rgba(18,21,23,.35) 100%), url("https://housebook.global/images/hero-stream/uae-1.webp") center / cover no-repeat; }
+/* шапка гида: светлая, паттерн «Изометрия» справа растворяется к тексту; цифры на белых карточках (решение владельца 07.10.2026: фото не в стиле) */
+.p-hero { position: relative; isolation: isolate; overflow: hidden; padding: 28px var(--gutter) 40px; background: var(--page); }
+.p-hero__bg { position: absolute; inset: 0; z-index: -1; background-position: right center;
+  -webkit-mask: linear-gradient(90deg, transparent 58%, rgba(0,0,0,.55) 92%); mask: linear-gradient(90deg, transparent 58%, rgba(0,0,0,.55) 92%); }
 .p-hero > .wrap { display: grid; gap: 14px; }
-.p-hero .crumbs a, .p-hero .crumbs span { color: var(--ink-2); }
-.p-hero .lead { color: var(--ink-2); }
 .p-kpi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
-.p-kpi > div { display: grid; gap: 4px; align-content: start; padding: 16px 18px; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; background: rgba(18,21,23,.55); }
+.p-kpi > div { display: grid; gap: 4px; align-content: start; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: var(--e1); }
 .p-kpi dt { font-size: 13px; color: var(--ink-3); } .p-kpi dd { font: 600 var(--fs-num-s)/1.15 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); }
 .p-kpi small { font-size: 12px; line-height: 16px; color: var(--ink-3); }
-.p-hero .btn:not(.btn--acc) { background: rgba(255,255,255,.08); color: #FFFFFF; border-color: rgba(255,255,255,.45); }
-.p-hero .btn:not(.btn--acc):hover { background: rgba(255,255,255,.16); }
-.p-hero__cr { font-size: 12px; color: var(--ink-3); }
 .p-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 .p-side { display: grid; gap: 12px; margin-top: 18px; }
 .p-box { display: grid; gap: 12px; align-content: start; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
@@ -139,7 +135,7 @@
   <div class="contact"><a class="btn btn--big btn--tint" href="https://wa.me/447418316042?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%2C%20%D1%85%D0%BE%D1%87%D1%83%20%D0%BF%D0%B5%D1%80%D1%81%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%83%D1%8E%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8E." target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Написать в WhatsApp</a><a class="btn btn--big btn--tint" href="https://t.me/charlie_hb_bot?start=c1_ru_hb_general" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Написать в Telegram</a></div>
 </div></dialog>
 <main id="main">
-<section class="p-hero" aria-labelledby="h1"><div class="p-hero__bg" aria-hidden="true"></div><div class="wrap">
+<section class="p-hero" aria-labelledby="h1"><div class="p-hero__bg patbg" data-pat="izo" aria-hidden="true"></div><div class="wrap">
   <nav class="crumbs" aria-label="Хлебные крошки"><ol><li><a href="kit/glavnaya.html">Главная</a></li><li><a href="investitsii.html">Инвестиции</a></li><li><span aria-current="page">ОАЭ</span></li></ol></nav>
   <p class="eyebrow">Инвестиционный гид</p>
   <h1 id="h1">Инвестиции в недвижимость в ОАЭ</h1>
@@ -151,7 +147,6 @@
     <div><dt>Проектов в каталоге</dt><dd>454</dd><small>Активные проекты на 6&nbsp;октября 2026</small></div>
     <div><dt>Средняя валовая доходность</dt><dd>6,68%</dd><small>Источник: Sands of Wealth, апрель 2026</small></div>
   </dl>
-  <p class="p-hero__cr">Фото: M. Omar, Pexels</p>
 </div></section>
 
 <section class="sec" id="korotko" aria-labelledby="korotko-h"><div class="wrap">
@@ -185,7 +180,7 @@
 </div></section>
 
 <section class="sec sec--paper" id="pravila" aria-labelledby="pravila-h"><div class="wrap">
-  <div class="band p-band-in"><div class="bg3d" data-view="bashni" data-city="dubai" aria-hidden="true"></div><p class="band__cap">Дубай: здесь 372 из 454 проектов ОАЭ в каталоге, сделка регистрируется в DLD</p></div>
+  <div class="band band--pat p-band-in" data-pat="izo" aria-hidden="true"></div>
   <div class="sec__head"><p class="eyebrow">Правила</p><h2 id="pravila-h">Правила покупки в ОАЭ</h2><p class="lead">Четыре вопроса, которые решают сделку. У каждого ответа главная цифра и источник, подробности раскрываются.</p></div>
   <div class="p-rules"><article class="p-rule reveal"><p class="eyebrow">Что именно покупает иностранец</p><h3>Может ли иностранец владеть?</h3><p class="p-rule__val">freehold бессрочно в назначенных зонах, вне их - leasehold до 99 лет</p><p class="p-src1">Источник: Правительство ОАЭ, портал u.ae</p>
       <details class="p-more"><summary>Подробнее<svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary><p>Право иностранца в ОАЭ определяется не страной, а эмиратом и конкретной зоной внутри него. В Дубае действует список назначенных freehold-зон, где иностранец владеет объектом бессрочно и на своё имя; за границами этого списка доступна только аренда права на срок. В соседних эмиратах правило своё, и его нужно проверять до задатка, а не после.</p><dl class="p-rows"><div class="p-row"><dt>Форма собственности для иностранца</dt><dd><b>freehold бессрочно в назначенных зонах, вне их - leasehold до 99 лет</b><span>В Дубае назначенных зон более пятидесяти, среди них Dubai Marina, Downtown, Business Bay, JVC и Palm Jumeirah. Право закреплено законом эмирата, а не разрешением застройщика.</span><p class="p-src1">Источник: Правительство ОАЭ, портал u.ae</p></dd></div><div class="p-row"><dt>Шарджа</dt><dd><b>только leasehold, обычно на 100 лет</b><span>Гражданам стран за пределами ССАГПЗ freehold в Шардже не предоставляется: сделка оформляется соглашением с застройщиком на срок. Это не хуже и не лучше freehold, это другой актив, и сравнивать доходность двух форм напрямую нельзя.</span><p class="p-src1">Источник: ChainEx Real Estate</p></dd></div><div class="p-row"><dt>Регистрация права</dt><dd><b>запись в реестре земельного департамента Дубая (DLD)</b><span>Готовый объект попадает в реестр титулов, договор на строящийся объект регистрируется отдельно в системе Oqood до первого платежа. Незарегистрированный договор в ОАЭ не является правом на объект.</span><p class="p-src1">Источник: Kayrouz and Associates</p></dd></div></dl></details></article><article class="p-rule reveal"><p class="eyebrow">Налоги и сборы</p><h3>Какие налоги при покупке?</h3><p class="p-rule__big">4%</p><p class="p-rule__lab">Сбор за переход права (DLD): 4 процента от цены сделки</p><p class="p-src1">Источник: Main Realty</p>
@@ -195,7 +190,7 @@
 </div></section>
 
 <section class="sec" id="dengi" aria-labelledby="dengi-h"><div class="wrap">
-  <div class="band p-band-in sample"><div class="hb3d hb3d--bars" data-bars='[{"label":"Регистрация","v":4200},{"label":"Сбор DLD, 4%","v":60000},{"label":"Бюджет 7%","v":105000},{"label":"Бюджет 10%","v":150000}]' data-prefix="AED&nbsp;" role="img" aria-label="Пример: регистрация 4 200 AED, сбор DLD 60 000 AED, весь бюджет расходов от 105 000 до 150 000 AED"></div><p class="band__cap">Пример для квартиры за 1&nbsp;500&nbsp;000 AED: расходы сверх цены.</p></div>
+  <div class="band p-band-in sample"><div class="chart" data-bars='[{"label":"Регистрация","v":4200},{"label":"Сбор DLD, 4%","v":60000},{"label":"Бюджет 7%","v":105000},{"label":"Бюджет 10%","v":150000}]' data-prefix="AED&nbsp;" role="img" aria-label="Пример: регистрация 4 200 AED, сбор DLD 60 000 AED, весь бюджет расходов от 105 000 до 150 000 AED"></div><p class="band__cap">Пример для квартиры за 1&nbsp;500&nbsp;000 AED: расходы сверх цены.</p></div>
   <div class="sec__head"><p class="eyebrow">Деньги</p><h2 id="dengi-h">Стоимость денег и владения</h2><p class="lead">Ипотека нерезиденту в ОАЭ доступна, но дороже и с большим первым взносом, чем резиденту. Это меняет и цену входа, и срок сделки.</p></div>
   <div class="tbl p-tw"><table><caption class="sr-only">Ипотека, требования банков, валютный риск и потолки ЦБ для покупателя в ОАЭ</caption><thead><tr><th scope="col">Статья расходов</th><th scope="col">Ставка</th><th scope="col">Что это значит</th></tr></thead><tbody><tr><th scope="row">Ипотека нерезиденту</th><td>LTV 50-65 процентов, ставка 4-5,7 процента годовых</td><td>Резиденту доступен LTV до 80 процентов. Разница в первом взносе в 15-30 процентов стоимости и есть настоящая цена нерезидентства.<small>Источник: StashAway</small></td></tr><tr><th scope="row">Требования банка</th><td>доход от 30&nbsp;000 до 50&nbsp;000 AED в месяц, одобрение 3-6 недель</td><td>Дополнительно проверяется кредитная история и страна происхождения дохода. Срок одобрения нужно закладывать в график платежей по договору.<small>Источник: Masarif</small></td></tr><tr><th scope="row">Курсовой риск</th><td>дирхам привязан к доллару по курсу 3,6725 AED за 1 USD</td><td>Привязка держится с 1997 года, центробанк поддерживает её интервенциями. Для инвестора это означает, что валютный риск сводится к риску самого доллара, а не дирхама.<small>Источник: Центральный банк ОАЭ</small></td></tr><tr><th scope="row">Потолки ипотеки по регламенту ЦБ</th><td>экспату-резиденту 80 процентов на первое жильё до 5 млн AED, 70 процентов дороже, 60 на второе и 50 на стройку</td><td>Читать эту строку нужно с одной поправкой: в таблице Регламента Центробанка ОАЭ об ипотечных кредитах всего две категории заёмщиков - граждане ОАЭ и экспаты, то есть резиденты страны. Строки «нерезидент» там нет вовсе, и переносить эти потолки на себя нерезиденту нельзя: ему предлагают заметно меньше, см. строку выше. Это верхние границы регулятора, а не предложение конкретного банка. Там же стоят два ограничения, о которых спрашивают реже, а упираются в них чаще: платежи по всем долгам не могут превышать 50 процентов дохода, а сам кредит не выдаётся дольше чем на 25 лет.<small>Источник: Центральный банк ОАЭ</small></td></tr></tbody></table></div>
 </div></section>
@@ -272,7 +267,7 @@
 </div></section>
 
 <section class="sec sec--paper" id="brifing" aria-labelledby="brifing-h"><div class="wrap">
-  <div class="band p-band-in"><div class="bg3d" data-view="bashni" aria-hidden="true"></div><p class="band__cap">Иллюстрация: квартал башен.</p></div>
+  <div class="band band--pat p-band-in" data-pat="liniya" aria-hidden="true"></div>
   <div class="p-split">
     <div class="sec__head"><p class="eyebrow">Брифинг с экспертом</p><h2 id="brifing-h">Личная консультация инвестиционного аналитика</h2><p class="lead">Сравним варианты по цене, площади и локации и ответим на вопросы по сделке. Бесплатно и ни к чему не обязывает.</p></div>
     <form class="form" action="#brifing" method="post">
@@ -310,7 +305,7 @@
   <form class="ask" action="nedvizhimost.html" method="get" role="search"><label class="sr-only" for="aid-q">Ваш запрос</label><div class="ask__bar"><input id="aid-q" name="q" type="text" placeholder="Напишите Ваш запрос" autocomplete="off"><button class="btn btn--acc" type="submit">Спросить AI</button></div><div class="ask__hints"><a href="nedvizhimost-strana.html">Квартира в Грузии до $100&nbsp;000</a><a href="investitsii.html">Объект под сдачу в аренду</a><a href="nedvizhimost-strana.html">Квартира в ОАЭ до $300&nbsp;000</a></div></form>
   <div class="contact"><a class="btn btn--big btn--tint" href="https://wa.me/447418316042?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%2C%20%D1%85%D0%BE%D1%87%D1%83%20%D0%BF%D0%B5%D1%80%D1%81%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%83%D1%8E%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8E." target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Написать в WhatsApp</a><a class="btn btn--big btn--tint" href="https://t.me/charlie_hb_bot?start=c1_ru_hb_general" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Написать в Telegram</a></div>
 </div></dialog>
-<!-- скрипты: порядок важен (данные, сцена, интерфейс; three.js сцена грузит сама и только на сильных устройствах); не менять -->
+<!-- скрипты: порядок важен (данные, интерфейс); не менять -->
 <dialog class="leadm" id="gate" aria-labelledby="gate-t"><div class="leadm__in">
   <div class="leadm__head"><h2 id="gate-t">Вход в закрытый каталог</h2><button type="button" class="x" data-close aria-label="Закрыть окно"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
   <p class="support">Оставьте контакты, и мы откроем доступ к отборным предложениям вне открытого рынка.</p>
@@ -339,7 +334,6 @@
   </form>
 </div></dialog>
 <script src="kit/hb-data.js"></script>
-<script src="kit/hb-scene.js"></script>
 <script src="kit/hb-ui.js"></script>
 </body>
 </html>
