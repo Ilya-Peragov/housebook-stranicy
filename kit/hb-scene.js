@@ -4,7 +4,7 @@
      a) планета      [data-globe]    data-aim="lat,lon" data-pins="all|uae,thailand" data-markets="all|none|dubai,phuket" data-place="right" data-pin-href="url"
      b) задник       .bg3d[data-view="gorod|bashni|ulica|sverhu"] data-city="dubai|phuket|canggu|istanbul|paphos|batumi"
      c) объект       [data-object="tower|villa"] data-floors="9" data-floor="0" data-interactive data-floor-slider
-     d) башни-столбики [data-bars='[{"label":"Дубай","v":5375}]'] data-prefix="$" data-suffix="&nbsp;м²"
+     d) башни-столбики [data-bars='[{"label":"Дубай","v":5375}]'] data-prefix="$" data-suffix="&nbsp;м²"; поле "tip" у значения заменяет подсказку при наведении
      e) кровли       [data-roofs]: поле крыш в изометрии, медленный дрейф
    Деградация: Save-Data, телефон (сенсор, до 899 px) или слабый ПК (до 4 ГБ памяти или до 4 ядер) -> html.no-3d, картинки вместо 3D, three.js не грузится; нет WebGL или ошибка -> html.no-webgl и window.__sceneErr; в обоих случаях CSS показывает паттерн брендбука.
    prefers-reduced-motion: один статичный кадр, перерисовка только по делу (тема, размер, жест). Живые блоки не чаще 30 кадров в секунду,
@@ -21,9 +21,15 @@ if (!els.length) return;
 const fmt = v => Number(v).toLocaleString('ru-RU').replace(/\s/g, ' ');
 const barsData = el => { try { const a = JSON.parse(el.dataset.bars); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
 const barText = (el, d) => d.t || (el.dataset.prefix || '') + fmt(d.v) + (el.dataset.suffix || '');
+// подсказки при наведении (window.hbTip из hb-ui.js): у столбика место в ряду и отрыв от лидера, у страны число проектов и рынок
+const plural = (n, f1, f2, f5) => { const m = n % 100, k = n % 10; return m > 10 && m < 20 ? f5 : k === 1 ? f1 : k > 1 && k < 5 ? f2 : f5; };
+const barTip = (el, data, i) => { const d = data[i]; if (d.tip) return d.tip; const val = x => +x.v || 0, top = data.reduce((a, c) => val(c) > val(a) ? c : a);
+  const rank = data.filter(x => val(x) > val(d)).length + 1;
+  return `${d.label}\n${barText(el, d)}\n${rank}-е место из ${data.length}` + (d === top ? '' : `, на ${Math.round((1 - val(d) / val(top)) * 100)}% ниже, чем ${top.label}`); };
+const pinTip = p => { const n = +p.c.n || 0; return `${p.c.name}\n${p.c.n} ${plural(n, 'проект', 'проекта', 'проектов')} в каталоге` + (p.market ? `\nРынок с медианой цены: ${p.market.city}` : ''); };
 for (const el of document.querySelectorAll('[data-bars]')) if (!el.querySelector('.hb3d__list')) {
   const ul = document.createElement('ul'); ul.className = 'hb3d__list bars3d-list';
-  for (const d of barsData(el)) { const li = document.createElement('li'), s = document.createElement('span'), b = document.createElement('b'); s.textContent = d.label; b.textContent = barText(el, d); li.append(s, b); ul.appendChild(li); }
+  const data = barsData(el); data.forEach((d, i) => { const li = document.createElement('li'), s = document.createElement('span'), b = document.createElement('b'); s.textContent = d.label; b.textContent = barText(el, d); li.dataset.tip = barTip(el, data, i); li.append(s, b); ul.appendChild(li); });
   el.appendChild(ul);
 }
 
@@ -774,6 +780,16 @@ function buildBars(b) {
   Object.assign(L.shadow.camera, { left: -W / 2 - 3, right: W / 2 + 3, top: 9, bottom: -4, near: 1, far: 40 }); g.add(L); g.add(L.target); objLights.push(L);
   b.r = { g, bars, W, W0: W, base, L, step: STEP, S, k: live ? 0 : 1, cam: new THREE.PerspectiveCamera(30, 1, .1, 200) };
   setBarK(b, b.r.k); applyNight(nightNow);
+  // наведение и касание: подсказку даёт башня, ближайшая к указателю по горизонтали
+  // плашка сбоку от середины башни, подпись выбранной башни выделяется
+  const mark = i => b.r.bars.forEach((s, j) => s.lab.el.classList.toggle('is-tip', j === i));
+  const tipBar = e => { if (!window.hbTip) return; const r = b.el.getBoundingClientRect(), v = new THREE.Vector3(); let best = -1, bd = Infinity, bx = 0;
+    b.r.bars.forEach((s, i) => { v.copy(s.top).project(b.r.cam); const x = r.left + (v.x + 1) / 2 * r.width, dd = Math.abs(x - e.clientX); if (dd < bd) { bd = dd; best = i; bx = x; } });
+    if (best < 0 || bd > r.width / Math.max(2, data.length) / 2) { hbTip.hide(); mark(-1); return; }
+    const s = b.r.bars[best], yTop = v.copy(s.top).project(b.r.cam).y, yBase = v.set(s.x, 0, 0).project(b.r.cam).y, y = r.top + (1 - (yTop + yBase) / 2) / 2 * r.height;
+    hbTip.show(bx + 24, y, barTip(b.el, data, best), true); mark(best); };
+  b.el.dataset.tipArea = ''; b.el.addEventListener('pointermove', tipBar); b.el.addEventListener('pointerdown', tipBar);
+  b.el.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch' && window.hbTip) { hbTip.hide(); mark(-1); } });
 }
 function setBarK(b, k) {
   // рост: башня вытягивается по y от земли; тени пересчитываются на каждом шаге, иначе остаются от прошлого кадра
@@ -858,7 +874,7 @@ function setupGlobe(b) {
     right: d.place === 'right', show: new Set(pins.filter(p => pinsSel[0] === 'all' || pinsSel.includes(slug(p.c))).map(p => p)), echo: new Set(pins.filter(p => p.market && mKeys.includes(p.market.key))), arcs: arcsFor(mKeys), labels: new Map(),
     avoid: d.place === 'right' ? [...document.querySelectorAll('[data-hb3d-avoid], .hero__l')] : [...b.el.querySelectorAll('[data-hb3d-avoid]')] };
   // data-pin-href: в макетах все подписи ведут на страницу-образец страны, иначе путь страны из HB_COUNTRIES
-  for (const p of s.show) { const o = callout(b.el, 'co--pin', d.pinHref || p.c.path); setLabel(o, p.c.name, p.c.n); s.labels.set(p, o); }
+  for (const p of s.show) { const o = callout(b.el, 'co--pin', d.pinHref || p.c.path); setLabel(o, p.c.name, p.c.n); o.el.dataset.tip = pinTip(p); s.labels.set(p, o); }
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), hits = () => [...s.show].map(p => p.hit);
   const pick = e => { const r = b.cv.getBoundingClientRect(); ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ptr, s.cam); return ray.intersectObjects(hits(), false)[0]; };
   // метка поворачивает планету к стране толчком с затуханием (тот же ход, что у руки)
@@ -875,7 +891,9 @@ function setupGlobe(b) {
   b.cv.addEventListener('pointerdown', e => { s.down = { x: e.clientX, y: e.clientY, yaw: s.yaw, pitch: s.pitch, moved: 0 }; s.drag = true; s.vy = s.vp = 0; b.cv.setPointerCapture(e.pointerId); });
   b.cv.addEventListener('pointermove', e => {
     if (s.down && s.drag) { const dx = e.clientX - s.down.x, dy = e.clientY - s.down.y; s.down.moved = Math.hypot(dx, dy); const k = 1 / Math.max(300, b.el.clientWidth) * 3.2; const ny = s.down.yaw + dx * k, np = clamp(s.down.pitch + dy * k * .6, -.7, .7); s.vy = (ny - s.yaw) * 60; s.vp = (np - s.pitch) * 60; s.yaw = ny; s.pitch = np; b.stale = true; return; }
-    b.cv.style.cursor = pick(e) ? 'pointer' : 'grab'; });
+    const hit = pick(e); b.cv.style.cursor = hit ? 'pointer' : 'grab';
+    if (window.hbTip && e.pointerType !== 'touch') { if (hit) hbTip.show(e.clientX, e.clientY - 12, pinTip(pins.find(p => p.hit === hit.object))); else hbTip.hide(); } });
+  b.cv.addEventListener('pointerleave', () => window.hbTip && hbTip.hide());
   b.cv.addEventListener('pointerup', e => { s.drag = false; try { b.cv.releasePointerCapture(e.pointerId); } catch (_) {} if (!s.down) return; const click = s.down.moved < 6; s.down = null; if (!click) return; const h = pick(e); if (h) facePin(pins.find(p => p.hit === h.object)); });
   b.cv.addEventListener('pointercancel', () => { s.drag = false; s.down = null; });
   b.ready = true;

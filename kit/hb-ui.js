@@ -459,4 +459,28 @@
       r.start();
     });
   });
+  // подсказки графиков: [data-tip] показывает пояснение при наведении, фокусе с клавиатуры и касании; плашка .tip одна на страницу.
+  // Перевод строки в тексте (&#10; в атрибуте) начинает вторую, мелкую строку. Сцены hb-scene.js зовут window.hbTip.show(x, y, текст) по точке экрана; их блок помечен [data-tip-area], касание в нём плашку не гасит.
+  const tip = document.createElement('div'); tip.className = 'tip'; tip.id = 'hb-tip'; tip.setAttribute('role', 'tooltip'); tip.hidden = true; document.body.appendChild(tip);
+  let tipFor = null;
+  const tipAt = (x, y, text, side) => {
+    const [head, ...rest] = text.split('\n'), b = document.createElement('b'); b.textContent = head;
+    tip.replaceChildren(b, ...rest.map(t => { const s = document.createElement('span'); s.textContent = t; return s; }));
+    tip.hidden = false; const w = tip.offsetWidth, th = tip.offsetHeight;
+    // side: плашка сбоку от точки (справа, у края экрана слева), чтобы не закрывать подписи над башнями
+    const left = side ? (x + 16 + w > innerWidth - 8 ? x - 16 - w : x + 16) : Math.min(innerWidth - w - 8, Math.max(8, x - w / 2)),
+      top = side ? Math.max(8, y - th / 2) : y - th - 10 < 8 ? y + 18 : y - th - 10;
+    tip.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`; };
+  const tipHide = () => { tip.hidden = true; if (tipFor) { tipFor.classList.remove('is-tip'); tipFor.removeAttribute('aria-describedby'); } tipFor = null; };
+  const tipOn = el => { if (tipFor !== el) tipHide(); tipFor = el; el.classList.add('is-tip'); el.setAttribute('aria-describedby', 'hb-tip');
+    const r = (el.querySelector('.bar__fill') || el).getBoundingClientRect(); tipAt(r.left + r.width / 2, r.top, el.dataset.tip); };
+  window.hbTip = { show: tipAt, hide: tipHide };
+  // касание: плашка остаётся до касания в другом месте или прокрутки, поэтому уход пальца её не прячет
+  document.addEventListener('pointerover', e => { const el = e.target.closest('[data-tip]'); if (el) tipOn(el); });
+  document.addEventListener('pointerout', e => { if (e.pointerType === 'touch') return; const el = e.target.closest('[data-tip]'); if (el && !el.contains(e.relatedTarget)) tipHide(); });
+  document.addEventListener('pointerdown', e => { if (!e.target.closest('[data-tip], [data-tip-area]')) tipHide(); });
+  document.addEventListener('focusin', e => { const el = e.target.closest('[data-tip]'); if (el) tipOn(el); });
+  document.addEventListener('focusout', e => { if (e.target.closest('[data-tip]')) tipHide(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') tipHide(); });
+  addEventListener('scroll', tipHide, { passive: true });
 })();
