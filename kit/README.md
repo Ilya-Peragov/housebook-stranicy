@@ -90,7 +90,7 @@ window.HBScene && HBScene.highlightFloor(7, document.getElementById('k-tower'));
 - Каркас: `.wrap`, `.top`, `.nav`, `.night`, `.burger`, `.mnav`, `.skip`, `.crumbs`, `.foot`, `.sr-only`.
 - Секции: `.sec`, `.sec--paper`, `.sec--tint`, `.sec--band`, `.sec--3d`, `.sec--lift`, `.sec__head`, `.final`, `.hero`, `.theatre`/`.stage`, `.phero`, `.page-head`, `.glass-head`.
 - Текст: `.eyebrow`, `.lead`, `.support`, `.note`, `.sources`, `.prose`, `.article`, `.takeaway`, `.notice` (`--warn`, `--reg`), `.roofs` (список с крышами), `.roofed` (крыша над главным числом).
-- Действия: `.btn` (`--acc`, `--tint`, `--inv`, `--ghost`, `--big`, `--s`), `.chip`/`.chips`, `.pchip`, `.contact`, `.more`, `.pager`, `.seg`, `.tabs`.
+- Действия: `.btn` (стиль: по умолчанию, `--acc`, `--tint`, `--quiet`, `--glass`, `--dark`, `--inv`, `--ghost`, `--link`; размер `--xs` 32, `--s` 38, M 48, `--l` 56, `--big` алиас `--l`; форма `--icon`, `--round`, `--pill`, `--block`; `aria-pressed`, `aria-busy`), `.contact` (`--center`); пилюля `.pill` (`a`, `button[aria-pressed]`, `label` с `input.sr-only`; `--xs`, `--sq`, `--remove`, `--count` + `.pill__n`) в ряду `.chips` (`--center`, `--line`, `--scroll`), алиасы до перевода страниц `.chip`, `.qchip`, `.like`, `.ask__hints a/button`; ссылки `.more` (`--s`, `--back`), `.anchors`; `.pchip`, `.pager`, `.seg`, `.tabs`. Кнопки-иконки `.x`, `.burger`, `.top__ic`, `.fav`, `.share`, `.card__nav`, `.gallery__nav button`, `.gallery__full`, `.zoom__b`/`.zoom__nav`, `.ask__mic`, `.fpanel__x` остаются хуками и берут вид из `.btn`.
 - Запрос: `.ask`, `.ask__bar`, `.ask__hints`, `.aid-fab`, `.aid`.
 - Цифры и аналитика: `.stats`/`.stat`, `.bars`/`.bar`, `.price`, `.total`, `.facts`, `.co` (`--bar`, `--pin`, `--sel`).
 - Карточки: `.cards`/`.card` (`__top`, `__badges`, `__body`, `__place`, `__price`, `__sqm`, `__link`), `.badge` (`--start`, `--done`, `--sample`), `.fav`, `.lands`/`.land`, `.dev`, `.who`, `.steps`/`.step`.
@@ -169,8 +169,8 @@ window.HBScene && HBScene.highlightFloor(7, document.getElementById('k-tower'));
 | Полоса-разделитель | `<div class="band band--pat" data-pat="krovli" aria-hidden="true"></div>` | 160px, масштаб плитки 0.5, без подписей |
 | Фон блока | `class="patbg" data-pat="..."` | как задник, без прозрачности |
 | График 2D | `<div class="chart" data-bars='[...]' data-suffix="&nbsp;AED" role="img" aria-label="..."></div>` | тот же JSON, что у 3D-столбцов; рисует `hb-ui.js`, подсказки по `tip` |
-| Карта рынков | `<div class="dmap" data-dmap data-countries="all" data-href="..."></div>` или `data-pins='[[шир,долг,"Подпись","url"]]'` | вместо Leaflet; метки ближе 12px сливаются в одну (подпись по общему слову, например «Кипр», в подсказке каждая часть) |
-| Лайк | `<button class="like" data-like="post-1" data-count="12" aria-pressed="false">...<b>12</b></button>` | `localStorage` `hb-like:<id>`, кнопки с одним id синхронны; `.like--s` прячет подпись; на карточке поверх растянутой ссылки |
+| Карта рынков | `<div class="dmap" data-dmap data-countries="all" data-href="..."></div>` или `data-pins='[[шир,долг,"Подпись","url"]]'` | вместо Leaflet; метки ближе 24px сливаются в одну (подпись по общему слову, например «Кипр», в подсказке каждая часть) |
+| Лайк | `<button class="pill pill--count like" data-like="post-1" data-count="12" aria-pressed="false">...<b class="pill__n">12</b></button>` (старое `class="like"` работает алиасом) | `localStorage` `hb-like:<id>`, кнопки с одним id синхронны; `.like--s` прячет подпись; на карточке поверх растянутой ссылки |
 | Сноска | `<sup><a href="#src3">3</a></sup>` | прокрутка к источнику в центр экрана, подсветка `.is-flash`, фокус без рамки мыши, адрес обновляется без прыжка |
 | Действия в уведомлении | `<div class="notice__act">` с кнопками `btn--s` | кнопка не вшивается в предложение, стоит отдельной строкой |
 

@@ -41,12 +41,13 @@
     const lab = (sel.id && $(`label[for="${sel.id}"]`)) || sel.closest('label'), labEl = lab && ($('.field__l', lab) || lab);
     if (labEl && !labEl.id) labEl.id = 'cs-l' + n;
     const trig = document.createElement('button'); trig.type = 'button'; trig.className = 'cs__btn select'; trig.disabled = sel.disabled;
+    for (const c of sel.classList) if (c.startsWith('select--')) trig.classList.add(c); // размер и форма (select--xs, --s, --t, --l, --pill) переходят на кнопку
     trig.setAttribute('aria-haspopup', 'listbox'); trig.setAttribute('aria-expanded', 'false'); trig.setAttribute('aria-controls', 'cs-list' + n);
     trig.innerHTML = `<span class="cs__val" id="cs-v${n}"></span>`; if (labEl) trig.setAttribute('aria-labelledby', `${labEl.id} cs-v${n}`);
     // панель в top layer (popover): поверх любых секций, шапки и overflow:hidden; координаты от кнопки, при нехватке места снизу открывается вверх
     const pop = document.createElement('div'); pop.className = 'cs__pop'; pop.hidden = true; if (pop.showPopover) pop.popover = 'manual';
     const search = sel.dataset.search ? sel.dataset.search === 'on' : opts.length > 5;
-    const q = search ? Object.assign(document.createElement('input'), { type: 'search', className: 'cs__q input', placeholder: 'Найти', autocomplete: 'off' }) : null;
+    const q = search ? Object.assign(document.createElement('input'), { type: 'search', className: 'cs__q input input--s', placeholder: 'Найти', autocomplete: 'off' }) : null;
     if (q) { q.setAttribute('aria-label', 'Поиск по списку'); q.setAttribute('aria-controls', 'cs-list' + n); pop.appendChild(q); }
     const list = document.createElement('ul'); list.className = 'cs__list'; list.id = 'cs-list' + n; list.setAttribute('role', 'listbox'); list.tabIndex = -1;
     if (multi) list.setAttribute('aria-multiselectable', 'true'); if (labEl) list.setAttribute('aria-labelledby', labEl.id);
@@ -159,8 +160,8 @@
     let panel = null, home = [];
     const groups = () => [...dds.map(d => d.body), ...extra];
     if (all && typeof HTMLDialogElement === 'function') {
-      panel = document.createElement('dialog'); panel.className = 'fpanel'; panel.setAttribute('aria-labelledby', 'fpanel-h');
-      panel.innerHTML = '<div class="fpanel__head"><h2 id="fpanel-h">Все фильтры</h2><button type="button" class="fmeta__reset" data-reset-all>Сбросить</button><button type="button" class="fpanel__x" aria-label="Закрыть" data-close><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="fpanel__body"></div><div class="fpanel__foot"><button type="button" class="btn btn--acc" data-close data-show></button></div>';
+      panel = document.createElement('dialog'); panel.className = 'drawer fpanel'; panel.setAttribute('aria-labelledby', 'fpanel-h'); // база ящика .drawer, fpanel: ширина и алиас
+      panel.innerHTML = '<div class="drawer__head fpanel__head"><h2 id="fpanel-h">Все фильтры</h2><button type="button" class="fmeta__reset" data-reset-all>Сбросить</button><button type="button" class="btn btn--icon btn--quiet fpanel__x" aria-label="Закрыть" data-close><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="drawer__body fpanel__body"></div><div class="drawer__foot fpanel__foot"><button type="button" class="btn btn--acc" data-close data-show></button></div>';
       document.body.append(panel); shows.push($('[data-show]', panel));
       all.setAttribute('aria-haspopup', 'dialog');
       all.addEventListener('click', () => { for (const d of dds) if (d.pop.matches(':popover-open')) d.pop.hidePopover();
@@ -384,7 +385,7 @@
   for (const res of $$('[data-results]')) {
     const chips = $$('.qchip', res), act = $('.achips', res);
     const draw = () => { if (!act) return; act.innerHTML = ''; const on = chips.filter(q => q.getAttribute('aria-pressed') === 'true');
-      for (const q of on) { const b = document.createElement('button'); b.type = 'button'; b.className = 'achip'; b.innerHTML = `${q.textContent}<svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>`; b.setAttribute('aria-label', `Убрать фильтр «${q.textContent}»`); b.addEventListener('click', () => { q.setAttribute('aria-pressed', 'false'); draw(); }); act.append(b); }
+      for (const q of on) { const b = document.createElement('button'); b.type = 'button'; b.className = 'pill pill--xs pill--remove'; b.innerHTML = `${q.textContent}<svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>`; b.setAttribute('aria-label', `Убрать фильтр «${q.textContent}»`); b.addEventListener('click', () => { q.setAttribute('aria-pressed', 'false'); draw(); }); act.append(b); }
       if (on.length) { const r = document.createElement('button'); r.type = 'button'; r.className = 'fmeta__reset'; r.textContent = 'Сбросить'; r.addEventListener('click', () => { chips.forEach(q => q.setAttribute('aria-pressed', 'false')); draw(); }); act.append(r); } };
     for (const q of chips) q.addEventListener('click', () => { q.setAttribute('aria-pressed', String(q.getAttribute('aria-pressed') !== 'true')); draw(); });
 
@@ -429,6 +430,15 @@
     c.addEventListener('input', calc); calc();
   }
 
+  // ползунок .slider и ползунки калькулятора: --v (0-100%) рисует заполнение дорожки, .slider__v показывает значение
+  // (data-prefix и data-suffix у input, например «$» и «%»; число с пробелами по-русски)
+  for (const r of $$('.slider input[type="range"], .calc input[type="range"]')) {
+    const o = r.closest('.slider')?.querySelector('.slider__v'), mn = +(r.min || 0), mx = +(r.max || 100);
+    const upd = () => { r.style.setProperty('--v', (r.value - mn) / (mx - mn || 1) * 100 + '%');
+      if (o) o.textContent = (r.dataset.prefix || '') + (+r.value).toLocaleString('ru-RU') + (r.dataset.suffix || ''); };
+    r.addEventListener('input', upd); upd();
+  }
+
   // калькулятор сценария (раздел «Инвестиции»): ставку аренды не подставляем, результат молчит, пока её не ввели.
   // Доход STR = посуточная ставка x 365 x заполняемость, LTR = месячная x 12 x заполняемость; минус доли расходов и прочие расходы.
   for (const c of $$('[data-scen]')) {
@@ -446,18 +456,19 @@
     c.addEventListener('input', calc); c.addEventListener('change', calc); calc();
   }
 
-  // модалки по [data-dlg="id"]: закрытый каталог и другие формы-ворота
+  // модалки и ящики по [data-dlg="id"]: закрытый каталог, формы-ворота, любые dialog.modal и dialog.drawer; закрывают фон и [data-close]
   document.addEventListener('click', e => { const b = e.target.closest('[data-dlg]'); if (!b) return; const d = document.getElementById(b.dataset.dlg); if (d && d.showModal) { e.preventDefault(); d.showModal(); } });
-  for (const d of $$('dialog.leadm:not(#lead)')) d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
+  for (const d of $$('dialog:is(.leadm, .modal, .drawer):not(#lead, #mnav, #aid, .fpanel)')) d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
 
   // пошаговый квиз [data-quiz]: шаги fieldset.quiz__s, выбор варианта ведёт дальше, «Назад» возвращает,
   // на последнем шаге в [data-qsum] сводка ответов; отправка как у любой .form
   for (const q of $$('[data-quiz]')) {
-    const steps = $$('.quiz__s', q), n = $('[data-qn]', q), bar = $('.quiz__bar i', q), back = $('[data-qback]', q), sum = $('[data-qsum]', q);
+    const steps = $$('.quiz__s', q), n = $('[data-qn]', q), bar = $('.quiz__bar i', q), pr = $('.progress', q), back = $('[data-qback]', q), sum = $('[data-qsum]', q);
     let i = 0;
     const go = k => {
       i = k; steps.forEach((s, j) => { s.hidden = j !== i; }); n.textContent = i + 1; back.hidden = i === 0;
-      bar.style.setProperty('--p', `${(i + 1) / steps.length * 100}%`);
+      if (bar) bar.style.setProperty('--p', `${(i + 1) / steps.length * 100}%`); // старая полоса .quiz__bar
+      if (pr) { pr.style.setProperty('--v', `${(i + 1) / steps.length * 100}%`); pr.setAttribute('aria-valuenow', i + 1); } // индикатор .progress--steps
       if (sum && i === steps.length - 1) sum.replaceChildren(...steps.slice(0, -1).flatMap(s => {
         const c = $('input:checked', s); if (!c) return [];
         const li = document.createElement('li'), b = document.createElement('b');
@@ -471,9 +482,10 @@
 
   // форма в несколько шагов: «Далее» пускает дальше, только когда поля текущего шага заполнены верно
   for (const f of $$('[data-fsteps]')) {
-    const st = $$('.fstep', f), n = $('[data-fsn]', f);
+    const st = $$('.fstep', f), n = $('[data-fsn]', f), pr = $('.progress', f);
     let i = 0;
-    const go = k => { i = k; st.forEach((s, j) => { s.hidden = j !== i; }); if (n) n.textContent = i + 1; };
+    const go = k => { i = k; st.forEach((s, j) => { s.hidden = j !== i; }); if (n) n.textContent = i + 1;
+      if (pr) { pr.style.setProperty('--v', `${(i + 1) / st.length * 100}%`); pr.setAttribute('aria-valuenow', i + 1); } };
     f.addEventListener('click', e => {
       if (e.target.closest('[data-fnext]')) {
         const bad = $$('input, select, textarea', st[i]).find(x => !x.checkValidity());
@@ -499,6 +511,7 @@
   // липкая панель цены: видна, когда блок data-after ушёл вверх, и прячется, пока на экране форма из data-hide
   for (const pb of $$('.pbar')) {
     const a = $(pb.dataset.after), zs = $$(pb.dataset.hide || '.form');
+    if (!a) continue; // нет якоря data-after: панель остаётся скрытой, остальные модули работают
     const onScreen = z => { const r = z.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; };
     const upd = () => { pb.hidden = !(a.getBoundingClientRect().bottom < 0 && !zs.some(onScreen)); };
     addEventListener('scroll', upd, { passive: true }); addEventListener('resize', upd); upd();
@@ -627,5 +640,23 @@
   document.addEventListener('focusin', e => { const el = e.target.closest('[data-tip]'); if (el) tipOn(el); });
   document.addEventListener('focusout', e => { if (e.target.closest('[data-tip]')) tipHide(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') tipHide(); });
-  addEventListener('scroll', tipHide, { passive: true });
+  addEventListener('scroll', () => { if (tipFor && tipFor.matches(':focus-visible')) tipOn(tipFor); else tipHide(); }, { passive: true }); // Tab прокручивает к элементу: плашка фокуса едет с ним
+  // подсказка у любого элемента: тот, что сам фокус не получает (li, span, abbr), встаёт в порядок Tab, чтобы плашку видели и с клавиатуры
+  for (const el of $$('[data-tip]')) if (el.tabIndex < 0 && !el.hasAttribute('tabindex')) el.tabIndex = 0;
+
+  // тост: window.hbToast(текст, вид) показывает всплывашку снизу по центру; вид 'ok', 'warn', 'err', без вида сведения.
+  // Закрывается сам через 5 с или кнопкой. Регион role=status стоит с загрузки (иначе диктор не озвучит), сам ничего не показывает (Р-27)
+  const toasts = document.createElement('div'); toasts.className = 'toasts'; toasts.setAttribute('role', 'status'); document.body.append(toasts);
+  const svg = d => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`; // свой рисунок: спрайты страниц разные
+  const tIc = { info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>', ok: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    warn: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>', err: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>' }; // как i-ban у .notice--err
+  window.hbToast = (text, kind) => {
+    const k = tIc[kind] ? kind : 'info', t = document.createElement('div'); let timer = 0;
+    t.className = k === 'info' ? 'toast' : `toast toast--${k}`;
+    t.innerHTML = `${svg(tIc[k])}<p class="toast__t"></p><button type="button" class="btn btn--icon btn--quiet btn--xs toast__x" aria-label="Закрыть уведомление">${svg('<path d="M18 6 6 18M6 6l12 12"/>')}</button>`;
+    $('.toast__t', t).textContent = text;
+    const close = () => { clearTimeout(timer); t.remove(); };
+    $('.toast__x', t).addEventListener('click', close);
+    toasts.append(t); timer = setTimeout(close, 5000); return close;
+  };
 })();
