@@ -18,13 +18,18 @@ const els = [...document.querySelectorAll(SEL)];
 if (!els.length) return;
 
 // столбики: список значений строится до проверки WebGL; при живой сцене он для скринридера, без WebGL виден вместо башен
-const fmt = v => Number(v).toLocaleString('ru-RU').replace(/\s/g, ' ');
+// подписи и числа по html lang, как в hb-ui.js: en* -> en, иначе ru; локаль Intl как у боевого сайта (ru-RU, en-US), формы слов через | (one|few|many, en: one|other)
+const T = {
+  ru: { loc: 'ru-RU', projects: 'проект|проекта|проектов', inCat: ' в каталоге', market: 'Рынок с медианой цены: ', floor: 'Этаж', floorOf: (n, m) => `Этаж ${n} из ${m}`, allFloors: 'Все этажи' },
+  en: { loc: 'en-US', projects: 'project|projects', inCat: ' in the catalog', market: 'Median price market: ', floor: 'Floor', floorOf: (n, m) => `Floor ${n} of ${m}`, allFloors: 'All floors' }
+}[root.lang.toLowerCase().startsWith('en') ? 'en' : 'ru'];
+const NF = new Intl.NumberFormat(T.loc), PL = new Intl.PluralRules(T.loc), fmt = v => NF.format(v);
 const barsData = el => { try { const a = JSON.parse(el.dataset.bars); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
 const barText = (el, d) => d.t || (el.dataset.prefix || '') + fmt(d.v) + (el.dataset.suffix || '');
 // подсказки при наведении (window.hbTip из hb-ui.js): у столбика его поле tip или подпись и значение, у страны число проектов и рынок
-const plural = (n, f1, f2, f5) => { const m = n % 100, k = n % 10; return m > 10 && m < 20 ? f5 : k === 1 ? f1 : k > 1 && k < 5 ? f2 : f5; };
+const plural = (n, forms) => { const f = forms.split('|'); return f[{ one: 0, few: 1 }[PL.select(n)] ?? f.length - 1]; };
 const barTip = (el, data, i) => data[i].tip || `${data[i].label}\n${barText(el, data[i])}`;
-const pinTip = p => { const n = +p.c.n || 0; return `${p.c.name}\n${p.c.n} ${plural(n, 'проект', 'проекта', 'проектов')} в каталоге` + (p.market ? `\nРынок с медианой цены: ${p.market.city}` : ''); };
+const pinTip = p => { const n = +p.c.n || 0; return `${p.c.name}\n${fmt(n)} ${plural(n, T.projects)}${T.inCat}` + (p.market ? `\n${T.market}${p.market.city}` : ''); };
 for (const el of document.querySelectorAll('.hb3d[data-bars]')) if (!el.querySelector('.hb3d__list')) {
   const ul = document.createElement('ul'); ul.className = 'hb3d__list bars3d-list';
   const data = barsData(el); data.forEach((d, i) => { const li = document.createElement('li'), s = document.createElement('span'), b = document.createElement('b'); s.textContent = d.label; b.textContent = barText(el, d); li.dataset.tip = barTip(el, data, i); li.append(s, b); ul.appendChild(li); });
@@ -765,14 +770,14 @@ function setFloor(b, n) {
   const o = b.o; if (!o || !o.home.floors.length) return; n = clamp(n | 0, 0, o.home.floors.length); o.floor = n;
   o.home.floors.forEach((fg, i) => fadeTo(fg, n && i !== n - 1 ? .22 : 1));
   o.mk.visible = !!n; if (n) o.mk.position.y = (n - 1) * o.home.FH + .36;
-  if (o.out) o.out.value = n ? `Этаж ${n} из ${o.home.floors.length}` : 'Все этажи';
+  if (o.out) o.out.value = n ? T.floorOf(n, o.home.floors.length) : T.allFloors;
   if (o.range && +o.range.value !== n) o.range.value = n;
   b.stale = true;
 }
 let uid = 0;
 function floorSlider(b) {
   const ui = document.createElement('div'), id = 'hb3d-floor-' + (++uid); ui.className = 'hb3d__ui';
-  const lb = document.createElement('label'); lb.htmlFor = id; lb.textContent = 'Этаж';
+  const lb = document.createElement('label'); lb.htmlFor = id; lb.textContent = T.floor;
   const r = document.createElement('input'); r.type = 'range'; r.id = id; r.min = 0; r.max = b.o.home.floors.length; r.step = 1; r.value = b.o.floor;
   const out = document.createElement('output'); out.htmlFor = id;
   ui.append(lb, r, out); b.el.appendChild(ui); b.o.range = r; b.o.out = out; setFloor(b, b.o.floor);
@@ -837,13 +842,18 @@ const barsTight = (b, w) => b.r.tw === w;
 function barsCam(b, w, h) {
   // узкий блок: сверху два ряда подписей, сцена вписывается в оставшуюся высоту и сдвигается под них
   // снизу полоса под подписи оси
-  const r = b.r, c = r.cam, tight = barsTight(b, w), top = tight ? Math.min(h * .45, 2 * (r.bars[0]?.lab.el.offsetHeight || 36) + 22) : 0, bot = (r.axh || 20) + 6, hh = h - top - bot, a = w / hh; c.aspect = a;
-  // широкий блок: ряд раздвигается на ширину кадра, иначе башни жмутся в середину и подписям оси не хватает места
+  // класс узкого режима ставится до замера: выноски в нём компактнее, и отступ сверху берётся по их высоте, а не по прежней (иначе кадр зависел от пути: сразу узко или сужением)
+  const r = b.r, c = r.cam, tight = barsTight(b, w); b.el.classList.toggle('is-tight', tight);
+  const top = tight ? Math.min(h * .45, 2 * (r.bars[0]?.lab.el.offsetHeight || 36) + 22) : 0, bot = (r.axh || 20) + 6, hh = h - top - bot, a = w / hh; c.aspect = a;
+  // широкий блок: ряд раздвигается на ширину кадра, иначе башни жмутся в середину и подписям оси не хватает места.
+  // в узком режиме шаг без потолка 4.5: кадр там ниже на два ряда подписей, камера упирается в высоту, и с постоянным шагом ряд сжимался до 30 px на башню, подписи оси налезали
   const n = r.bars.length, t = Math.tan(c.fov * Math.PI / 360), halfH = 4.5;
-  if (n > 1) { const vis = halfH * 1.08 * a, step = tight ? 2.5 : Math.min(4.5, Math.max(2.5, (vis * .82 - 1.6) * 2 / (n - 1)));
+  if (n > 1) { const vis = halfH * 1.08 * a, step = Math.min(tight ? Infinity : 4.5, Math.max(2.5, (vis * .82 - 1.6) * 2 / (n - 1)));
     if (step !== r.step) { r.step = step; r.W = (n - 1) * step; r.base.scale.x = (r.W + 3.4) / (r.W0 + 3.4);
       r.bars.forEach((s, i) => { s.x = -r.W / 2 + i * step; s.home.group.position.x = s.x; s.top.x = s.x; });
-      Object.assign(r.L.shadow.camera, { left: -r.W / 2 - 3, right: r.W / 2 + 3 }); r.L.shadow.camera.updateProjectionMatrix(); } }
+      Object.assign(r.L.shadow.camera, { left: -r.W / 2 - 3, right: r.W / 2 + 3 }); r.L.shadow.camera.updateProjectionMatrix();
+      // тени перерисовываются только по флагу: без него на основании остаются тени прежней раскладки (без анимации роста её никто не обновит)
+      renderer.shadowMap.needsUpdate = true; } }
   const halfW = r.W / 2 + 1.6, dist = Math.max(halfH / t, halfW / (t * a)) * 1.08;
   // камера на три четверти справа: видно две грани башен, правая в тени, объём читается
   // камера прямо перед рядом и сверху: ось башен горизонтальна, как у обычного графика; объём читается по крышам и боковым граням крайних башен
@@ -911,7 +921,7 @@ function setupGlobe(b) {
     right: d.place === 'right', show: new Set(pins.filter(p => pinsSel[0] === 'all' || pinsSel.includes(slug(p.c))).map(p => p)), echo: new Set(pins.filter(p => p.market && mKeys.includes(p.market.key))), arcs: arcsFor(mKeys), labels: new Map(),
     avoid: d.place === 'right' ? [...document.querySelectorAll('[data-hb3d-avoid], .hero__l')] : [...b.el.querySelectorAll('[data-hb3d-avoid]')] };
   // data-pin-href: в макетах все подписи ведут на страницу-образец страны, иначе путь страны из HB_COUNTRIES
-  for (const p of s.show) { const o = callout(b.el, 'co--pin', d.pinHref || p.c.path); setLabel(o, p.c.name, p.c.n); o.el.dataset.tip = pinTip(p); s.labels.set(p, o); }
+  for (const p of s.show) { const o = callout(b.el, 'co--pin', d.pinHref || p.c.path); setLabel(o, p.c.name, fmt(+p.c.n || 0)); o.el.dataset.tip = pinTip(p); s.labels.set(p, o); }
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), hits = () => [...s.show].map(p => p.hit);
   const pick = e => { const r = b.cv.getBoundingClientRect(); ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ptr, s.cam); return ray.intersectObjects(hits(), false)[0]; };
   // метка поворачивает планету к стране толчком с затуханием (тот же ход, что у руки)
@@ -986,14 +996,15 @@ function draw(b) {
   const cw = Math.floor(w * PR), ch = Math.floor(h * PR); if (b.cv.width !== cw || b.cv.height !== ch) { b.cv.width = cw; b.cv.height = ch; }
   const ctx = b.ctx || (b.ctx = b.cv.getContext('2d')); ctx.clearRect(0, 0, cw, ch); ctx.drawImage(canvas, 0, canvas.height - ch, cw, ch, 0, 0, cw, ch);
   // узкий блок: подписи соседних столбиков налезают, нечётные поднимаются на высоту подписи
-  if (b.type === 'bars') { const tight = barsTight(b, w); b.el.classList.toggle('is-tight', tight); b.r.bars.forEach((s, i) => {
+  if (b.type === 'bars') { const tight = barsTight(b, w); b.r.bars.forEach((s, i) => {
     // узко: подписи компактные, в два ряда вперемежку, ножка тянется до крыши столбика
     let stem = 10; if (tight) { const v = s.top.clone().project(cam), ay = (1 - v.y) / 2 * h, lh = s.lab.el.offsetHeight, rowTop = 8 + (i % 2) * (lh + 6); stem = Math.max(6, ay - rowTop - lh); }
     s.lab.el.style.setProperty('--stem', stem + 'px'); s.lab.at(s.top, true, cam, { stem });
     // год под башней: точка на передней кромке основания под центром башни, подпись сразу под ней
     // ширина подписи не больше шага между башнями: длинная переносится на вторую строку, а не налезает на соседнюю
+    // крайняя подпись не выходит за край блока (лента режет всё, что за ним), как и выноска: сдвигается внутрь
     const v = new THREE.Vector3(s.x, 0, 2).project(cam), n = b.r.bars.length, step = n > 1 ? Math.abs(new THREE.Vector3(b.r.bars[1].x, 0, 2).project(cam).x - new THREE.Vector3(b.r.bars[0].x, 0, 2).project(cam).x) / 2 * w : w;
-    s.ax.style.maxWidth = Math.max(56, step - 8) + 'px'; s.ax.style.left = ((v.x + 1) / 2 * w) + 'px'; s.ax.style.top = Math.min(h - s.ax.offsetHeight - 4, (1 - v.y) / 2 * h + 6) + 'px'; });
+    s.ax.style.maxWidth = Math.max(56, step - 8) + 'px'; s.ax.style.left = clamp((v.x + 1) / 2 * w, s.ax.offsetWidth / 2, w - s.ax.offsetWidth / 2) + 'px'; s.ax.style.top = Math.min(h - s.ax.offsetHeight - 4, (1 - v.y) / 2 * h + 6) + 'px'; });
     // полоса под подписями по самой высокой подписи: выросла после переноса - кадр перестраивается
     const axh = Math.max(...b.r.bars.map(s => s.ax.offsetHeight)); if (axh !== b.r.axh) { b.r.axh = axh; b.r.redo = true; }
     if (!tight && b.r.bars.some((s, i) => { const p = b.r.bars[i - 1]?.lab.box, q = s.lab.box; return p && q && Math.abs(q.cx - p.cx) < (p.w + q.w) / 2 + 4 && Math.abs(q.ay - p.ay) < (p.h + q.h) / 2 + 4; })) { b.r.tw = w; b.r.redo = true; } }

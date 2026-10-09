@@ -7,6 +7,32 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   root.classList.add('js');
 
+  // строки, которые ставит сам скрипт, и формат чисел: язык из html lang (en* -> en, иначе ru); тексты страниц остаются в HTML.
+  // loc - локаль Intl и распознавания речи, как у боевого сайта (каталог: ru-RU и en-US); формы слов через | по порядку Intl.PluralRules: one|few|many (en: one|other)
+  const I18N = {
+    ru: { loc: 'ru-RU', find: 'Найти', findIn: 'Поиск по списку', none: 'Ничего не найдено', reset: 'Сбросить', done: 'Готово', all: 'Все', picked: n => `Выбрано: ${n}`,
+      nouns: 'объект|объекта|объектов', show: (n, w) => `Показать ${n} ${w}`, allFilters: 'Все фильтры', close: 'Закрыть', filters: 'Фильтры',
+      of: (i, n) => `${i} из ${n}`, viewer: 'Просмотр изображения', zoomOut: 'Уменьшить', fit: 'Вписать в экран', zoomIn: 'Увеличить', prev: 'Предыдущее', next: 'Следующее',
+      favOn: 'Убрать из избранного', favOff: 'В избранное', copied: 'Ссылка скопирована', unfilter: t => `Убрать фильтр «${t}»`,
+      mapFail: 'Карта не загрузилась. Проверьте соединение и откройте снова.', osm: '&copy; участники OpenStreetMap',
+      rateDay: 'Посуточная ставка, USD', rateMonth: 'Месячная ставка, USD', rateAsk: 'Введите ставку аренды и заполняемость, чтобы увидеть расчёт',
+      scen: (p, g, c, n) => `<b>${p}</b> чистыми в год: доход ${g}, расходы ${c}, остаётся ${n}`,
+      projects: 'проект|проекта|проектов', inCat: ' в каталоге', andMore: (a, n) => `${a} и ещё ${n}`, useful: n => `Полезно: ${n}`, dismiss: 'Закрыть уведомление' },
+    en: { loc: 'en-US', find: 'Search', findIn: 'Search the list', none: 'No matches', reset: 'Reset', done: 'Done', all: 'All', picked: n => `${n} selected`,
+      nouns: 'property|properties', show: (n, w) => `Show ${n} ${w}`, allFilters: 'All filters', close: 'Close', filters: 'Filters',
+      of: (i, n) => `${i} of ${n}`, viewer: 'Image viewer', zoomOut: 'Zoom out', fit: 'Fit to screen', zoomIn: 'Zoom in', prev: 'Previous', next: 'Next',
+      favOn: 'Remove from favorites', favOff: 'Add to favorites', copied: 'Link copied', unfilter: t => `Remove filter “${t}”`,
+      mapFail: 'The map didn’t load. Check your connection and open it again.', osm: '&copy; OpenStreetMap contributors',
+      rateDay: 'Nightly rate, USD', rateMonth: 'Monthly rate, USD', rateAsk: 'Enter the rental rate and occupancy to see the estimate',
+      scen: (p, g, c, n) => `<b>${p}</b> net per year: income ${g}, costs ${c}, you keep ${n}`,
+      projects: 'project|projects', inCat: ' in the catalog', andMore: (a, n) => `${a} and ${n} more`, useful: n => `Helpful: ${n}`, dismiss: 'Dismiss notification' }
+  };
+  const T = I18N[root.lang.toLowerCase().startsWith('en') ? 'en' : 'ru'];
+  // числа, цены и проценты только через Intl; валюта как в макетах: знак $ перед числом, процент без пробела
+  const NF = new Intl.NumberFormat(T.loc), NF1 = new Intl.NumberFormat(T.loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), PL = new Intl.PluralRules(T.loc);
+  const num = v => NF.format(v), usd = x => '$' + num(Math.round(x)), pct = x => NF1.format(x) + '%';
+  const plural = (n, forms) => { const f = forms.split('|'); return f[{ one: 0, few: 1 }[PL.select(n)] ?? f.length - 1]; };
+
   // тема: кнопки .night переключают html.dusk, выбор помнится в localStorage['hb-night']; сцена слушает событие hb:theme
   const nightBtns = $$('.night');
   // подпись кнопки постоянная («Сумерки», брендбук с.21), состояние передаёт aria-pressed и кружок-индикатор
@@ -43,14 +69,18 @@
     const trig = document.createElement('button'); trig.type = 'button'; trig.className = 'cs__btn select'; trig.disabled = sel.disabled;
     for (const c of sel.classList) if (c.startsWith('select--')) trig.classList.add(c); // размер и форма (select--xs, --s, --t, --l, --pill) переходят на кнопку
     trig.setAttribute('aria-haspopup', 'listbox'); trig.setAttribute('aria-expanded', 'false'); trig.setAttribute('aria-controls', 'cs-list' + n);
-    trig.innerHTML = `<span class="cs__val" id="cs-v${n}"></span>`; if (labEl) trig.setAttribute('aria-labelledby', `${labEl.id} cs-v${n}`);
+    // без подписи имя берётся у самого select: aria-labelledby (те же id) или aria-label (кнопка ссылается на себя: имя, затем значение)
+    const by = labEl ? labEl.id : sel.getAttribute('aria-labelledby'), al = !by && sel.getAttribute('aria-label');
+    trig.innerHTML = `<span class="cs__val" id="cs-v${n}"></span>`;
+    if (by) trig.setAttribute('aria-labelledby', `${by} cs-v${n}`);
+    else if (al) { trig.id = 'cs-b' + n; trig.setAttribute('aria-label', al); trig.setAttribute('aria-labelledby', `${trig.id} cs-v${n}`); }
     // панель в top layer (popover): поверх любых секций, шапки и overflow:hidden; координаты от кнопки, при нехватке места снизу открывается вверх
     const pop = document.createElement('div'); pop.className = 'cs__pop'; pop.hidden = true; if (pop.showPopover) pop.popover = 'manual';
     const search = sel.dataset.search ? sel.dataset.search === 'on' : opts.length > 5;
-    const q = search ? Object.assign(document.createElement('input'), { type: 'search', className: 'cs__q input input--s', placeholder: 'Найти', autocomplete: 'off' }) : null;
-    if (q) { q.setAttribute('aria-label', 'Поиск по списку'); q.setAttribute('aria-controls', 'cs-list' + n); pop.appendChild(q); }
+    const q = search ? Object.assign(document.createElement('input'), { type: 'search', className: 'cs__q input input--s', placeholder: T.find, autocomplete: 'off' }) : null;
+    if (q) { q.setAttribute('aria-label', T.findIn); q.setAttribute('aria-controls', 'cs-list' + n); pop.appendChild(q); }
     const list = document.createElement('ul'); list.className = 'cs__list'; list.id = 'cs-list' + n; list.setAttribute('role', 'listbox'); list.tabIndex = -1;
-    if (multi) list.setAttribute('aria-multiselectable', 'true'); if (labEl) list.setAttribute('aria-labelledby', labEl.id);
+    if (multi) list.setAttribute('aria-multiselectable', 'true'); if (by) list.setAttribute('aria-labelledby', by); else if (al) list.setAttribute('aria-label', al);
     let group = null; const heads = [];
     const items = opts.map((o, i) => {
       const g = o.parentNode.tagName === 'OPTGROUP' ? o.parentNode : null;
@@ -60,10 +90,10 @@
       if (o.disabled) li.setAttribute('aria-disabled', 'true'); if (g) heads[heads.length - 1].items.push(li);
       list.appendChild(li); return li;
     });
-    const none = document.createElement('li'); none.className = 'cs__none'; none.setAttribute('role', 'presentation'); none.textContent = 'Ничего не найдено'; none.hidden = true; list.appendChild(none);
+    const none = document.createElement('li'); none.className = 'cs__none'; none.setAttribute('role', 'presentation'); none.textContent = T.none; none.hidden = true; list.appendChild(none);
     pop.appendChild(list);
     if (multi) { const f = document.createElement('div'); f.className = 'cs__foot';
-      f.innerHTML = '<button type="button" class="btn btn--s" data-cs="reset">Сбросить</button><button type="button" class="btn btn--acc btn--s" data-cs="done">Готово</button>'; pop.appendChild(f); }
+      f.innerHTML = `<button type="button" class="btn btn--s" data-cs="reset">${T.reset}</button><button type="button" class="btn btn--acc btn--s" data-cs="done">${T.done}</button>`; pop.appendChild(f); }
     wrap.append(trig, pop);
 
     let act = null;
@@ -71,8 +101,8 @@
     const fire = () => { sel.dispatchEvent(new Event('input', { bubbles: true })); sel.dispatchEvent(new Event('change', { bubbles: true })); };
     const sync = () => {
       items.forEach((li, i) => li.setAttribute('aria-selected', String(opts[i].selected)));
-      const ch = opts.filter(o => o.selected), ph = sel.dataset.placeholder || 'Все';
-      $('.cs__val', trig).textContent = multi ? (!ch.length ? ph : ch.length <= 2 ? ch.map(o => o.textContent).join(', ') : `Выбрано: ${ch.length}`) : (ch[0] ? ch[0].textContent : ph);
+      const ch = opts.filter(o => o.selected), ph = sel.dataset.placeholder || T.all;
+      $('.cs__val', trig).textContent = multi ? (!ch.length ? ph : ch.length <= 2 ? ch.map(o => o.textContent).join(', ') : T.picked(ch.length)) : (ch[0] ? ch[0].textContent : ph);
       wrap.classList.toggle('has-val', multi ? ch.length > 0 : true);
     };
     const setAct = li => { act = li || null; for (const x of items) x.classList.toggle('is-act', x === act);
@@ -122,13 +152,11 @@
   // строка фильтров каталога .fbar (стили и разметка в hb.css и kit.html): кнопки .fbtn открывают попапы .fdd__pop (popover, поверх всего),
   // «Все фильтры» открывает панель dialog.fpanel, куда на время переезжают все группы и .fbar__more. Выбранное считается по полям:
   // отмеченные checkbox, radio не первые в своей группе, заполненные поля ввода, пункты select[multiple]. Число «Показать N» в макете
-  // условное (data-total уменьшается на каждую активную группу); на сайте его отдаёт API. Склонение: data-noun="проект|проекта|проектов".
+  // условное (data-total уменьшается на каждую активную группу); на сайте его отдаёт API. Склонение: data-noun="проект|проекта|проектов" (en: "project|projects").
   for (const bar of $$('.fbar')) {
-    const total = +bar.dataset.total || 0, nouns = (bar.dataset.noun || 'объект|объекта|объектов').split('|');
+    const total = +bar.dataset.total || 0, nouns = bar.dataset.noun || T.nouns;
     const meta = $('.fmeta', bar.parentElement), // между фильтром и счётчиком могут стоять быстрые чипы
       mob = matchMedia('(max-width: 899px)');
-    const plural = n => nouns[n % 10 === 1 && n % 100 !== 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2];
-    const fmt = n => n.toLocaleString('ru-RU').replace(/\s/g, ' ');
     const count = el => { let n = 0; const radios = new Set(), filled = $$('input:not([type=checkbox]):not([type=radio])', el).some(i => i.value.trim());
       for (const i of $$('input[type=checkbox]', el)) n += i.checked;
       for (const i of $$('input[type=radio]', el)) if (i.checked && !radios.has(i.name) && $$(`input[type=radio][name="${i.name}"]`, el)[0] !== i) { radios.add(i.name); n++; }
@@ -139,7 +167,7 @@
     const dds = $$('.fdd', bar).map((dd, i) => { const btn = $('.fbtn', dd), pop = $('.fdd__pop', dd), body = $('.fdd__body', dd);
       pop.id ||= `fdd-${Math.random().toString(36).slice(2, 8)}`; pop.popover = 'auto'; btn.popoverTargetElement = pop; btn.setAttribute('aria-expanded', 'false');
       const foot = document.createElement('div'); foot.className = 'fdd__foot';
-      foot.innerHTML = '<button type="button" class="btn btn--s" data-reset>Сбросить</button><button type="button" class="btn btn--acc btn--s" data-show></button>';
+      foot.innerHTML = `<button type="button" class="btn btn--s" data-reset>${T.reset}</button><button type="button" class="btn btn--acc btn--s" data-show></button>`;
       pop.append(foot); shows.push($('[data-show]', foot));
       $('[data-reset]', foot).addEventListener('click', () => { reset(body); update(); });
       $('[data-show]', foot).addEventListener('click', () => pop.hidePopover());
@@ -160,8 +188,8 @@
     let panel = null, home = [];
     const groups = () => [...dds.map(d => d.body), ...extra];
     if (all && typeof HTMLDialogElement === 'function') {
-      panel = document.createElement('dialog'); panel.className = 'drawer fpanel'; panel.setAttribute('aria-labelledby', 'fpanel-h'); // база ящика .drawer, fpanel: ширина и алиас
-      panel.innerHTML = '<div class="drawer__head fpanel__head"><h2 id="fpanel-h">Все фильтры</h2><button type="button" class="fmeta__reset" data-reset-all>Сбросить</button><button type="button" class="btn btn--icon btn--quiet fpanel__x" aria-label="Закрыть" data-close><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="drawer__body fpanel__body"></div><div class="drawer__foot fpanel__foot"><button type="button" class="btn btn--acc" data-close data-show></button></div>';
+      panel = document.createElement('dialog'); panel.className = 'drawer fpanel'; panel.setAttribute('aria-labelledby', 'fpanel-h'); // вид ящика .drawer, fpanel: хук ширины
+      panel.innerHTML = `<div class="drawer__head"><h2 id="fpanel-h">${T.allFilters}</h2><button type="button" class="fmeta__reset" data-reset-all>${T.reset}</button><button type="button" class="btn btn--icon btn--quiet fpanel__x" aria-label="${T.close}" data-close><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="drawer__body fpanel__body"></div><div class="drawer__foot"><button type="button" class="btn btn--acc" data-close data-show></button></div>`;
       document.body.append(panel); shows.push($('[data-show]', panel));
       all.setAttribute('aria-haspopup', 'dialog');
       all.addEventListener('click', () => { for (const d of dds) if (d.pop.matches(':popover-open')) d.pop.hidePopover();
@@ -175,11 +203,11 @@
       for (const d of dds) { const n = count(d.body); d.btn.classList.toggle('is-on', n > 0); d.n.textContent = n || ''; act += n > 0; sum += n > 0; }
       for (const g of extra) { const n = count(g); act += n > 0; sum += n > 0; }
       if (loc) act += count(loc) > 0;
-      const n = Math.max(1, Math.round(total * .58 ** act)), txt = `Показать ${fmt(n)} ${plural(n)}`;
+      const n = Math.max(1, Math.round(total * .58 ** act)), txt = T.show(num(n), plural(n, nouns));
       for (const b of shows) b.textContent = txt;
       if (all) { all.classList.toggle('is-on', sum > 0); $('.fbtn__n', all).textContent = sum || ''; }
       if (meta) { const c = $('[data-fcount]', meta), w = $('[data-fnoun]', meta), r = $('.fmeta__reset', meta);
-        if (c) c.textContent = fmt(n); if (w) w.textContent = plural(n); if (r) r.hidden = !act; }
+        if (c) c.textContent = num(n); if (w) w.textContent = plural(n, nouns); if (r) r.hidden = !act; }
     };
     const mine = t => bar.contains(t) || (panel && panel.contains(t));
     document.addEventListener('input', e => { if (mine(e.target)) update(); });
@@ -190,17 +218,19 @@
   }
 
   // возврат к блоку, который не следует за скроллом (решение владельца 06.10.2026: липкое не больше 15-20% экрана).
-  // .filters--sticky и [data-return="Подпись"] стоят на месте; когда блок ушёл вверх, а его секция ещё на экране,
-  // внизу слева появляется кнопка «Фильтры», она возвращает к блоку и ставит фокус в первое поле.
-  for (const el of $$('.filters--sticky, [data-return]')) {
+  // блок с [data-return="Подпись"] стоит на месте; когда он ушёл вверх, а его секция ещё на экране,
+  // внизу слева появляется кнопка с подписью (по умолчанию «Фильтры»), она возвращает к блоку и ставит фокус в первое поле.
+  // Строка фильтров .fbar получает её без атрибута: на телефоне она не липнет (решение владельца 07.10.2026), на компьютере липнет и кнопки не видно;
+  // фокус у неё на «Все фильтры», а не в поле поиска, чтобы на телефоне не выскакивала клавиатура.
+  for (const el of $$('[data-return], .fbar')) {
     const zone = el.closest('.sec, section') || el.parentElement;
     const b = document.createElement('button'); b.type = 'button'; b.className = 'ret'; b.hidden = true;
-    b.innerHTML = '<svg class="ic" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg><span></span>'; $('span', b).textContent = el.dataset.return || 'Фильтры';
+    b.innerHTML = '<svg class="ic" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg><span></span>'; $('span', b).textContent = el.dataset.return || T.filters;
     document.body.appendChild(b);
     const upd = () => { const r = el.getBoundingClientRect(), z = zone.getBoundingClientRect(); b.hidden = !(r.bottom < 0 && z.bottom > innerHeight * .5); };
     addEventListener('scroll', upd, { passive: true }); addEventListener('resize', upd); upd();
     b.addEventListener('click', () => { el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
-      const f = $('button, input, select, [tabindex]:not([tabindex="-1"])', el); if (f) setTimeout(() => (f.matches('select') ? f.focus() : f.focus({ preventScroll: true })), reduced ? 0 : 400); });
+      const f = $('.fbtn--all', el) || $('button, input, select, [tabindex]:not([tabindex="-1"])', el); if (f) setTimeout(() => (f.matches('select') ? f.focus() : f.focus({ preventScroll: true })), reduced ? 0 : 400); });
   }
 
   // сортировка таблицы: в th[data-t] кнопка .sort; data-t="n" сортирует по td[data-v], "s" по тексту
@@ -217,11 +247,20 @@
         th.setAttribute('aria-sort', dir > 0 ? 'ascending' : 'descending'); btn.querySelector('.ic').innerHTML = '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>';
         const body = t.tBodies[0], rows = [...body.rows], num = th.dataset.t === 'n';
         const key = r => num ? +r.cells[i].dataset.v : r.cells[i].textContent.trim();
-        rows.sort((a, b) => { const x = key(a), y = key(b); return (num ? x - y : String(x).localeCompare(String(y), 'ru')) * dir; });
+        rows.sort((a, b) => { const x = key(a), y = key(b); return (num ? x - y : String(x).localeCompare(String(y), T.loc)) * dir; });
         for (const r of rows) body.appendChild(r);
       });
     });
   }
+
+  // таблица .tbl--stack: на телефоне ячейки становятся блоками, и браузер (Safari) перестаёт видеть таблицу; роли возвращают её дикторам
+  for (const t of $$('.tbl--stack table')) { t.setAttribute('role', 'table');
+    for (const g of $$(':scope > :is(thead, tbody, tfoot)', t)) g.setAttribute('role', 'rowgroup');
+    for (const r of t.rows) { r.setAttribute('role', 'row');
+      for (const c of r.cells) c.setAttribute('role', c.tagName === 'TD' ? 'cell' : (c.closest('thead') || c.scope === 'col') ? 'columnheader' : 'rowheader'); } }
+
+  // переключатель кнопкой button.switch[role=switch]: нажатие мышью, Enter или пробелом меняет aria-checked (у input.switch это делает браузер)
+  document.addEventListener('click', e => { const b = e.target.closest('button[role="switch"]'); if (b) b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); });
 
   // reveal, счётчики и столбики оживают, когда попадают в кадр; при reduced-motion сразу финальное состояние
   {
@@ -229,8 +268,8 @@
     const io = new IntersectionObserver(es => es.forEach(e => {
       if (!e.isIntersecting || seen.has(e.target)) return; seen.add(e.target); e.target.classList.add('in'); io.unobserve(e.target);
       const b = e.target.querySelector('[data-count]');
-      if (b && !reduced) { const final = b.dataset.count, n = +final.replace(/\s/g, ''), t0 = performance.now();
-        const tick = now => { const k = Math.min(1, (now - t0) / 900); b.textContent = k < 1 ? Math.round(n * (1 - Math.pow(1 - k, 3))).toLocaleString('ru-RU').replace(/[,\s]/g, ' ') : final; if (k < 1) requestAnimationFrame(tick); };
+      if (b && !reduced) { const final = b.dataset.count, n = +final.replace(/\D/g, ''), t0 = performance.now();
+        const tick = now => { const k = Math.min(1, (now - t0) / 900); b.textContent = k < 1 ? num(Math.round(n * (1 - Math.pow(1 - k, 3)))) : final; if (k < 1) requestAnimationFrame(tick); };
         requestAnimationFrame(tick); }
       if (!reduced) for (const f of e.target.querySelectorAll('.bar__fill')) { const h = f.dataset.h ??= f.style.getPropertyValue('--h'); f.style.setProperty('--h', '0'); requestAnimationFrame(() => requestAnimationFrame(() => f.style.setProperty('--h', h))); }
     }), { threshold: .2 });
@@ -242,10 +281,11 @@
   if (hint) { let shown = false; const on = () => { if (shown || scrollY > innerHeight * .4 || root.classList.contains('no-webgl') || root.classList.contains('no-3d')) return; shown = true; hint.classList.add('on'); setTimeout(() => hint.classList.remove('on'), 4200); };
     setTimeout(on, 1800); addEventListener('scroll', () => { if (scrollY > innerHeight * .4) hint.classList.remove('on'); }, { passive: true }); }
 
-  // помощник AI: кнопка всплывает, когда поле запроса (data-aid-anchor или .hero .ask) ушло вверх, и прячется у .final; окно на нативном dialog
+  // помощник AI: кнопка всплывает, когда поле запроса (data-aid-anchor или .ask первого экрана страницы) ушло вверх, и прячется у .final; окно на нативном dialog.
+  // первый экран - .theatre прямо в main: демо первого экрана в витрине лежит глубже и якорем не становится
   const fab = $('#aid-fab'), dlg = $('#aid');
   if (fab && dlg) {
-    const anchor = $('[data-aid-anchor]') || $('.hero .ask'), fin = $('.final'), st = new Map();
+    const anchor = $('[data-aid-anchor]') || $('main > .theatre .hero .ask'), fin = $('.final'), st = new Map();
     const upd = () => { const a = st.get(anchor), f = st.get(fin); fab.classList.toggle('on', anchor ? !!a && !a.isIntersecting && a.boundingClientRect.top < 0 && !(f && f.isIntersecting) : !(f && f.isIntersecting)); };
     const io = new IntersectionObserver(es => { for (const e of es) st.set(e.target, e); upd(); });
     if (anchor) io.observe(anchor); if (fin) io.observe(fin); if (!anchor && !fin) fab.classList.add('on');
@@ -271,7 +311,7 @@
     const main = $('.gallery__main img', g), cap = $('.gallery__cap', g), thumbs = $$('.gallery__thumbs button', g); let cur = 0;
     const go = i => { cur = (i + thumbs.length) % thumbs.length; const t = thumbs[cur], im = t.querySelector('img');
       if (main && im) { main.src = t.dataset.full || im.src; main.alt = im.alt; }
-      if (cap) cap.textContent = `${cur + 1} из ${thumbs.length}${t.dataset.cap ? ' · ' + t.dataset.cap : ''}`;
+      if (cap) cap.textContent = T.of(cur + 1, thumbs.length) + (t.dataset.cap ? ' · ' + t.dataset.cap : '');
       thumbs.forEach((b, k) => b.setAttribute('aria-current', String(k === cur))); };
     thumbs.forEach((b, i) => b.addEventListener('click', () => go(i)));
     const prev = $('[data-prev]', g), next = $('[data-next]', g);
@@ -288,25 +328,25 @@
     const SEL = 'a[data-zoom], a.p-plans__i', links = $$(SEL);
     if (links.length && window.HTMLDialogElement) {
       const ic = d => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
-      const dlg = document.createElement('dialog'); dlg.className = 'zoom'; dlg.setAttribute('aria-label', 'Просмотр изображения');
+      const dlg = document.createElement('dialog'); dlg.className = 'zoom'; dlg.setAttribute('aria-label', T.viewer);
       dlg.innerHTML = `<div class="zoom__bar"><span class="zoom__n" aria-live="polite"></span><span class="zoom__tools">
-<button type="button" class="zoom__b" data-z="-1" aria-label="Уменьшить">${ic('<path d="M5 12h14"/>')}</button><button type="button" class="zoom__b zoom__pct" data-z="0" aria-label="Вписать в экран">100%</button><button type="button" class="zoom__b" data-z="1" aria-label="Увеличить">${ic('<path d="M5 12h14"/><path d="M12 5v14"/>')}</button><button type="button" class="zoom__b" data-close aria-label="Закрыть" autofocus>${ic('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>')}</button></span></div>
+<button type="button" class="btn btn--icon btn--dark zoom__b" data-z="-1" aria-label="${T.zoomOut}">${ic('<path d="M5 12h14"/>')}</button><button type="button" class="btn btn--icon btn--dark zoom__b zoom__pct" data-z="0" aria-label="${T.fit}">100%</button><button type="button" class="btn btn--icon btn--dark zoom__b" data-z="1" aria-label="${T.zoomIn}">${ic('<path d="M5 12h14"/><path d="M12 5v14"/>')}</button><button type="button" class="btn btn--icon btn--dark zoom__b" data-close aria-label="${T.close}" autofocus>${ic('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>')}</button></span></div>
 <div class="zoom__stage"><img alt="" draggable="false"></div>
-<button type="button" class="zoom__nav zoom__nav--p" data-step="-1" aria-label="Предыдущее">${ic('<path d="m15 18-6-6 6-6"/>')}</button><button type="button" class="zoom__nav zoom__nav--n" data-step="1" aria-label="Следующее">${ic('<path d="m9 18 6-6-6-6"/>')}</button>`;
+<button type="button" class="btn btn--icon btn--dark zoom__nav zoom__nav--p" data-step="-1" aria-label="${T.prev}">${ic('<path d="m15 18-6-6 6-6"/>')}</button><button type="button" class="btn btn--icon btn--dark zoom__nav zoom__nav--n" data-step="1" aria-label="${T.next}">${ic('<path d="m9 18 6-6-6-6"/>')}</button>`;
       document.body.append(dlg);
       const stage = $('.zoom__stage', dlg), img = $('img', stage), num = $('.zoom__n', dlg), pct = $('.zoom__pct', dlg);
       let set = [], cur = 0, s = 1, x = 0, y = 0;
       // сдвиг не даёт картинке уйти с экрана: край увеличенной картинки не заходит внутрь сцены
       const draw = () => { const r = stage.getBoundingClientRect(), mx = Math.max(0, (img.offsetWidth * s - r.width) / 2), my = Math.max(0, (img.offsetHeight * s - r.height) / 2);
         x = Math.min(mx, Math.max(-mx, x)); y = Math.min(my, Math.max(-my, y));
-        img.style.transform = `translate(${x}px, ${y}px) scale(${s})`; pct.textContent = Math.round(s * 100) + '%'; stage.classList.toggle('is-zoomed', s > 1); };
+        img.style.transform = `translate(${x}px, ${y}px) scale(${s})`; pct.textContent = NF.format(Math.round(s * 100)) + '%'; stage.classList.toggle('is-zoomed', s > 1); };
       // масштаб к точке окна (cx, cy), без точки к центру сцены: точка под курсором остаётся на месте
       const zoomTo = (ns, cx, cy) => { ns = Math.min(6, Math.max(1, ns)); const r = stage.getBoundingClientRect();
         const px = cx == null ? 0 : cx - r.left - r.width / 2, py = cy == null ? 0 : cy - r.top - r.height / 2;
         x = px - (px - x) * ns / s; y = py - (py - y) * ns / s; s = ns; if (s === 1) x = y = 0; draw(); };
       const show = i => { cur = (i + set.length) % set.length; const a = set[cur], t = a.querySelector('img');
         img.src = a.href; img.alt = t ? t.alt : ''; s = 1; x = y = 0; draw();
-        num.textContent = set.length > 1 ? `${cur + 1} из ${set.length}` : ''; for (const b of $$('.zoom__nav', dlg)) b.hidden = set.length < 2; };
+        num.textContent = set.length > 1 ? T.of(cur + 1, set.length) : ''; for (const b of $$('.zoom__nav', dlg)) b.hidden = set.length < 2; };
       document.addEventListener('click', e => { const a = e.target.closest(SEL); if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return; e.preventDefault();
         set = a.dataset.zoom ? links.filter(l => l.dataset.zoom === a.dataset.zoom) : links.filter(l => l.parentElement === a.parentElement);
         dlg.showModal(); show(set.indexOf(a)); });
@@ -339,28 +379,28 @@
   }
 
   // избранное: переключатель aria-pressed
-  for (const b of $$('.fav')) b.addEventListener('click', () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Убрать из избранного' : 'В избранное'); });
+  for (const b of $$('.fav')) b.addEventListener('click', () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? T.favOn : T.favOff); });
 
   // форма заявки: проверка на клиенте, ошибки у полей, состояние успеха; отправку делает страница (data-endpoint), без него показывается успех
   for (const f of $$('form.form')) {
     f.noValidate = true;
     f.addEventListener('submit', async e => {
       e.preventDefault(); let first = null;
-      for (const el of f.querySelectorAll('[required]')) {
+      for (const el of f.querySelectorAll('[required]:not(:disabled)')) { // отключённое поле скрытого блока [data-when] не проверяется и не отправляется
         const box = el.closest('.field, .check'), ok = el.type === 'checkbox' ? el.checked : el.value.trim() !== '' && el.checkValidity();
         if (box) box.classList.toggle('is-err', !ok); el.setAttribute('aria-invalid', String(!ok)); if (!ok && !first) first = el;
       }
       if (first) { first.focus(); return; }
-      const ep = f.dataset.endpoint;
-      if (ep) { try { const r = await fetch(ep, { method: 'POST', body: new FormData(f) }); if (!r.ok) throw new Error(r.status); } catch (err) { const n = f.querySelector('.form__fail'); if (n) n.hidden = false; return; } }
+      // поле-ловушка .hp заполнено (бот): тот же успех, но без запроса, как на бою (/api/leads при заполненном website отвечает ok и ничего не пишет)
+      const ep = f.dataset.endpoint, bot = $$('input.hp, textarea.hp', f).some(h => h.value.trim() !== '');
+      if (ep && !bot) { try { const r = await fetch(ep, { method: 'POST', body: new FormData(f) }); if (!r.ok) throw new Error(r.status); } catch (err) { const n = f.querySelector('.form__fail'); if (n) n.hidden = false; return; } }
       f.classList.add('is-ok'); const ok = f.querySelector('.form__ok'); if (ok) { ok.tabIndex = -1; ok.focus(); }
     });
     f.addEventListener('input', e => { const box = e.target.closest('.is-err'); if (box && (e.target.type === 'checkbox' ? e.target.checked : e.target.value.trim())) { box.classList.remove('is-err'); e.target.removeAttribute('aria-invalid'); } });
   }
 
-  // оглавление статьи: подсветка текущего раздела
-  const toc = $('.toc');
-  if (toc) { const links = $$('a[href^="#"]', toc), secs = links.map(a => document.getElementById(decodeURIComponent(a.hash.slice(1)))).filter(Boolean);
+  // оглавление статьи: подсветка текущего раздела в каждом .toc на странице (кроме .toc--rows: список-переход, не липнет)
+  for (const toc of $$('.toc:not(.toc--rows)')) { const links = $$('a[href^="#"]', toc), secs = links.map(a => document.getElementById(decodeURIComponent(a.hash.slice(1)))).filter(Boolean);
     const io = new IntersectionObserver(() => { let cur = secs[0]; for (const s of secs) if (s.getBoundingClientRect().top < innerHeight * .35) cur = s; for (const a of links) a.setAttribute('aria-current', String(a.hash === '#' + cur.id)); }, { rootMargin: '0px 0px -50% 0px', threshold: [0, 1] });
     for (const s of secs) io.observe(s); }
 
@@ -378,19 +418,19 @@
     $('.card__nav--prev', c)?.addEventListener('click', e => { e.preventDefault(); go(-1); });
     $('.card__nav--next', c)?.addEventListener('click', e => { e.preventDefault(); go(1); });
     $('.share', c)?.addEventListener('click', async e => { e.preventDefault(); const a = $('.card__link', c), url = new URL(a.getAttribute('href'), location.href).href, b = e.currentTarget;
-      try { if (navigator.share) await navigator.share({ title: a.textContent, url }); else { await navigator.clipboard.writeText(url); b.title = 'Ссылка скопирована'; b.setAttribute('aria-label', 'Ссылка скопирована'); } } catch (_) {} });
+      try { if (navigator.share) await navigator.share({ title: a.textContent, url }); else { await navigator.clipboard.writeText(url); b.title = T.copied; b.setAttribute('aria-label', T.copied); } } catch (_) {} });
   }
 
   // выдача: быстрые чипы переключаются и попадают в строку активных фильтров; «Сбросить» снимает всё
   for (const res of $$('[data-results]')) {
     const chips = $$('.qchip', res), act = $('.achips', res);
     const draw = () => { if (!act) return; act.innerHTML = ''; const on = chips.filter(q => q.getAttribute('aria-pressed') === 'true');
-      for (const q of on) { const b = document.createElement('button'); b.type = 'button'; b.className = 'pill pill--xs pill--remove'; b.innerHTML = `${q.textContent}<svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>`; b.setAttribute('aria-label', `Убрать фильтр «${q.textContent}»`); b.addEventListener('click', () => { q.setAttribute('aria-pressed', 'false'); draw(); }); act.append(b); }
-      if (on.length) { const r = document.createElement('button'); r.type = 'button'; r.className = 'fmeta__reset'; r.textContent = 'Сбросить'; r.addEventListener('click', () => { chips.forEach(q => q.setAttribute('aria-pressed', 'false')); draw(); }); act.append(r); } };
+      for (const q of on) { const b = document.createElement('button'); b.type = 'button'; b.className = 'pill pill--xs pill--remove'; b.innerHTML = `${q.textContent}<svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>`; b.setAttribute('aria-label', T.unfilter(q.textContent)); b.addEventListener('click', () => { q.setAttribute('aria-pressed', 'false'); draw(); }); act.append(b); }
+      if (on.length) { const r = document.createElement('button'); r.type = 'button'; r.className = 'fmeta__reset'; r.textContent = T.reset; r.addEventListener('click', () => { chips.forEach(q => q.setAttribute('aria-pressed', 'false')); draw(); }); act.append(r); } };
     for (const q of chips) q.addEventListener('click', () => { q.setAttribute('aria-pressed', String(q.getAttribute('aria-pressed') !== 'true')); draw(); });
 
     // «Списком / На карте»: карта Leaflet грузится при первом открытии, пины по data-pins="[[lat,lng,'подпись'],...]"
-    const vbtn = $$('.view button', res), list = $('.cards', res), pager = $('.pager', res), map = $('.cmap', res);
+    const vbtn = $$('.view button, button[data-view]', res), list = $('.cards', res), pager = $('.pager', res), map = $('.cmap', res);
     const show = mode => { vbtn.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === mode))); if (list) list.hidden = mode === 'map'; if (pager) pager.hidden = mode === 'map'; if (map) { map.hidden = mode !== 'map'; if (mode === 'map') drawMap(map); } };
     for (const b of vbtn) b.addEventListener('click', () => show(b.dataset.view));
   }
@@ -399,9 +439,9 @@
     const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; s.onload = ok; s.onerror = no; document.head.append(s); });
   async function drawMap(el) {
     if (el.dataset.ready) return; el.dataset.ready = '1';
-    try { await loadLeaflet(); } catch (_) { el.textContent = 'Карта не загрузилась. Проверьте соединение и откройте снова.'; return; }
+    try { await loadLeaflet(); } catch (_) { el.textContent = T.mapFail; return; }
     const pins = JSON.parse(el.dataset.pins || '[]'), m = L.map(el, { scrollWheelZoom: false });
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; участники OpenStreetMap', maxZoom: 18 }).addTo(m);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: T.osm, maxZoom: 18 }).addTo(m);
     // пин точкой, название проекта в подсказке: подписи соседних проектов не налезают друг на друга
     // четвёртый элемент пина: ссылка, по клику на точку переход (карта стран ведёт в гиды)
     const g = L.featureGroup(pins.map(([la, ln, t, u]) => { const mk = L.marker([la, ln], { title: t, icon: L.divIcon({ className: '', html: '<span class="mpin"></span>', iconSize: [18, 18] }) }).bindTooltip(t, { direction: 'top', offset: [0, -10] }); if (u) mk.on('click', () => { location.href = u; }); return mk; })).addTo(m);
@@ -412,46 +452,46 @@
 
   // «Поделиться» страницей: системное меню или копирование ссылки
   for (const b of $$('[data-share]')) b.addEventListener('click', async () => {
-    try { if (navigator.share) await navigator.share({ title: document.title, url: location.href }); else { await navigator.clipboard.writeText(location.href); b.lastChild.textContent = 'Ссылка скопирована'; } } catch (_) {} });
+    try { if (navigator.share) await navigator.share({ title: document.title, url: location.href }); else { await navigator.clipboard.writeText(location.href); b.lastChild.textContent = T.copied; } } catch (_) {} });
 
   // калькулятор доходности, формула как на сайте (ROICalculator): аренда x 12 x заполняемость минус налог,
   // обслуживание за м² и комиссия за поиск арендатора в одну месячную аренду
   for (const c of $$('[data-calc]')) {
-    const v = n => +$(`[name="${n}"]`, c).value, usd = x => '$' + Math.round(x).toLocaleString('ru-RU'), pct = x => x.toFixed(1).replace('.', ',') + '%';
+    const v = n => +$(`[name="${n}"]`, c).value;
     const out = (k, t) => { for (const e of $$(`[data-out="${k}"]`, c)) e.textContent = t; };
     const calc = () => {
-      for (const r of $$('input[type="range"]', c)) $('#o-' + r.name, c).textContent = r.dataset.fmt === 'pct' ? r.value + '%' : usd(r.value);
+      for (const r of $$('input[type="range"]', c)) $('#o-' + r.name, c).textContent = r.dataset.fmt === 'pct' ? num(+r.value) + '%' : usd(r.value);
       const price = v('price'), rent = v('rent'), ga = rent * 12 * v('occ') / 100, tax = ga * +c.dataset.tax, cam = +c.dataset.cam * +c.dataset.area * 12;
       const net = ga - tax - cam - rent, v5 = price * Math.pow(1 + v('grow') / 100, 5);
       out('month', usd(net / 12)); out('year', usd(net)); out('year2', usd(net)); out('gross', pct(ga / price * 100)); out('net', pct(net / price * 100));
-      out('v5', usd(v5)); out('r5', Math.round((net * 5 + v5 - price) / price * 100) + '%');
+      out('v5', usd(v5)); out('r5', num(Math.round((net * 5 + v5 - price) / price * 100)) + '%');
       out('ga', usd(ga)); out('tax', '-' + usd(tax)); out('cam', '-' + usd(cam)); out('fee', '-' + usd(rent));
     };
     c.addEventListener('input', calc); calc();
   }
 
   // ползунок .slider и ползунки калькулятора: --v (0-100%) рисует заполнение дорожки, .slider__v показывает значение
-  // (data-prefix и data-suffix у input, например «$» и «%»; число с пробелами по-русски)
+  // (data-prefix и data-suffix у input, например «$» и «%»; число по локали страницы через Intl)
   for (const r of $$('.slider input[type="range"], .calc input[type="range"]')) {
     const o = r.closest('.slider')?.querySelector('.slider__v'), mn = +(r.min || 0), mx = +(r.max || 100);
     const upd = () => { r.style.setProperty('--v', (r.value - mn) / (mx - mn || 1) * 100 + '%');
-      if (o) o.textContent = (r.dataset.prefix || '') + (+r.value).toLocaleString('ru-RU') + (r.dataset.suffix || ''); };
+      if (o) o.textContent = (r.dataset.prefix || '') + num(+r.value) + (r.dataset.suffix || ''); };
     r.addEventListener('input', upd); upd();
   }
 
   // калькулятор сценария (раздел «Инвестиции»): ставку аренды не подставляем, результат молчит, пока её не ввели.
   // Доход STR = посуточная ставка x 365 x заполняемость, LTR = месячная x 12 x заполняемость; минус доли расходов и прочие расходы.
   for (const c of $$('[data-scen]')) {
-    const f = n => $(`[name="${n}"]`, c), usd = x => '$' + Math.round(x).toLocaleString('ru-RU');
+    const f = n => $(`[name="${n}"]`, c);
     const calc = () => {
       const opt = f('country').selectedOptions[0], med = +opt.dataset.med, budget = +f('budget').value, str = f('mode').value === 'str';
-      $('[data-out="area"]', c).textContent = med ? Math.round(budget / med) : '-';
-      $('[data-out="ratel"]', c).textContent = str ? 'Посуточная ставка, USD' : 'Месячная ставка, USD';
+      $('[data-out="area"]', c).textContent = med ? num(Math.round(budget / med)) : '-';
+      $('[data-out="ratel"]', c).textContent = str ? T.rateDay : T.rateMonth;
       $('[data-out="fees"]', c).hidden = !str;
       const rate = +f('rate').value, occ = +f('occ').value, other = +f('other').value || 0, res = $('[data-out="res"]', c);
-      if (!rate || !occ || !budget) { res.textContent = 'Введите ставку аренды и заполняемость, чтобы увидеть расчёт'; res.classList.remove('is-on'); return; }
+      if (!rate || !occ || !budget) { res.textContent = T.rateAsk; res.classList.remove('is-on'); return; }
       const gross = (str ? rate * 365 : rate * 12) * occ / 100, share = .25 + .065 + .04 + (str ? .04 : 0), net = gross * (1 - share) - other;
-      res.innerHTML = `<b>${(net / budget * 100).toFixed(1).replace('.', ',')}%</b> чистыми в год: доход ${usd(gross)}, расходы ${usd(gross * share + other)}, остаётся ${usd(net)}`; res.classList.add('is-on');
+      res.innerHTML = T.scen(pct(net / budget * 100), usd(gross), usd(gross * share + other), usd(net)); res.classList.add('is-on');
     };
     c.addEventListener('input', calc); c.addEventListener('change', calc); calc();
   }
@@ -463,16 +503,15 @@
   // пошаговый квиз [data-quiz]: шаги fieldset.quiz__s, выбор варианта ведёт дальше, «Назад» возвращает,
   // на последнем шаге в [data-qsum] сводка ответов; отправка как у любой .form
   for (const q of $$('[data-quiz]')) {
-    const steps = $$('.quiz__s', q), n = $('[data-qn]', q), bar = $('.quiz__bar i', q), pr = $('.progress', q), back = $('[data-qback]', q), sum = $('[data-qsum]', q);
+    const steps = $$('.quiz__s', q), n = $('[data-qn]', q), pr = $('.progress', q), back = $('[data-qback]', q), sum = $('[data-qsum]', q);
     let i = 0;
     const go = k => {
       i = k; steps.forEach((s, j) => { s.hidden = j !== i; }); n.textContent = i + 1; back.hidden = i === 0;
-      if (bar) bar.style.setProperty('--p', `${(i + 1) / steps.length * 100}%`); // старая полоса .quiz__bar
       if (pr) { pr.style.setProperty('--v', `${(i + 1) / steps.length * 100}%`); pr.setAttribute('aria-valuenow', i + 1); } // индикатор .progress--steps
       if (sum && i === steps.length - 1) sum.replaceChildren(...steps.slice(0, -1).flatMap(s => {
         const c = $('input:checked', s); if (!c) return [];
         const li = document.createElement('li'), b = document.createElement('b');
-        li.textContent = $('legend', s).textContent + ': '; b.textContent = c.nextElementSibling.textContent; li.append(b); return [li];
+        li.textContent = $('legend', s).textContent + ': '; b.textContent = c.closest('label').textContent.trim(); li.append(b); return [li]; // текст варианта из label: и label.pill > input + текст, и старый label.chip > input + span
       }));
     };
     q.addEventListener('change', e => { if (e.target.type === 'radio' && i < steps.length - 1 && steps[i].contains(e.target)) setTimeout(() => go(i + 1), reduced ? 0 : 180); });
@@ -492,7 +531,7 @@
         if (bad) { bad.reportValidity(); return; }
         go(i + 1); st[i].querySelector('input, select')?.focus();
       }
-      if (e.target.closest('[data-fprev]')) go(i - 1);
+      if (e.target.closest('[data-fprev]')) { go(i - 1); st[i].querySelector(':is(input, select, textarea, button):not(.hp, [type="hidden"])')?.focus(); } // кнопка «Назад» скрылась вместе с шагом: фокус в прежний шаг, а не на body
     });
     go(0);
   }
@@ -510,7 +549,7 @@
 
   // липкая панель цены: видна, когда блок data-after ушёл вверх, и прячется, пока на экране форма из data-hide
   for (const pb of $$('.pbar')) {
-    const a = $(pb.dataset.after), zs = $$(pb.dataset.hide || '.form');
+    const a = $(pb.dataset.after), zs = $$(pb.dataset.hide || 'form.form'); // сама форма, а не обёртка div.form.form--bare
     if (!a) continue; // нет якоря data-after: панель остаётся скрытой, остальные модули работают
     const onScreen = z => { const r = z.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; };
     const upd = () => { pb.hidden = !(a.getBoundingClientRect().bottom < 0 && !zs.some(onScreen)); };
@@ -527,7 +566,7 @@
   document.querySelectorAll('.ask__mic').forEach(m => {
     if (!SR) { m.hidden = true; return; }
     m.addEventListener('click', () => {
-      const r = new SR(); r.lang = 'ru-RU'; m.setAttribute('aria-pressed', 'true');
+      const r = new SR(); r.lang = T.loc; m.setAttribute('aria-pressed', 'true');
       r.onresult = ev => { m.closest('form').querySelector('input[name="q"]').value = ev.results[0][0].transcript; };
       r.onend = () => m.setAttribute('aria-pressed', 'false');
       r.start();
@@ -536,12 +575,10 @@
   // столбики [data-bars] без класса .hb3d плоским графиком (владелец 07.10.2026: AED-столбики 3D разъезжались); 3D-столбики .hb3d[data-bars] рисует hb-scene.js.
   // data-bars='[{"label":"Дубай","v":5375,"t":"текст значения","tip":"подсказка"}]' data-prefix="$" data-suffix=" м²"; значение над столбиком, подпись под ним,
   // подсказка из поля tip или подписи со значением; самый высокий столбик нефритом. Столбик в фокусе с клавиатуры показывает ту же подсказку.
-  const nfmt = v => Number(v).toLocaleString('ru-RU').replace(/\s/g, ' ');
-  const plural = (n, f1, f2, f5) => { const m = n % 100, k = n % 10; return m > 10 && m < 20 ? f5 : k === 1 ? f1 : k > 1 && k < 5 ? f2 : f5; };
   const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   for (const el of $$('[data-bars]:not(.hb3d)')) {
     let data = []; try { data = JSON.parse(el.dataset.bars); } catch (_) { continue; }
-    const max = Math.max(...data.map(d => +d.v), 1), txt = d => d.t || (el.dataset.prefix || '') + nfmt(d.v) + (el.dataset.suffix || '');
+    const max = Math.max(...data.map(d => +d.v), 1), txt = d => d.t || (el.dataset.prefix || '') + num(d.v) + (el.dataset.suffix || '');
     const cols = mk('div', 'chart__cols');
     for (const d of data) {
       const c = mk('div', 'chart__c' + (+d.v === max ? ' is-max' : '')); c.tabIndex = 0; c.dataset.tip = d.tip || `${d.label}\n${txt(d)}`; c.style.setProperty('--h', (+d.v / max * 100).toFixed(1));
@@ -560,7 +597,7 @@
       const j = Math.floor((((lon + 180) % 360) + 360) % 360 / 360 * row[0]); for (let k = 1; k < row.length; k += 2) if (j >= row[k] && j < row[k] + row[k + 1]) return true; return false; };
     const pinsOf = el => { const d = el.dataset;
       if (d.countries) { const keys = d.countries === 'all' ? null : d.countries.split(',').map(s => s.trim());
-        return (window.HB_COUNTRIES || []).filter(c => !keys || keys.includes(c.path.split('/').pop())).map(c => ({ lat: c.lat, lon: c.lon, name: c.name, n: +c.n, href: d.href, tip: `${c.name}\n${c.n} ${plural(+c.n, 'проект', 'проекта', 'проектов')} в каталоге` })); }
+        return (window.HB_COUNTRIES || []).filter(c => !keys || keys.includes(c.path.split('/').pop())).map(c => ({ lat: c.lat, lon: c.lon, name: c.name, n: +c.n, href: d.href, tip: `${c.name}\n${num(+c.n)} ${plural(+c.n, T.projects)}${T.inCat}` })); }
       let a = []; try { a = JSON.parse(d.pins || '[]'); } catch (_) {}
       return a.map(([lat, lon, t, u]) => { const [name, ...r] = String(t).split(': '); return { lat, lon, name, n: 0, href: u, tip: name + (r.length ? '\n' + r.join(': ') : '') }; }); };
     const drawDmap = el => {
@@ -580,9 +617,9 @@
       for (const p of pins.sort((a, b) => b.n - a.n)) { const g = groups.find(g => Math.hypot(px(g[0])[0] - px(p)[0], px(g[0])[1] - px(p)[1]) < 24); g ? g.push(p) : groups.push([p]); }
       const merged = groups.map(g => { if (g.length === 1) return g[0];
         const words = g.map(p => p.name.split(/[\s()]+/)), short = words.map(ws => ws.find(w => w.length > 3 && words.some(o => o !== ws && o.includes(w))));
-        const names = [...new Set(g.map((p, i) => short[i] || p.name))], name = names.length < 3 ? names.join(', ') : `${names[0]} и ещё ${names.length - 1}`;
+        const names = [...new Set(g.map((p, i) => short[i] || p.name))], name = names.length < 3 ? names.join(', ') : T.andMore(names[0], names.length - 1);
         return { lat: g.reduce((s, p) => s + p.lat, 0) / g.length, lon: g.reduce((s, p) => s + p.lon, 0) / g.length, n: g.reduce((s, p) => s + p.n, 0), href: g[0].href,
-          name, tip: name + '\n' + g.map(p => p.tip.replace('\n', ': ').replace(' в каталоге', '')).join('\n') }; });
+          name, tip: name + '\n' + g.map(p => p.tip.replace('\n', ': ').replace(T.inCat, '')).join('\n') }; });
       const items = merged.map(p => { const a = mk(p.href ? 'a' : 'span', 'dmap__pin'); if (p.href) a.href = p.href; else a.tabIndex = 0;
         a.dataset.tip = p.tip; a.setAttribute('aria-label', p.tip.replace('\n', ': ')); a.style.left = ((p.lon - x0) / (x1 - x0) * 100).toFixed(2) + '%'; a.style.top = ((y1 - p.lat) / (y1 - y0) * 100).toFixed(2) + '%';
         a.append(mk('i'), mk('span', 'dmap__l', p.name)); box.append(a); return a; });
@@ -604,7 +641,7 @@
     const get = id => { try { return localStorage.getItem('hb-like:' + id) === '1'; } catch (_) { return false; } };
     const put = (id, on) => { try { on ? localStorage.setItem('hb-like:' + id, '1') : localStorage.removeItem('hb-like:' + id); } catch (_) {} };
     const paint = (id, on) => { for (const b of likes) if (b.dataset.like === id) { const n = +b.dataset.count + (on ? 1 : 0);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.querySelector('b').textContent = n; b.setAttribute('aria-label', `Полезно: ${n}`); } };
+      b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.querySelector('b').textContent = num(n); b.setAttribute('aria-label', T.useful(num(n))); } };
     for (const b of likes) if (get(b.dataset.like)) paint(b.dataset.like, true);
     document.addEventListener('click', e => { const b = e.target.closest('[data-like]'); if (!b) return; e.preventDefault();
       const id = b.dataset.like, on = b.getAttribute('aria-pressed') !== 'true'; put(id, on); paint(id, on); });
@@ -642,7 +679,9 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') tipHide(); });
   addEventListener('scroll', () => { if (tipFor && tipFor.matches(':focus-visible')) tipOn(tipFor); else tipHide(); }, { passive: true }); // Tab прокручивает к элементу: плашка фокуса едет с ним
   // подсказка у любого элемента: тот, что сам фокус не получает (li, span, abbr), встаёт в порядок Tab, чтобы плашку видели и с клавиатуры
-  for (const el of $$('[data-tip]')) if (el.tabIndex < 0 && !el.hasAttribute('tabindex')) el.tabIndex = 0;
+  // Остановка Tab без текста (точка и полоса шкалы цен) получает имя: первая строка подсказки, роль img; иначе диктор читает пустоту
+  for (const el of $$('[data-tip]')) { if (el.tabIndex < 0 && !el.hasAttribute('tabindex')) el.tabIndex = 0;
+    if (!el.textContent.trim() && !el.hasAttribute('role') && !el.hasAttribute('aria-label') && !el.hasAttribute('aria-labelledby')) { el.setAttribute('role', 'img'); el.setAttribute('aria-label', el.dataset.tip.split('\n')[0]); } }
 
   // тост: window.hbToast(текст, вид) показывает всплывашку снизу по центру; вид 'ok', 'warn', 'err', без вида сведения.
   // Закрывается сам через 5 с или кнопкой. Регион role=status стоит с загрузки (иначе диктор не озвучит), сам ничего не показывает (Р-27)
@@ -651,12 +690,24 @@
   const tIc = { info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>', ok: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
     warn: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>', err: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>' }; // как i-ban у .notice--err
   window.hbToast = (text, kind) => {
-    const k = tIc[kind] ? kind : 'info', t = document.createElement('div'); let timer = 0;
+    const k = tIc[kind] ? kind : 'info', t = document.createElement('div'), back = document.activeElement; let timer = 0;
     t.className = k === 'info' ? 'toast' : `toast toast--${k}`;
-    t.innerHTML = `${svg(tIc[k])}<p class="toast__t"></p><button type="button" class="btn btn--icon btn--quiet btn--xs toast__x" aria-label="Закрыть уведомление">${svg('<path d="M18 6 6 18M6 6l12 12"/>')}</button>`;
+    t.innerHTML = `${svg(tIc[k])}<p class="toast__t"></p><button type="button" class="btn btn--icon btn--quiet btn--xs toast__x" aria-label="${T.dismiss}">${svg('<path d="M18 6 6 18M6 6l12 12"/>')}</button>`;
     $('.toast__t', t).textContent = text;
-    const close = () => { clearTimeout(timer); t.remove(); };
+    // фокус был в тосте (крестик): возвращается туда, откуда тост вызвали, а не падает на body
+    let gone = false;
+    const close = () => { gone = true; clearTimeout(timer); const had = t.contains(document.activeElement); t.remove(); if (had && back && back.isConnected && back !== document.body) back.focus({ preventScroll: true }); };
+    // наведение и фокус держат тост; после ухода снова 5 с (WCAG 2.2.1)
+    const arm = () => { clearTimeout(timer); timer = setTimeout(close, 5000); }, hold = () => clearTimeout(timer);
+    t.addEventListener('pointerenter', hold); t.addEventListener('pointerleave', () => { if (!t.contains(document.activeElement)) arm(); });
+    t.addEventListener('focusin', hold); t.addEventListener('focusout', e => { if (!t.contains(e.relatedTarget) && !t.matches(':hover')) arm(); });
     $('.toast__x', t).addEventListener('click', close);
-    toasts.append(t); timer = setTimeout(close, 5000); return close;
+    // открытая модалка лежит в top layer, а body под ней инертен: регион переезжает в неё, без модалки он в body.
+    // Переехавший регион диктор подхватывает не сразу, поэтому тост в него ставится следующим шагом
+    const host = $$('dialog[open]').pop() || document.body, moved = toasts.parentNode !== host;
+    if (moved) host.append(toasts);
+    const show = () => { if (!gone) { toasts.append(t); arm(); } };
+    if (moved) setTimeout(show, 50); else show();
+    return close;
   };
 })();

@@ -59,6 +59,7 @@ h1, h2, h3, h4, p, ul, ol, figure, dl, dd, blockquote { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 h1, h2, h3, h4 { font-family: "Geologica", "IBM Plex Sans", sans-serif; font-weight: 600; color: var(--ink); text-wrap: balance; }
 h1 { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: -.01em; }
+@media (max-width: 639px) { h1 { hyphens: auto; hyphenate-limit-chars: 15 6 6; } } /* слово от 15 букв переносится по слогам: «конфиденциальности» (355 px в кегле 32) распирало колонку на 320-375 */
 h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); }
 h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); }
 h4 { font-size: var(--fs-card); line-height: var(--lh-card); } /* уровень карточки; утилиты .h2-.h4 в разделе [B1] */
@@ -67,12 +68,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 img { max-width: 100%; height: auto; display: block; }
 :focus-visible { outline: 2px solid var(--accent-hover); outline-offset: 3px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+[hidden] { display: none !important; } /* K7: hidden сильнее display любого компонента; вкладки на печати раскрывает правило сильнее в @media print */
 .ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 .ic--16 { width: 16px; height: 16px; } .ic--24 { width: 24px; height: 24px; }
 .skip { position: absolute; left: 12px; top: -100px; z-index: var(--z-skip); padding: 12px 16px; border-radius: var(--r-s); background: var(--accent); color: var(--on-accent); font-weight: 600; text-decoration: none; }
 .skip:focus { top: 12px; }
 .wrap { max-width: var(--wrap); margin: 0 auto; display: grid; gap: 28px; }
 .eyebrow { font: 600 var(--fs-min)/16px "Geologica", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text); }
+.eyebrow:has(> .ic) { display: inline-flex; align-items: center; gap: 6px; } /* K1: метка с иконкой одной строкой */
 .lead { font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--ink-2); max-width: 32em; }
 .support { font-size: var(--fs-small); line-height: 1.45; color: var(--ink-3); }
 .note { font-size: var(--fs-cap); line-height: 18px; color: var(--ink-3); }
@@ -84,8 +87,9 @@ img { max-width: 100%; height: auto; display: block; }
 .brand { display: inline-flex; flex: none; line-height: 0; color: inherit; }
 .brand svg { height: 22px; width: auto; display: block; }
 .lw { fill: var(--logo-ink); } .lr { fill: var(--logo-roof); }
-/* на нефрите и тёмном логотип целиком белый (брендбук, 02-logo) */
-.final, .on-jade { --logo-ink:#FFFFFF; --logo-roof:#FFFFFF; }
+/* на нефрите и тёмном логотип целиком белый (брендбук, 02-logo); текст на нефрите светлый токенами, значения как у .phead--hero, в обеих темах.
+   .final--plain стоит на бумаге и токены не меняет. Бумажные поверхности (.btn без --inv/--ghost, .btn--tint, .panel, поля) на нефрит не ставим: в них текст стал бы белым */
+.final:not(.final--plain), .on-jade { --logo-ink:#FFFFFF; --logo-roof:#FFFFFF; --ink:#FFFFFF; --ink-2:#E2E7EA; --ink-3:#CFE3D6; --accent-text:#DAF1DC; --sunken:var(--jade-hover); --price:#FFFFFF; }
 
 /* ---------- шапка: поле охраны логотипа = высота буквы «b» (высота надписи) со всех сторон ---------- */
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: var(--z-sticky); display: flex; align-items: center; gap: 28px; min-height: var(--top-h); padding: 0 var(--gutter); background: var(--glass); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
@@ -97,9 +101,9 @@ img { max-width: 100%; height: auto; display: block; }
 .top .night { margin-left: 0; }
 /* инструменты шапки как на сайте: мессенджеры, валюта, язык, тема, вход, Pro */
 .top__tools { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-.top__ic { display: inline-grid; place-items: center; } /* вид: .btn--icon.btn--xs.btn--quiet.btn--round, списки в [A1] */
+.top__ic { display: inline-grid; place-items: center; } /* вид: .btn--icon.btn--xs.btn--quiet.btn--round */
 .top__cur { width: 96px; } /* список валют: размер .select--xs.select--pill в разделе [A2] */
-.top__lang { display: inline-grid; place-items: center; min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
+.top__lang { display: inline-grid; place-items: center; min-width: var(--h-xs); height: var(--h-xs); padding: 0 8px; border: 1px solid var(--line); border-radius: var(--r-pill); font-size: var(--fs-cap); font-weight: 600; color: var(--ink-2); text-decoration: none; }
 .top__lang:hover { color: var(--ink); border-color: var(--control); }
 .top .btn { white-space: nowrap; }
 .night { display: inline-flex; align-items: center; gap: 7px; min-height: var(--h-xs); padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); font-size: var(--fs-cap); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
@@ -107,26 +111,25 @@ img { max-width: 100%; height: auto; display: block; }
 .night::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-text); box-shadow: inset 0 0 0 3px var(--paper); border: 1px solid var(--accent-text); }
 .night[aria-pressed="true"]::before { background: var(--paper); box-shadow: inset -3px -3px 0 0 var(--accent-text); }
 /* мобильное меню: бургер и выезжающая справа панель (dialog) */
-.burger { display: none; } /* вид: .btn.btn--icon, списки в [A1] */
-/* ---------- ящик .drawer: правая панель на нативном dialog; база меню .mnav и панели фильтров .fpanel (алиасы до перевода страниц) ---------- */
-.drawer, .mnav, .fpanel { inset: 0 0 0 auto; margin: 0 0 0 auto; width: min(var(--drawer-w, 400px), 100vw); max-width: none; height: 100dvh; max-height: none; padding: 0; border: 0; border-left: 1px solid var(--line); background: var(--paper); color: var(--ink); box-shadow: var(--e3); overscroll-behavior: contain; }
-.drawer[open], .fpanel[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; } /* голова, тело с прокруткой, подвал */
-.drawer[open], .mnav[open], .fpanel[open] { animation: hb-drawer-in var(--dur-2) var(--ease); }
+.burger { display: none; } /* вид: .btn.btn--icon */
+/* ---------- ящик .drawer: правая панель на нативном dialog; меню dialog.drawer.mnav и панель фильтров dialog.drawer.fpanel (имена: хуки ширины) ---------- */
+.drawer { inset: 0 0 0 auto; margin: 0 0 0 auto; width: min(var(--drawer-w, 400px), 100vw); max-width: none; height: 100dvh; max-height: none; padding: 0; border: 0; border-left: 1px solid var(--line); background: var(--paper); color: var(--ink); box-shadow: var(--e3); overscroll-behavior: contain; }
+.drawer[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; } /* голова, тело с прокруткой, подвал */
+.drawer[open] { animation: hb-drawer-in var(--dur-2) var(--ease); }
 @keyframes hb-drawer-in { from { transform: translateX(24px); opacity: 0; } }
-.drawer::backdrop, .mnav::backdrop, .fpanel::backdrop { background: var(--scrim); }
-.drawer__head, .fpanel__head { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 20px; border-bottom: 1px solid var(--line); }
-.drawer__head h2, .fpanel__head h2 { margin: 0 auto 0 0; font-size: 20px; line-height: 26px; }
-.drawer__body, .fpanel__body { display: grid; align-content: start; gap: 20px; padding: 20px; overflow-y: auto; overscroll-behavior: contain; }
+.drawer::backdrop { background: var(--scrim); }
+.drawer__head { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 20px; border-bottom: 1px solid var(--line); }
+.drawer__head h2 { margin: 0 auto 0 0; font-size: 20px; line-height: 26px; }
+.drawer__body { display: grid; align-content: start; gap: 20px; padding: 20px; overflow-y: auto; overscroll-behavior: contain; }
 .fpanel__body { gap: 28px; } /* группы фильтров разделены шире */
-.drawer__foot .btn, .fpanel__foot .btn { flex: 1; } /* раскладка: кнопки подвала делят строку, размер свой */
+.drawer__foot .btn { flex: 1; } /* раскладка: кнопки подвала делят строку, размер свой */
 .mnav { --drawer-w: 360px; color: var(--ink-2); }
 .mnav__in { display: grid; gap: 18px; padding: 16px 20px 28px; }
 .mnav__head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
 .mnav__links { display: grid; }
 .mnav__links a { display: flex; align-items: center; justify-content: space-between; min-height: 52px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); font: 500 18px/26px "Geologica", sans-serif; }
 .mnav .contact .btn { flex: 1 1 100%; }
-.mnav .btn--ghost { border-color: var(--line); background: var(--paper); color: var(--ink); } .mnav .btn--ghost:hover { border-color: var(--control); background: var(--paper); } /* алиас до перевода страниц: «призрак» для нефрита в белом ящике не виден; в разметке нужна обычная .btn */
-.x { display: inline-flex; } /* вид: .btn--icon.btn--quiet.btn--round с рамкой line, списки в [A1] */
+.x { display: inline-flex; } /* вид: .btn--icon.btn--quiet.btn--round с рамкой line */
 
 /* хлебные крошки */
 .crumbs { font-size: var(--fs-cap); line-height: 18px; color: var(--ink-3); }
@@ -139,21 +142,25 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ---------- кнопка .btn, брендбук: XS 32/10/13, S 38/10/14, M 48/12/15, L 56/14/16; здесь база, главные стили и размеры S и L,
    остальное (XS, quiet, glass, dark, link, только иконка, круг, пилюля, во всю ширину, нажата, загрузка) в разделе [A1] в конце файла.
-   Кнопки-иконки со старыми именами остаются хуками поведения (hb-ui.js ищет их) и берут вид из .btn списками селекторов; display у каждой свой ---------- */
+   Кнопки-иконки со старыми именами остаются хуками поведения и раскладки (hb-ui.js ищет их), вид дают только классы кита ---------- */
 .btn { display: inline-flex; }
-.btn, .x, .burger, .top__ic, .fav, .share, .card__nav, .gallery__nav button, .gallery__full, .zoom__b, .zoom__nav, .ask__mic, .fpanel__x { align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--h-m); padding: 0 22px; border-radius: var(--r-m); font: 600 var(--fs-ui)/20px "IBM Plex Sans", sans-serif; text-decoration: none; border: 1px solid var(--line); background: var(--paper); color: var(--ink); box-shadow: var(--e1); cursor: pointer; transition: border-color var(--dur-1), background-color var(--dur-1), color var(--dur-1), transform var(--dur-1); }
-.btn:hover, .burger:hover { border-color: var(--control); }
-.btn:active, .x:active, .burger:active, .top__ic:active, .fav:active, .share:active, .card__nav:active, .gallery__nav button:active, .gallery__full:active, .zoom__b:active, .zoom__nav:active, .ask__mic:active, .fpanel__x:active { transform: translateY(1px); }
+.btn { align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--h-m); padding: 0 22px; border-radius: var(--r-m); font: 600 var(--fs-ui)/20px "IBM Plex Sans", sans-serif; text-decoration: none; border: 1px solid var(--line); background: var(--paper); color: var(--ink); box-shadow: var(--e1); cursor: pointer; transition: border-color var(--dur-1), background-color var(--dur-1), color var(--dur-1), transform var(--dur-1); }
+.btn:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: var(--control); } /* наведение у всех стилей только у доступной кнопки: :where не меняет вес */
+.btn:active { transform: translateY(1px); }
 .btn[disabled], .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; transform: none; }
 .btn--acc { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.btn--acc:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-.btn--tint { background: var(--tint); border-color: var(--tint); color: var(--accent-text); box-shadow: none; } .btn--tint:hover { border-color: var(--accent-text); }
+.btn--acc:where(:not(:disabled, [aria-disabled="true"])):hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn--tint { background: var(--tint); border-color: var(--tint); color: var(--accent-text); box-shadow: none; } .btn--tint:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: var(--accent-text); }
 .btn--s { min-height: var(--h-s); padding: 0 16px; font-size: var(--fs-small); border-radius: var(--r-s); }
-.btn--l, .btn--big { min-height: var(--h-l); padding: 0 24px; border-radius: var(--r-l); font-size: var(--fs-text); } /* .btn--big: алиас до перевода страниц */
-.btn--inv { background: #FFFFFF; border-color: #FFFFFF; color: var(--jade); } .btn--inv:hover { background: #DAF1DC; border-color: #DAF1DC; } /* белая на нефрите: в «Сумерках» тоже белая */
-.btn--ghost { background: transparent; border-color: rgba(255,255,255,.7); color: #FFFFFF; box-shadow: none; } .btn--ghost:hover { background: var(--jade-hover); border-color: #FFFFFF; }
+.btn--l { min-height: var(--h-l); padding: 0 24px; border-radius: var(--r-l); font-size: var(--fs-text); }
+.btn--inv { background: #FFFFFF; border-color: #FFFFFF; color: var(--jade); } .btn--inv:where(:not(:disabled, [aria-disabled="true"])):hover { background: #DAF1DC; border-color: #DAF1DC; } /* белая на нефрите: в «Сумерках» тоже белая */
+/* контур на нефрите: только на тёмной плоскости (финал, .on-jade, шапка --hero, нефритовое демо витрины); на светлом фоне белый контур
+   невидим (1:1), поэтому там .btn--ghost остаётся обычной вторичной кнопкой */
+:is(.final, .on-jade, .phead--hero, .k-demo--jade) .btn--ghost { background: transparent; border-color: rgba(255,255,255,.7); color: #FFFFFF; box-shadow: none; }
+:is(.final, .on-jade, .phead--hero, .k-demo--jade) .btn--ghost:where(:not(:disabled, [aria-disabled="true"])):hover { background: var(--jade-hover); border-color: #FFFFFF; }
 /* ряд действий (пара мессенджеров, кнопки формы); --center по центру */
 .contact { display: flex; flex-wrap: wrap; gap: 10px; }
+.contact > .support { align-self: center; } /* N4: пояснение в ряду кнопок по их середине */
 .contact--center { justify-content: center; }
 
 /* ---------- первый экран с планетой (главная): слева смысл и действие, справа планета фоном ---------- */
@@ -161,7 +168,7 @@ img { max-width: 100%; height: auto; display: block; }
 .stage { position: absolute; inset: 0 0 auto; height: 100vh; height: 100dvh; overflow: clip; }
 .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; }
 .stage::after { content: ""; position: absolute; inset: auto 0 0 0; height: 18vh; background: linear-gradient(to bottom, var(--page-0), var(--page)); pointer-events: none; }
-.hint { position: absolute; right: var(--gutter); top: 80px; padding: 8px 14px; border-radius: 999px; background: var(--glass); backdrop-filter: blur(6px); font: 500 13px/16px "IBM Plex Sans", sans-serif; color: var(--ink-3); opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+.hint { position: absolute; right: var(--gutter); top: 80px; padding: 8px 14px; border-radius: var(--r-pill); background: var(--glass); backdrop-filter: blur(6px); font: 500 13px/16px "IBM Plex Sans", sans-serif; color: var(--ink-3); opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
 .hint.on { opacity: 1; }
 .hero { position: relative; z-index: 2; min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; padding: calc(var(--top-h) + 20px) var(--gutter) 48px; pointer-events: none; }
 .hero__l { display: grid; gap: 20px; justify-items: start; max-width: 600px; pointer-events: auto; }
@@ -170,9 +177,9 @@ img { max-width: 100%; height: auto; display: block; }
 .ask { width: 100%; max-width: 600px; display: grid; gap: 10px; }
 .ask__bar { display: flex; align-items: center; gap: 10px; min-height: 68px; padding: 8px 8px 8px 20px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--e2); } /* поле AI: высота 68 вне шкалы контролов, как в брендбуке */
 .ask__bar:focus-within { border-color: var(--accent); }
-.ask__bar input { flex: 1; width: 0; min-width: 0; border: 0; background: transparent; font: 400 18px/1.3 "IBM Plex Sans", sans-serif; color: var(--ink); outline: none; }
+.ask__bar input { flex: 1; width: 0; min-width: 0; border: 0; background: transparent; font: 400 18px/1.3 "IBM Plex Sans", sans-serif; color: var(--ink); outline: none; text-overflow: ellipsis; } /* подсказка на узком экране кончается многоточием, а не посреди слова, как у .search */
 .ask__bar input::placeholder { color: var(--ink-3); }
-.ask__bar .btn { min-height: 52px; padding: 0 20px; border-radius: var(--r-m); font-size: var(--fs-text); } /* раскладка строки вопроса: 52 вне шкалы, исключение брендбука (кнопка внутри поля 58) */
+.ask__bar .btn:not(.btn--icon) { min-height: 52px; padding: 0 20px; border-radius: var(--r-m); font-size: var(--fs-text); } /* раскладка строки вопроса: 52 вне шкалы, исключение брендбука (кнопка внутри поля 58); микрофон btn--icon остаётся квадратом 44 */
 .ask__hints { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* ---------- секции ---------- */
@@ -188,14 +195,12 @@ img { max-width: 100%; height: auto; display: block; }
    .phead - компактная шапка рабочей страницы: крошки, H1, лид, строка фактов; сразу за ней рабочая зона.
    .phead__grid - текст слева, справа рабочий блок (карточка, форма, ключевые цифры), не 3D.
    .phead--center - шапка-поиск по центру (справка). .band - широкая 3D-лента --band-h-3d (280, на телефоне 180) с подписью .band__cap.
-   Части __main, __side, __acts, __facts, __bg и варианты --split, --photo, --doc, --hero, а также .band--s и .band--in: раздел [C] в конце файла. */
+   Части __main, __side, __acts, __bg и варианты --split, --photo, --doc, --hero, а также .band--s и .band--in: раздел [C] в конце файла. */
 .phead { position: relative; z-index: 3; padding: 20px var(--gutter) 40px; background: var(--page); }
 .phead > .wrap { display: grid; gap: 16px; }
 .phead h1 { max-width: 20em; text-wrap: balance; }
 .phead .lead { max-width: 40em; }
 .phead__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; font-size: var(--fs-small); color: var(--ink-3); }
-.phead__grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px 48px; align-items: start; } /* алиас до перевода страниц: = .phead--split */
-.phead__grid > :first-child { display: grid; gap: 16px; align-content: start; } /* алиас до перевода страниц: = .phead__main */
 .phead--center > .wrap { justify-items: center; text-align: center; padding: 24px 0 8px; }
 .phead--center .crumbs { justify-self: start; text-align: left; }
 .phead--center .lead { margin: 0 auto; }
@@ -209,14 +214,6 @@ img { max-width: 100%; height: auto; display: block; }
 .no-3d .band:has(> .hb3d--bars) > .hb3d--bars, .no-webgl .band:has(> .hb3d--bars) > .hb3d--bars { position: relative; inset: auto; height: auto; border: 0; }
 .no-3d .band > .hb3d--bars > .hb3d__list, .no-webgl .band > .hb3d--bars > .hb3d__list { position: static; }
 .no-3d .band:has(> .hb3d--bars) > .band__cap, .no-webgl .band:has(> .hb3d--bars) > .band__cap { position: static; margin: 0 16px 16px; }
-/* герой внутренней страницы: экран пополам, слева смысл и действие, справа 3D фоном (любой блок hb-scene), к тексту растворяется в фон */
-.phero { position: relative; z-index: 3; overflow: hidden; padding: 20px var(--gutter) 56px; background: var(--page); }
-.phero > .wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; min-height: min(600px, calc(100vh - var(--top-h) - 76px)); }
-.phero__l { position: relative; z-index: 1; display: grid; gap: 18px; justify-items: start; max-width: 600px; }
-.phero__l .crumbs { margin-bottom: 6px; }
-.phero__r { position: absolute; inset: 0 0 0 50%; z-index: 0; }
-.phero .phero__r > * { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0; background-color: transparent; }
-.phero__r::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to right, var(--page), var(--page-0) 30%), linear-gradient(to top, var(--page), var(--page-0) 18%); }
 
 /* ---------- плашки подписей сцены (Plex 600, радиус 6, брендбук п.9.12) ---------- */
 .co { position: absolute; left: 0; top: 0; z-index: 2; transform: translate(-50%, calc(-100% - var(--stem, 16px))); padding: 7px 11px; background: var(--glass); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--e2); font: 600 13px/1.35 "IBM Plex Sans", sans-serif; color: var(--ink-2); white-space: nowrap; opacity: 0; transition: opacity .35s; pointer-events: none; text-decoration: none; }
@@ -227,7 +224,7 @@ img { max-width: 100%; height: auto; display: block; }
 .co--pin::after { display: none; }
 .co--pin.on { pointer-events: auto; }
 .co--pin:hover { border-color: var(--control); color: var(--ink); }
-.co--sel { border-color: var(--red); } /* одна выделенная метка: красная на светлом, жёлтая на тёмном (п.9.12) */
+.co--sel, .co--sel:hover { border-color: var(--red); } /* одна выделенная метка: красная на светлом, жёлтая на тёмном (п.9.12) */
 html.dusk .co--sel, :root[data-theme="dark"] .co--sel { border-color: var(--yellow); }
 .co--bar { padding: 6px 10px; font-size: 13px; transform: translate(-50%, calc(-100% - var(--stem, 10px))); }
 .co--bar::after { height: var(--stem, 10px); }
@@ -237,7 +234,7 @@ html.dusk .co--sel, :root[data-theme="dark"] .co--sel { border-color: var(--yell
 .is-tight .bar-axis { font-size: 12px; }
 .hb3d--bars:not(.is-live) .bar-axis { display: none; }
 .hb3d--bars.is-tight { aspect-ratio: auto; min-height: 360px; }
-.is-tight .co--bar { padding: 4px 6px; font-size: 12px; line-height: 15px; } .is-tight .co--bar span { font-size: 11px; }
+.is-tight .co--bar { padding: 4px 6px; font-size: 12px; line-height: 15px; } .is-tight .co--bar span { font-size: var(--fs-min); } /* кегль не меньше 12 */
 
 /* ---------- страны ---------- */
 .lands { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
@@ -254,6 +251,7 @@ html.dusk .co--sel, :root[data-theme="dark"] .co--sel { border-color: var(--yell
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .stat { display: grid; gap: 6px; align-content: start; padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-l); } /* варианты --s --l --plain, дельта __d, .stats--2/--3: в [B3] */
 .stat b { font: 600 var(--fs-num-m)/1 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); letter-spacing: -.02em; }
+.stat:not(.stat--s) > b { order: -1; } /* K25: число над подписью при любом порядке в разметке; в --s порядок по разметке (плитка KPI шапки: подпись над числом, как эталон p-kpi) */
 .stat span { font-size: var(--fs-small); line-height: 20px; color: var(--ink-2); }
 .stat small { font-size: var(--fs-min); line-height: 16px; color: var(--ink-3); }
 /* крыша-акцент над главной цифрой: ОДНА на макет (брендбук с.27), ширина 0.8 высоты цифры */
@@ -269,19 +267,19 @@ html.dusk .co--sel, :root[data-theme="dark"] .co--sel { border-color: var(--yell
 .card__top img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .card__top > :not(img, .card__badges, .fav) { position: relative; }
 .card__badges { position: absolute; left: 12px; top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
-/* бейдж .badge: статус на фото и в строке; капслок Geologica (тег карточки, KOMP§23), --txt строчными Plex (статус в таблице); .lot-st алиас до перевода страниц */
-.badge, .lot-st { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border-radius: var(--r-xs); font: 600 var(--fs-min)/1 "Geologica", sans-serif; letter-spacing: .08em; text-transform: uppercase; background: var(--glass); color: var(--accent-text); }
+/* бейдж .badge: статус на фото и в строке; капслок Geologica (тег карточки, KOMP§23), --txt строчными Plex (статус в таблице) */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border-radius: var(--r-xs); font: 600 var(--fs-min)/1 "Geologica", sans-serif; letter-spacing: .08em; text-transform: uppercase; background: var(--glass); color: var(--accent-text); }
 .badge--done { background: var(--accent); color: var(--on-accent); }
 .badge--start { background: var(--yellow); color: #121517; } /* тёмный текст на жёлтом в обеих темах */
 .badge--sample { background: var(--sunken); color: var(--ink-3); border: 1px dashed var(--control); }
-.badge--ok, .lot-st { background: var(--tint); color: var(--accent-text); }
+.badge--ok { background: var(--tint); color: var(--accent-text); }
 .badge--warn { background: var(--warn); color: #121517; } /* оранжевый только предупреждения; тёмный текст 5.1:1 */
-.badge--muted, .lot-st--res { background: var(--sunken); color: var(--ink-3); }
-.badge--txt, .lot-st { padding: 3px 8px; font: 600 var(--fs-min)/16px "IBM Plex Sans", system-ui, sans-serif; letter-spacing: 0; text-transform: none; }
+.badge--muted { background: var(--sunken); color: var(--ink-3); }
+.badge--txt { padding: 3px 8px; font: 600 var(--fs-min)/16px "IBM Plex Sans", system-ui, sans-serif; letter-spacing: 0; text-transform: none; }
 .badges { display: flex; flex-wrap: wrap; gap: 6px; } /* ряд бейджей */
 .card__sqm { padding: 6px 9px; border-radius: 6px; background: var(--glass); font: 600 var(--fs-num-s)/1 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); letter-spacing: -.01em; }
 .card__sqm small { font: 500 12px/1 "IBM Plex Sans", sans-serif; color: var(--ink-3); margin-left: 4px; }
-.fav { position: absolute; right: 10px; top: 10px; z-index: 2; display: inline-flex; color: var(--ink-2); } /* вид: .btn--icon.btn--s.btn--glass.btn--round, списки в [A1] */
+.fav { position: absolute; right: 10px; top: 10px; z-index: 2; display: inline-flex; color: var(--ink-2); } /* вид: .btn--icon.btn--s.btn--glass.btn--round */
 .fav:hover { color: var(--red); }
 .fav[aria-pressed="true"] { color: var(--red); } .fav[aria-pressed="true"] .ic { fill: currentColor; }
 .card__body { display: grid; gap: 6px; padding: 14px 14px 16px; align-content: start; }
@@ -301,6 +299,21 @@ html.dusk .co--sel, :root[data-theme="dark"] .co--sel { border-color: var(--yell
 .bar__fill { display: block; height: calc((100% - 22px) * var(--h) / 100); background: var(--control); border-radius: 3px 3px 0 0; opacity: .55; transition: height .8s cubic-bezier(.2,.7,.2,1); }
 .bar--dry .bar__fill, .bar--wet .bar__fill { background: var(--accent); opacity: 1; }
 .bar__m { font-size: 12px; line-height: 16px; color: var(--ink-3); text-align: center; }
+/* ряд уже 300: 12 подписей по 12px сходятся, видна каждая вторая (текст остаётся для чтения с экрана, месяц в подсказке) */
+.bars { container-type: inline-size; }
+@container (max-width: 299px) { .bar:nth-child(even) .bar__m { color: transparent; } }
+
+/* ---------- доли .shares (решение владельца 08.10.2026, было p-types, p-tbar, p-areas__bar): ul.shares > li = имя | span.shares__bar style="--w:NN%" aria-hidden="true" | b число;
+   --w доля от самого большого значения (у него 100%), полоса 8 со скруглением 999, число справа; высота строки от окружения (в тексте 25).
+   --links строка-ссылка li > a (районы города): наведение tint, высота 36 для касания, строки через 2px. Подсветка строки с подсказкой [data-tip] у .tip ниже ---------- */
+.shares { display: grid; gap: 10px; }
+.shares li, .shares--links a { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 3em; align-items: center; gap: 10px; font-size: 14px; }
+.shares__bar { height: 8px; border-radius: 999px; background: linear-gradient(to right, var(--accent) var(--w), var(--sunken) var(--w)); }
+.shares b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.shares--links { gap: 2px; }
+.shares--links li { display: block; }
+.shares--links a { min-height: 36px; padding: 0 8px; border-radius: 6px; text-decoration: none; }
+.shares--links a:hover { background: var(--tint); }
 
 /* ---------- таблица: заголовок сортируемого столбца это кнопка (клавиатура) ---------- */
 .tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-l); background: var(--paper); }
@@ -325,16 +338,14 @@ tbody tr:hover td { background: color-mix(in srgb, var(--sunken) 50%, transparen
 .step::before { counter-increment: step; content: counter(step, decimal-leading-zero); font: 600 12px/1 "Geologica", sans-serif; letter-spacing: .12em; color: var(--accent-text); }
 .step .row { display: flex; flex-wrap: wrap; gap: 8px 18px; }
 .step .bars { height: 96px; }
-/* крыши-маркеры .roofs: теперь .list--roof в разделе [B1] */
-.who { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; } /* плитки-ссылки a.panel.panel--link; вид и алиас .who a в [B3] */
+/* крыши-маркеры (было .roofs): .list--roof в разделе [B1] */
+.who { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; } /* плитки-ссылки a.panel.panel--link, вид в [B3] */
 .who h3 { font-size: var(--fs-card); line-height: var(--lh-card); }
 .who p { font-size: 14px; line-height: 21px; }
 .who .more { margin-top: auto; align-self: flex-start; font-size: 13px; }
 
-/* ---------- фильтр-панель каталога ---------- */
-.filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 14px; padding: 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--e1); }
-.filters--sticky { position: static; } /* не липнет: панель выше 15-20% экрана; возврат кнопкой .ret (hb-ui.js), решение владельца 06.10.2026 */
-.ret { position: fixed; left: 20px; bottom: 20px; z-index: 30; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font: 600 14px/1 "IBM Plex Sans", system-ui, sans-serif; box-shadow: var(--e3); cursor: pointer; }
+/* ---------- кнопка возврата к блоку [data-return] (hb-ui.js): высокие блоки не липнут, решение владельца 06.10.2026 ---------- */
+.ret { position: fixed; left: 20px; bottom: 20px; z-index: var(--z-fab); display: inline-flex; align-items: center; gap: 8px; min-height: var(--h-touch); padding: 0 16px 0 12px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); color: var(--ink); font: 600 14px/1 "IBM Plex Sans", system-ui, sans-serif; box-shadow: var(--e3); cursor: pointer; }
 .ret .ic { width: 18px; height: 18px; color: var(--accent-text); }
 .ret[hidden] { display: none; }
 .field { display: grid; align-content: start; gap: 6px; min-width: 0; } /* start: в ряду с соседом выше контрол не растягивается */
@@ -346,7 +357,6 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .select { appearance: none; padding-right: 40px; background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23656A6D' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 12px center / 18px no-repeat; }
 /* свой выпадающий список (hb-ui.js, customSelect): кнопка повторяет .select, панель под ней */
 .cs { position: relative; min-width: 0; width: 100%; }
-.filters .cs { width: 220px; } /* ширина не зависит от выбранного текста, длинное значение режется многоточием */
 .cs__native { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
 .cs__btn { display: flex; align-items: center; text-align: left; cursor: pointer; } /* стрелка, размеры и выключенное состояние в разделе [A2] */
 .cs__val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -355,7 +365,8 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
    [popovertarget] по якорю CSS (без скрипта); где якорей нет, браузер ставит его по центру */
 .pop, .cs__pop, .fdd__pop { border: 1px solid var(--line); border-radius: var(--r-l); background: var(--paper); color: var(--ink); box-shadow: var(--e-pop); }
 .pop { width: max-content; max-width: min(360px, calc(100vw - 32px), 100%); padding: 14px 16px; } /* свой размер; у .cs__pop и .fdd__pop ниже свои */
-@supports (position-area: bottom) { .pop[popover] { inset: auto; margin: 6px 0; position-area: bottom span-right; position-try-fallbacks: flip-block, flip-inline; } }
+/* у якорного поповера 100% - это клетка от кнопки до края экрана: минус 16 оставляет поле у края (было: на 375 вплотную к правому краю) */
+@supports (position-area: bottom) { .pop[popover] { inset: auto; margin: 6px 0; max-width: min(360px, calc(100% - 16px)); position-area: bottom span-right; position-try-fallbacks: flip-block, flip-inline; } }
 .cs__pop { position: fixed; inset: auto; margin: 0; height: auto; overflow: visible; z-index: var(--z-pop); width: max-content; max-width: min(360px, calc(100vw - 32px)); display: grid; gap: 8px; padding: 8px; } /* поверхность из .pop */
 .cs__pop[hidden] { display: none; }
 .cs__list { max-height: 280px; overflow-y: auto; margin: 0; padding: 0; list-style: none; overscroll-behavior: contain; }
@@ -375,17 +386,15 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .range2 { display: flex; align-items: center; gap: 6px; }
 .range2 .input { width: 130px; }
 /* сегмент: один из N (radio в label или button aria-pressed); опции, которые не влезли, переносятся строкой (было p-seg4); --s и --block в разделе [A2] */
-.seg, .view /* алиас .seg--s до перевода страниц */ { display: inline-flex; flex-wrap: wrap; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--sunken); }
+.seg { display: inline-flex; flex-wrap: wrap; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--sunken); }
 .seg label { position: relative; }
 .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.seg span, .seg > button, .view button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 0; border-radius: calc(var(--r-m) - 3px); background: none; font-size: 14px; font-weight: 500; color: var(--ink-2); cursor: pointer; }
-.seg input:checked + span, .seg > button[aria-pressed="true"], .view button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: var(--e1); }
+.seg span, .seg > button { display: inline-flex; align-items: center; gap: 6px; min-height: calc(var(--h-m) - 8px) /* 40: сегмент M 48 с полем 3 и рамкой 1 */; padding: 0 14px; border: 0; border-radius: calc(var(--r-m) - 3px); background: none; font-size: 14px; font-weight: 500; color: var(--ink-2); cursor: pointer; }
+.seg input:checked + span, .seg > button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: var(--e1); }
 .seg input:focus-visible + span { outline: var(--ring); outline-offset: 1px; }
 .chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); } /* ряд пилюль; варианты --center, --line, --scroll в [A1] */
 .chip { position: relative; display: inline-flex; }
 .chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.filters__sort { margin-left: auto; }
-.filters__count { width: 100%; font-size: 13px; color: var(--ink-3); }
 
 /* ---------- строка фильтров каталога .fbar (hb-ui.js, модуль fbar), по ресёрчу F-filtry.md 06.10.2026 ----------
    Как на Домклике, Яндексе, Циане, Property Finder: одна строка над выдачей, локация полем, остальное кнопками с попапом.
@@ -408,13 +417,13 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .fbtn--all > .ic:first-child { color: var(--ink-2); }
 .fdd__pop { position: fixed; inset: auto; margin: 0; width: 340px; max-width: calc(100vw - 32px); padding: 0; } /* поверхность из .pop */
 .fdd__body { display: grid; gap: 14px; padding: 16px; }
-.drawer__foot, .fdd__foot, .fpanel__foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.drawer__foot, .fdd__foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
 .fgrp { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 0; padding: 0; border: 0; min-width: 0; }
 .fgrp > legend, .fgrp__t { float: left; width: 100%; padding: 0; margin-bottom: 2px; font: 600 var(--fs-ui)/20px "Geologica", sans-serif; color: var(--ink); }
 .fgrp > legend + * { clear: both; }
 .fdd__pop > .fdd__body { padding: 16px; } /* в попапе отступ сильнее .fgrp; в ящике группа без отступа */
 .fgrp .check { font-size: 15px; color: var(--ink); }
-.fgrp .checks { display: grid; gap: 12px; }
+.fgrp .choices:not(.choices--row) { display: grid; gap: 12px; } /* K24: шаг рядов в группе фильтра 12; строка --row остаётся строкой */
 .fgrp .range2 .input { width: 0; flex: 1; min-width: 0; }
 .fgrp .seg { display: flex; } .fgrp .seg label { flex: 1; } .fgrp .seg span { width: 100%; justify-content: center; }
 .fmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
@@ -425,7 +434,7 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .fmeta__sort .cs { width: 240px; } /* высота и кегль: .select--s (раздел [A2]) */
 .fpanel { --drawer-w: 440px; } /* панель «Все фильтры»: база .drawer (выше) */
 .fpanel .fmeta__reset { font-size: var(--fs-ui); }
-.fpanel__x { display: inline-grid; place-items: center; } /* вид: .btn--icon.btn--quiet, списки в [A1] */
+.fpanel__x { display: inline-grid; place-items: center; } /* вид: .btn--icon.btn--quiet */
 
 /* ---------- галерея .gallery: фото 4:3, подпись на стекле, миниатюры; без автокарусели, листание и полный экран в hb-ui.js ---------- */
 .gallery { display: grid; gap: 10px; }
@@ -433,7 +442,7 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .gallery__main img { width: 100%; height: 100%; object-fit: cover; }
 .gallery__cap { position: absolute; left: 12px; bottom: 12px; padding: 6px 10px; border-radius: var(--r-xs); background: var(--glass); font-size: var(--fs-cap); color: var(--ink-2); }
 .gallery__nav { position: absolute; inset: 50% 10px auto; display: flex; justify-content: space-between; transform: translateY(-50%); pointer-events: none; }
-.gallery__nav button { pointer-events: auto; display: inline-flex; } /* вид: .btn--icon.btn--glass.btn--round, списки в [A1] */
+.gallery__nav button { pointer-events: auto; display: inline-flex; } /* вид: .btn--icon.btn--glass.btn--round */
 .gallery__thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
 .gallery__thumbs button { flex: 0 0 96px; aspect-ratio: 4 / 3; padding: 0; border: 2px solid transparent; border-radius: var(--r-s); overflow: hidden; background: var(--tint) var(--pat-krovli) center / 300px auto; cursor: pointer; }
 .gallery__thumbs button[aria-current="true"] { border-color: var(--sel-bd); } /* текущая миниатюра: рамка выбора */
@@ -446,8 +455,7 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .plan b { font: 600 var(--fs-num-s)/1 "IBM Plex Sans", sans-serif; color: var(--ink); }
 .plan span { font-size: 14px; line-height: 20px; color: var(--ink-2); }
 .plan small { font-size: 12px; line-height: 16px; color: var(--ink-3); }
-.plan__bar { height: 6px; border-radius: 3px; background: var(--sunken); overflow: hidden; margin-bottom: 8px; }
-.plan__bar i { display: block; height: 100%; width: var(--w); background: var(--accent); }
+.plan__bar { margin-bottom: 8px; } /* полоса доли: div.progress.plan__bar > i[--v], отступ до подписи свой */
 .total { display: grid; gap: 12px; padding: 20px; border: 1px solid var(--line); border-left: 5px solid var(--accent); border-radius: 12px; background: var(--paper); }
 .total dl { display: grid; gap: 8px; }
 .total dl > div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
@@ -458,9 +466,10 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .dev__logo { width: 56px; height: 56px; border-radius: 12px; display: grid; place-items: center; background: var(--sunken); color: var(--ink-3); font: 600 18px/1 "Geologica", sans-serif; }
 .dev h3 { font-size: var(--fs-card); line-height: var(--lh-card); }
 .dev .facts { grid-column: 1 / -1; }
-/* плитки фактов .facts (dl): подпись над крупным числом, плитки в ряд через линию 1px; не .kv, вид другой */
-.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-l); overflow: hidden; }
-.facts > div { display: grid; gap: 4px; align-content: start; padding: 14px 16px; background: var(--paper); }
+/* плитки фактов .facts (dl): подпись над крупным числом, плитки в ряд через линию 1px; не .kv, вид другой.
+   Линию в зазоре 1px рисует тень плитки, фон сетки бумага: пустые места неполного ряда белые, а не серые */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-l); overflow: hidden; }
+.facts > div { display: grid; gap: 4px; align-content: start; padding: 14px 16px; background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
 .facts dt { font-size: var(--fs-cap); line-height: 18px; color: var(--ink-3); }
 .facts dd { margin: 0; font: 600 var(--fs-num-s)/1.2 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); letter-spacing: -.01em; }
 .facts dd.empty { display: block; padding: 0; border: 0; background: none; font: 400 var(--fs-text)/1.5 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink-3); }
@@ -468,13 +477,14 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 /* ---------- форма заявки ---------- */
 .form { display: grid; gap: var(--sp-4); padding: var(--sp-5); background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-xl); max-width: 560px; } /* части: __row, __foot, __ok, __fail, __req, __n; --bare без коробки */
 .form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form__row:not(:has(.field__hint)) { align-items: end; } /* N3: подпись в 2 строки не сдвигает контрол соседа; с подсказкой ряд по верху */
 /* телефон с кодом страны: код выбирается из списка с поиском, номер вводится рядом */
 .tel { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px; }
 .field__err { display: none; align-items: center; gap: 6px; font-size: var(--fs-cap); line-height: 18px; color: var(--err); font-weight: 500; }
 .field.is-err .input, .field.is-err .select, .field.is-err .textarea { border-color: var(--err); }
 .field.is-err .field__err, .field:has([aria-invalid="true"]) .field__err { display: flex; }
-/* чекбокс и радио своей отрисовкой: квадрат 20 (радио круг); подпись 14/20 в согласии, 15/22 в группе .choices; отметка в разделе [A2] */
-.check, .radio { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 20px; color: var(--ink-2); cursor: pointer; }
+/* чекбокс и радио своей отрисовкой: квадрат 20 (радио круг); подпись 15/22 везде, кегль и отметка в разделе [A2] */
+.check, .radio { display: flex; gap: 10px; align-items: flex-start; color: var(--ink-2); cursor: pointer; }
 .check input, .radio input { appearance: none; -webkit-appearance: none; flex: none; display: inline-grid; place-content: center; width: 20px; height: 20px; margin: 0; border: 1.5px solid var(--control); border-radius: var(--r-xs); background: var(--paper); cursor: pointer; transition: background-color var(--dur-1), border-color var(--dur-1); }
 .check a, .radio a { color: var(--accent-text); }
 .check.is-err { color: var(--err); }
@@ -498,9 +508,11 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .prose ul:where(:not(.list)) li > * { text-indent: 0; }
 .prose ul:where(:not(.list)) li::before { content: ""; display: inline-block; width: 1em; height: .33em; margin-right: 10px; background: var(--accent); -webkit-mask: var(--roof) center / contain no-repeat; mask: var(--roof) center / contain no-repeat; transform: translateY(-.15em); }
 .prose ol:where(:not(.list)) { counter-reset: li; }
-.prose ol:where(:not(.list)) li { display: flex; gap: 10px; counter-increment: li; }
-.prose ol:where(:not(.list)) li::before { content: counter(li) "."; flex: 0 0 1.4em; font-weight: 600; color: var(--ink); }
-.prose ol:where(:not(.list)) li[data-n]::before { content: attr(data-n); flex-basis: 2.6em; }
+/* пункт ol: номер висит слева абсолютом (своё место в строке, сдвиг полем пункта), текст течёт строкой, как у ul: сноски и ссылки в тексте без обёрток */
+.prose ol:where(:not(.list)) li { position: relative; margin-left: calc(1.4em + 10px); counter-increment: li; }
+.prose ol:where(:not(.list)) li::before { content: counter(li) "."; position: absolute; width: 1.4em; margin-left: calc(-1.4em - 10px); font-weight: 600; color: var(--ink); }
+.prose ol:where(:not(.list)) li[data-n] { margin-left: calc(2.6em + 10px); }
+.prose ol:where(:not(.list)) li[data-n]::before { content: attr(data-n); width: 2.6em; margin-left: calc(-2.6em - 10px); }
 .prose blockquote { padding: 4px 0 4px 18px; border-left: 3px solid var(--accent); font-size: 18px; line-height: 28px; color: var(--ink); }
 .prose blockquote cite { display: block; margin-top: 6px; font-size: var(--fs-cap); font-style: normal; color: var(--ink-3); }
 .prose .tbl { margin-top: 20px; }
@@ -579,7 +591,6 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .notice { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; padding: 18px; border: 1px solid var(--line); border-left: 5px solid var(--info); border-radius: var(--r-m); background: var(--paper); box-shadow: var(--e1); font-size: var(--fs-small); line-height: 21px; color: var(--ink-2); }
 .notice > .ic { color: var(--accent-text); margin-top: 1px; }
 .notice__t { font-weight: 600; color: var(--ink); }
-.notice__imp { font-weight: 600; color: var(--red); }
 .notice--ok { border-left-color: var(--ok); } .notice--ok > .ic { color: var(--ok); }
 .notice--warn { border-left-color: var(--warn); } .notice--warn > .ic { color: var(--warn); }
 .notice--err { border-left-color: var(--err); } .notice--err > .ic { color: var(--err); }
@@ -636,7 +647,7 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .patbg[data-pat="planeta"], .bg3d[data-pat="planeta"], .band--pat[data-pat="planeta"] { background-size: cover; background-repeat: no-repeat; }
 .hb3d { position: relative; overflow: hidden; border-radius: 16px; }
 /* 3D оставлено для планеты, столбиков и дома; задники-улицы .bg3d теперь паттерн (владелец 07.10.2026) */
-.hb3d canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .5s; }
+.hb3d canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity var(--dur-3); }
 .hb3d.is-live canvas { opacity: 1; }
 .hb3d--object, .hb3d--bars, .hb3d--roofs { background: var(--paper); border: 1px solid var(--line); }
 .hb3d--object { aspect-ratio: 4 / 3; }
@@ -675,6 +686,9 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .band:has(> .chart) { height: auto; display: grid; gap: 16px; padding: 24px; }
 .band:has(> .chart) > .band__cap { position: static; order: -1; max-width: none; padding: 0; border: 0; background: none; font: 600 16px/22px "Geologica", sans-serif; color: var(--ink); }
 @media (max-width: 639px) { .chart__cols { gap: 8px; height: 220px; } .chart__c b { font-size: 12px; line-height: 16px; } .chart__c span { font-size: 12px; line-height: 16px; min-height: 32px; } .chart__cols { background-position: 0 calc(100% - 38px); } .band:has(> .chart) { padding: 16px; } }
+html.dusk .chart__c i, :root[data-theme="dark"] .chart__c i { background: var(--control); } /* N5: в «Сумерках» tint и jade на paper 1.04:1 и 2.18:1, ниже 3:1: столбик control 3.78:1 с мятной кромкой, наибольший мятный, ось control */
+html.dusk .chart__c.is-max i, :root[data-theme="dark"] .chart__c.is-max i { background: var(--accent); } /* N5: 5.85:1 на paper */
+html.dusk .chart__cols, :root[data-theme="dark"] .chart__cols { background-image: linear-gradient(var(--control), var(--control)); } /* N5: ось 3.78:1 вместо line 1.89:1 */
 
 /* карта рынков [data-dmap] (hb-ui.js): точки паттерна «Планета», метка страны с подписью, подсказка с числом проектов */
 .dmap { position: relative; align-self: center; }
@@ -713,14 +727,15 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .aid__head { display: flex; align-items: center; gap: 10px; }
 .aid__roof { width: 26px; height: 9px; fill: var(--accent); }
 .aid h2 { margin-right: auto; font-size: var(--fs-h3); line-height: var(--lh-h3); } /* голова как у .modal */
-.aid .ask__bar { min-height: 58px; } .aid .ask__bar input { font-size: 16px; } .aid .ask__bar .btn { min-height: 44px; }
+.aid .ask__bar { min-height: 58px; } .aid .ask__bar input { font-size: 16px; } .aid .ask__bar .btn:not(.btn--icon) { min-height: var(--h-touch); }
 .aid .contact .btn { flex: 1 1 180px; }
 
 /* ---------- адаптив ---------- */
-@media (min-width: 900px) and (max-height: 760px) { .hero { padding-bottom: 20px; } .hero__l { gap: 14px; } .ask__bar { min-height: 58px; } .ask__bar .btn { min-height: 44px; } .btn--l, .btn--big { min-height: var(--h-m); } } /* низкое окно: L как M */
+@media (min-width: 900px) and (max-height: 760px) { .hero { padding-bottom: 20px; } .hero__l { gap: 14px; } .ask__bar { min-height: 58px; } .ask__bar .btn:not(.btn--icon) { min-height: var(--h-touch); } .btn--l { min-height: var(--h-m); } } /* низкое окно: L как M */
 @media (max-width: 1279px) { .top__x { display: none; } .top { gap: 20px; } .nav { gap: 18px; } }
+@media (max-width: 959px) { .top .night { padding: 0 10px; gap: 0; } .top .night span { display: none; } } /* 900-959: «Сумерки» только кружком (подпись в aria-label), иначе инструменты шапки вылезали за край на 41 */
 @media (max-width: 1099px) {
-  .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } .who { grid-template-columns: repeat(3, 1fr); } .stats { grid-template-columns: repeat(2, 1fr); } .lands { grid-template-columns: repeat(3, minmax(0, 1fr)); } .steps { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } .who { grid-template-columns: repeat(3, 1fr); } .stats { grid-template-columns: repeat(2, 1fr); } .lands { grid-template-columns: repeat(3, minmax(0, 1fr)); } .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* N1: шаги 3 -> 2 (1099) -> 1 (639) */
   .foot__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .foot__brand { grid-column: 1 / -1; }
   .article { grid-template-columns: minmax(0, 1fr); } .toc { position: static; } /* minmax: широкая таблица прокручивается в .tbl, а не распирает колонку */
 }
@@ -734,26 +749,22 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
   .theatre { margin-top: 0; }
   .hero { grid-template-columns: minmax(0, 1fr); align-content: start; padding: 34vh var(--gutter) 24px; }
   .hero__l { max-width: none; padding: 18px; gap: 14px; background: var(--glass); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--e2); }
-  .ask__bar { min-height: 56px; padding: 6px 6px 6px 14px; } .ask__bar input { font-size: 16px; } .ask__bar .btn { min-height: 44px; padding: 0 14px; font-size: 15px; }
-  .contact .btn--l, .contact .btn--big { flex: 1 1 100%; } /* L в ряду действий на телефоне во всю строку */
+  .ask__bar { min-height: 56px; padding: 6px 6px 6px 14px; } .ask__bar input { font-size: 16px; } .ask__bar .btn:not(.btn--icon) { min-height: var(--h-touch); padding: 0 14px; font-size: 15px; }
+  .contact .btn--l { flex: 1 1 100%; } /* L в ряду действий на телефоне во всю строку */
   .hint { left: var(--gutter); right: var(--gutter); top: 72px; white-space: normal; text-align: center; line-height: 1.4; }
   .co { width: max-content; max-width: min(300px, calc(100vw - 32px)); white-space: normal; text-align: center; }
   .co--pin { display: none; }
   .sec { padding: 52px var(--gutter); } .sec--band { padding: 32px var(--gutter); }
-  .phead { padding: 12px var(--gutter) 28px; } .phead__grid { grid-template-columns: 1fr; } .band { border-radius: var(--r-xl); } .band:has(> .hb3d--bars) { height: 260px; } .no-3d .band:has(> .hb3d--bars), .no-webgl .band:has(> .hb3d--bars) { height: auto; }
-  .phero { padding: 12px var(--gutter) 0; } .phero > .wrap { grid-template-columns: 1fr; min-height: 0; }
-  .phero__r { position: relative; inset: auto; height: 240px; margin: 8px calc(-1 * var(--gutter)) 0; }
-  .phero__r::after { background: linear-gradient(to bottom, var(--page), var(--page-0) 22%, var(--page-0) 78%, var(--page)); }
+  .phead { padding: 12px var(--gutter) 28px; } .band { border-radius: var(--r-xl); } .band:has(> .hb3d--bars) { height: auto; } .band:has(> .hb3d--bars) > .hb3d { position: relative; inset: auto; block-size: 198px; } .band:has(> .hb3d--bars) > .band__cap { position: static; margin-block: 0 16px; margin-inline: 16px; } /* подпись столбиков под сценой: полоса 260 с подписью поверх низа сцены закрывала подписи осей (на 320 подпись в три строки); сцена та же 198 */
   .lands { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .land { min-height: 128px; padding: 16px; } .land__name { font-size: 16px; line-height: 20px; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .card__body { padding: 12px; }
-  .steps, .who { grid-template-columns: 1fr; }
+  .who { grid-template-columns: 1fr; }
   .step { padding: 18px; } .bars { gap: 3px; } /* 12 столбиков с подписью месяца влезают в 375 px */
   .stat { padding: 16px; }
   th, td { padding: 12px 14px; font-size: 14px; }
   .final { padding: 64px var(--gutter); }
-  .filters > .field, .filters .seg, .range2 { width: 100%; } .range2 .input { flex: 1; width: 0; min-width: 0; } .seg { display: flex; } .seg label { flex: 1; } .seg span { justify-content: center; }
-  .filters__sort { margin-left: 0; } .filters .cs { width: 100%; }
+  .range2 { width: 100%; } .range2 .input { flex: 1; width: 0; min-width: 0; } .seg { display: flex; } .seg label { flex: 1; } .seg span { justify-content: center; }
   .form { padding: 18px; } .form__row { grid-template-columns: 1fr; }
   .plan li { border-right: 0; border-bottom: 1px solid var(--line); } .plan li:last-child { border-bottom: 0; }
   .foot__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -778,7 +789,7 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .co, .bar__fill, .card, .land, .reveal, .aid-fab, .bg3d canvas, .hb3d canvas, .faq summary .ic { transition: none; }
-  .aid-fab__roof { animation: none; } .drawer[open], .mnav[open], .fpanel[open] { animation: none; }
+  .aid-fab__roof { animation: none; } .drawer[open] { animation: none; }
   .js .reveal:not(.in) { opacity: 1; transform: none; }
 }
 
@@ -787,11 +798,11 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .mock-live a { color: var(--ink-2); }
 
 /* ---------- модалка .modal: диалог по центру на нативном dialog; dialog.modal > .modal__in (div или form method=dialog) > __head + __body + __foot.
-   .leadm (заявка «Получите персональное предложение», окно ворот #gate) на той же базе: алиас до перевода страниц ---------- */
-.modal, .leadm { margin: auto; width: min(var(--modal-w, 520px), calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--paper); color: var(--ink); box-shadow: var(--e3); overflow: auto; overscroll-behavior: contain; }
-.modal::backdrop, .leadm::backdrop { background: var(--scrim); }
-.modal__in, .leadm__in { display: grid; gap: 14px; padding: 22px; }
-.modal__head, .leadm__head { display: flex; align-items: start; gap: 12px; } .modal__head h2, .leadm__head h2 { flex: 1; font-size: var(--fs-h3); line-height: var(--lh-h3); }
+   dialog.modal.leadm (заявка «Получите персональное предложение», окно ворот #gate): имя leadm остаётся хуком, вид даёт .modal ---------- */
+.modal { margin: auto; width: min(var(--modal-w, 520px), calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--paper); color: var(--ink); box-shadow: var(--e3); overflow: auto; overscroll-behavior: contain; }
+.modal::backdrop { background: var(--scrim); }
+.modal__in { display: grid; gap: 14px; padding: 22px; }
+.modal__head { display: flex; align-items: start; gap: 12px; } .modal__head h2 { flex: 1; font-size: var(--fs-h3); line-height: var(--lh-h3); }
 .modal__body { display: grid; gap: 14px; }
 .modal__foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; } /* действия: главное последним, справа */
 .leadm__eta { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--accent-text); font-weight: 500; }
@@ -801,12 +812,12 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 .form--bare { padding: 0; border: 0; max-width: none; background: none; }
 
 /* ---------- карточка каталога как на сайте: фото с листанием, «Поделиться», бейджи, цена в валюте застройщика и в долларах ---------- */
-.card__top .share { position: absolute; right: 56px; top: 10px; z-index: 2; display: inline-flex; color: var(--ink-2); } /* вид: .btn--icon.btn--s.btn--glass.btn--round, списки в [A1] */
+.card__top .share { position: absolute; right: 56px; top: 10px; z-index: 2; display: inline-flex; color: var(--ink-2); } /* вид: .btn--icon.btn--s.btn--glass.btn--round */
 .card__top .share:hover { color: var(--ink); }
-.card__top .card__nav { position: absolute; top: 50%; z-index: 2; display: inline-flex; margin-top: -16px; opacity: 0; transition: opacity var(--dur-1), background-color var(--dur-1); } /* вид: .btn--icon.btn--xs.btn--glass.btn--round, списки в [A1] */
+.card__top .card__nav { position: absolute; top: 50%; z-index: 2; display: inline-flex; margin-top: -16px; opacity: 0; transition: opacity var(--dur-1), background-color var(--dur-1); } /* вид: .btn--icon.btn--xs.btn--glass.btn--round */
 .card__nav--prev { left: 8px; } .card__nav--next { right: 8px; }
 .card:hover .card__nav, .card__nav:focus-visible { opacity: 1; }
-@media (hover: none) { .card__nav { opacity: 1; } }
+@media (hover: none) { .card__top .card__nav { opacity: 1; } }
 .card__top .card__dots { position: absolute; right: 12px; bottom: 22px; z-index: 2; display: flex; gap: 5px; }
 .card__dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.6); box-shadow: 0 0 0 1px rgba(18,21,23,.15); }
 .card__dots i.on { background: #FFFFFF; width: 14px; border-radius: 3px; }
@@ -825,50 +836,35 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 
 /* выдача: быстрые чипы, активные фильтры, «Списком / На карте», карта */
 .qchips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; } .qchips::-webkit-scrollbar { display: none; }
-.qchip { flex: none; } /* вид: .pill (алиас в [A1]); ряд прокручивается */
+.qchip { flex: none; } /* хук; вид: .pill; ряд прокручивается */
 .achips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } .achips:empty { display: none; }
 .cmap { position: relative; height: min(70vh, 560px); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--sunken); }
 .cmap[hidden] { display: none; }
-.cmap .leaflet-container { width: 100%; height: 100%; font: inherit; }
+.cmap.leaflet-container { font-family: inherit; } /* L.map(el) ставит .leaflet-container на сам .cmap, размеры у .cmap свои; кегль подсказок и подписи OSM остаётся 12 от Leaflet */
 .mpin { display: block; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid #FFFFFF; box-shadow: 0 1px 4px rgba(18,21,23,.35); }
 .cards[hidden], .pager[hidden] { display: none; }
 
 /* ---------- главная: блоки живого сайта ---------- */
-.ask__bar .ask__mic { display: inline-flex; } /* вид: .btn--icon.btn--quiet, нажата через --sel-*, списки в [A1] */
-.ask__t { font-size: 13px; line-height: 18px; color: var(--ink-3); }
-.ask__lands { display: flex; flex-wrap: wrap; gap: 2px 12px; max-width: 600px; font-size: 13px; line-height: 20px; }
-.ask__lands a { color: var(--ink-2); text-decoration: none; } .ask__lands a:hover { color: var(--accent-text); text-decoration: underline; }
-.who--6 { grid-template-columns: repeat(3, 1fr); }
-.who__c { display: grid; gap: 8px; align-content: start; padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
-.qlead { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); gap: 32px; align-items: center; }
-.qlead__txt { display: grid; gap: 10px; }
+.ask__bar .ask__mic { display: inline-flex; } /* вид: .btn--icon.btn--quiet, нажата через --sel-* */
 .show { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .show__c { display: grid; gap: 12px; align-content: start; padding: 20px; background: var(--page); border: 1px solid var(--line); border-radius: 16px; }
 .show__big { font-size: 15px; color: var(--ink-2); } .show__big b { font: 600 var(--fs-num-m)/1 "IBM Plex Sans", system-ui, sans-serif; color: var(--price); letter-spacing: -.02em; margin-right: 4px; }
 .show__v { font-size: 15px; line-height: 22px; color: var(--ink); }
 .show__c .bars { height: 110px; }
-.show__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 4px; } .show__foot .support { max-width: 46em; }
 .pscale { position: relative; height: 10px; margin-top: 30px; border-radius: 5px; background: var(--sunken); }
 .pscale__band { position: absolute; top: 0; bottom: 0; left: var(--a); right: calc(100% - var(--b)); border-radius: 5px; background: var(--tint); }
 .pscale__dot { position: absolute; top: 50%; left: var(--x); width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--paper); }
 .pscale__med { position: absolute; bottom: 16px; left: var(--x); transform: translateX(-12px); white-space: nowrap; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink-2); }
 .pscale__ends { display: flex; justify-content: space-between; font-size: 12px; line-height: 16px; color: var(--ink-3); }
 .plan--col { grid-template-columns: 1fr; } .plan--col li { border-right: 0; border-bottom: 1px solid var(--line); padding: 12px 14px; grid-template-columns: 48px 1fr; align-items: center; column-gap: 10px; } .plan--col li:last-child { border-bottom: 0; }
-.plan--col .plan__bar { grid-column: 1 / -1; margin-bottom: 2px; } .plan--col b { font-size: 18px; }
-.midcta__in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; } .midcta h2 { max-width: 22em; }
+.plan--col .plan__bar { grid-column: 1 / -1; margin-bottom: 2px; } .plan--col b { font-size: 18px; } .plan--col small { grid-column: 2; } /* сумма под названием, не под процентом */
 .land--ph { overflow: hidden; padding-top: 0; }
 .land--ph img { display: block; max-width: none; width: calc(100% + 44px); margin: 0 -22px 4px; aspect-ratio: 2 / 1; object-fit: cover; background: var(--tint); }
 .land--ph .land__go { position: static; font-size: 13px; font-weight: 600; }
 .cards--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .cards--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* две карточки рядом с текстом или картой */
-.gate { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); gap: 40px; align-items: start; }
-.gate__txt { display: grid; gap: 16px; }
-.gate__direct { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
-.sprosite { display: grid; gap: 14px; justify-items: start; } .sprosite .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
-.final__n { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 40px; margin: 0; }
-.final__n div { display: grid; gap: 4px; } .final__n dt { font-size: 13px; opacity: .85; } .final__n dd { margin: 0; font: 600 var(--fs-num-m)/1 "IBM Plex Sans", system-ui, sans-serif; }
-@media (max-width: 1099px) { .show { grid-template-columns: 1fr; } .who--6 { grid-template-columns: repeat(2, 1fr); } .qlead, .gate { grid-template-columns: 1fr; } .cards--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 899px) { .who--6 { grid-template-columns: 1fr; } .land--ph img { width: calc(100% + 32px); margin: 0 -16px 2px; } .ask__lands { display: none; } }
+@media (max-width: 1099px) { .show { grid-template-columns: 1fr; } .cards--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 899px) { .land--ph img { width: calc(100% + 32px); margin: 0 -16px 2px; } }
 @media (max-width: 480px) { .cards--3, .cards--2 { grid-template-columns: 1fr; } }
 .ask__bar .ask__mic[hidden] { display: none; }
 /* поиск по названию в строке фильтров */
@@ -879,7 +875,7 @@ fieldset.field > legend { margin-bottom: 6px; } /* legend вне сетки, gap
 @media (max-width: 899px) { .fbar__q { flex: none; width: 100%; } .fmeta .view { order: 3; } }
 
 /* ---------- страница проекта: калькулятор, климат, шкала с медианой, липкая панель цены ---------- */
-.gallery__full { position: absolute; right: 12px; top: 12px; z-index: 2; display: inline-flex; } /* вид: .btn--icon.btn--s.btn--glass, списки в [A1] */
+.gallery__full { position: absolute; right: 12px; top: 12px; z-index: 2; display: inline-flex; } /* вид: .btn--icon.btn--s.btn--glass */
 .gallery__main:fullscreen { border-radius: 0; background: #000; } .gallery__main:fullscreen img { object-fit: contain; }
 .pscale__tick { position: absolute; top: -4px; bottom: -4px; left: var(--x); width: 2px; margin-left: -1px; background: var(--ink-3); }
 .pscale__med--lo { bottom: auto; top: 16px; font-weight: 500; color: var(--ink-3); }
@@ -924,8 +920,8 @@ li[data-tip]:focus-visible { border-radius: 4px; } /* столбики и стр
 .co--bar.is-tip { border-color: var(--accent); }
 .pscale [data-tip]::before { content: ""; position: absolute; inset: -10px -4px; }
 .pscale__band[data-tip]:hover, .pscale__band.is-tip { background: color-mix(in srgb, var(--accent) 30%, var(--tint)); }
-.plan li[data-tip].is-tip, .p-types li[data-tip].is-tip { background: var(--tint); }
-.p-types li[data-tip] { border-radius: 6px; }
+.plan li[data-tip].is-tip, .shares [data-tip].is-tip { background: var(--tint); }
+.shares li[data-tip] { border-radius: 6px; }
 
 /* ---------- просмотр .zoom: картинка на весь экран поверх страницы (hb-ui: a[data-zoom], листы планировок .p-plans__i); тёмный в обеих темах ---------- */
 .zoom { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0e1012; color: #fff; overscroll-behavior: contain; }
@@ -935,7 +931,7 @@ html:has(.zoom[open]) { overflow: hidden; }
 .zoom__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; }
 .zoom__n { font-size: var(--fs-small); line-height: 20px; color: rgba(255, 255, 255, .78); }
 .zoom__tools { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-.zoom__b, .zoom__nav { display: inline-grid; place-items: center; font: 600 14px/1 "IBM Plex Sans", system-ui, sans-serif; } /* вид: .btn--icon.btn--dark, списки в [A1] */
+.zoom__b, .zoom__nav { display: inline-grid; place-items: center; font: 600 14px/1 "IBM Plex Sans", system-ui, sans-serif; } /* вид: .btn--icon.btn--dark */
 .zoom__pct { min-width: 66px; font-variant-numeric: tabular-nums; }
 .zoom__stage { display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; padding: 0 76px 24px; touch-action: none; cursor: zoom-out; }
 .zoom__stage img { max-width: 100%; max-height: calc(100dvh - 92px); border-radius: 8px; background: #fff; transform-origin: center; cursor: zoom-in; user-select: none; -webkit-user-drag: none; }
@@ -946,7 +942,7 @@ html:has(.zoom[open]) { overflow: hidden; }
 @media (max-width: 639px) { .zoom__stage { padding: 0 8px 16px; } .zoom__nav { top: auto; bottom: 24px; margin: 0; } .zoom__nav--p { left: 12px; } .zoom__nav--n { right: 12px; } .zoom__pct { display: none; } }
 
 /* «Полезно» [data-like] (hb-ui.js): счётчик и нажатое состояние; кнопка поверх растянутой ссылки карточки */
-.like { position: relative; z-index: 1; } /* вид: .pill.pill--count (алиас в [A1]); над ссылкой-обложкой карточки */
+.like { position: relative; z-index: 1; } /* хук; вид: .pill.pill--count; над ссылкой-обложкой карточки */
 .like--s span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 /* сноска: цель перехода по ссылке [1] вспыхивает подложкой, без движения при reduced-motion */
 .is-flash { animation: hb-flash 2.4s ease-out; border-radius: 8px; }
@@ -955,36 +951,40 @@ html:has(.zoom[open]) { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .is-flash { animation: none; background: var(--tint); box-shadow: 0 0 0 6px var(--tint); } }
 
 /* ========== система компонентов 07.10.2026: кнопка, пилюля, ссылки [A1] ========== */
+/* размер иконки классом: 16, 20, 24, 32 на токенах --ic-* (база .ic 20; правила внутри кнопки и пилюли весомее и ставят свой размер) */
+.ic--16 { width: var(--ic-s); height: var(--ic-s); } .ic--20 { width: var(--ic-m); height: var(--ic-m); } .ic--24 { width: var(--ic-l); height: var(--ic-l); } .ic--32 { width: var(--ic-xl); height: var(--ic-xl); }
 /* ---------- кнопка .btn: размер XS, иконки внутри, только иконка, форма ---------- */
 .btn--xs { min-height: var(--h-xs); padding: 0 12px; font-size: var(--fs-cap); border-radius: var(--r-s); }
+.btn--t { min-height: var(--h-touch); } /* A1-09: высота касания 44 к любому размеру, вид и шрифт от размера (proekt: цена, «Написать сейчас») */
 .btn--xs:not(.btn--icon) .ic, .btn--s:not(.btn--icon) .ic { width: var(--ic-s); height: var(--ic-s); } /* иконка у текста: 16 в XS и S, 20 в M и L */
-/* только иконка: квадрат 44 (M), 32, 38, 56; aria-label обязателен; иконка 20, у L 24. Кнопки-иконки со старыми именами здесь же */
-.btn--icon, .x, .burger, .top__ic, .fav, .share, .card__nav, .gallery__nav button, .gallery__full, .zoom__b, .zoom__nav, .ask__mic, .fpanel__x { flex: none; width: var(--h-touch); min-height: var(--h-touch); padding: 0; }
-.btn--icon.btn--xs, .top__ic, .card__nav { width: var(--h-xs); min-height: var(--h-xs); border-radius: var(--r-s); }
-.btn--icon.btn--s, .fav, .share, .gallery__full { width: var(--h-s); min-height: var(--h-s); border-radius: var(--r-s); }
+/* только иконка: квадрат 44 (M), 32, 38, 56; aria-label обязателен; иконка 20, у L 24 */
+.btn--icon { flex: none; width: var(--h-touch); min-height: var(--h-touch); padding: 0; }
+.btn--icon.btn--xs { width: var(--h-xs); min-height: var(--h-xs); border-radius: var(--r-s); }
+.btn--icon.btn--s { width: var(--h-s); min-height: var(--h-s); border-radius: var(--r-s); }
 .btn--icon.btn--l { width: var(--h-l); min-height: var(--h-l); }
 .btn--icon.btn--l .ic { width: var(--ic-l); height: var(--ic-l); }
-.btn--round, .btn--pill, .x, .top__ic, .fav, .share, .card__nav, .gallery__nav button { border-radius: var(--r-pill); } /* круг у иконки, пилюля у текста */
+.btn.btn--round, .btn.btn--pill { border-radius: var(--r-pill); } /* круг у иконки, пилюля у текста; .btn.btn--round весом (0,2,0) после размерных пар .btn--icon.btn--xs и --s, иначе XS и S выходили квадратами */
 .btn--block { display: flex; width: 100%; } /* во всю ширину */
 
 /* ---------- кнопка .btn: стили тихая, стекло, тёмная, ссылка ---------- */
 /* тихая: шапка, закрытие, микрофон, «Сбросить» */
-.btn--quiet, .x, .top__ic, .ask__mic, .fpanel__x { background: transparent; border-color: transparent; box-shadow: none; color: var(--ink-2); }
-.btn--quiet:hover, .top__ic:hover, .ask__mic:hover, .fpanel__x:hover { border-color: transparent; background: var(--sunken); color: var(--ink); }
+.btn--quiet { background: transparent; border-color: transparent; box-shadow: none; color: var(--ink-2); }
+.btn--quiet:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: transparent; background: var(--sunken); color: var(--ink); }
 .x { border-color: var(--line); } .x:hover { border-color: var(--control); background: var(--sunken); color: var(--ink); } /* закрытие: тихая круглая с рамкой line */
 /* стекло поверх фото; цвет иконки свой у каждой кнопки */
-.btn--glass, .fav, .share, .card__nav, .gallery__nav button, .gallery__full { border-color: transparent; background: var(--glass); box-shadow: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-.btn--glass:hover, .fav:hover, .share:hover, .card__nav:hover, .gallery__nav button:hover, .gallery__full:hover { border-color: transparent; background: var(--paper); }
+.btn--glass { border-color: transparent; background: var(--glass); box-shadow: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.btn--glass:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: transparent; background: var(--paper); }
 /* тёмная поверх тёмного просмотра (zoom) */
-.btn--dark, .zoom__b, .zoom__nav { border-color: rgba(255, 255, 255, .24); background: rgba(14, 16, 18, .6); box-shadow: none; color: #fff; }
-.btn--dark:hover, .zoom__b:hover, .zoom__nav:hover { border-color: rgba(255, 255, 255, .24); background: rgba(255, 255, 255, .12); }
-.btn--dark:focus-visible, .zoom__b:focus-visible, .zoom__nav:focus-visible { outline-color: #fff; }
+.btn--dark { border-color: rgba(255, 255, 255, .24); background: rgba(14, 16, 18, .6); box-shadow: none; color: #fff; }
+.btn--dark:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: rgba(255, 255, 255, .24); background: rgba(255, 255, 255, .12); }
+.btn--dark:focus-visible { outline-color: #fff; }
 /* ссылка: действие текстом, вид как .more («Сбросить фильтры») */
 .btn--link { gap: 6px; min-height: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; font-size: var(--fs-small); color: var(--accent-text); }
-.btn--link:hover { background: none; color: var(--accent-hover); }
+.btn--link:where(:not(:disabled, [aria-disabled="true"])):hover { background: none; color: var(--accent-hover); }
+a.btn[aria-disabled="true"] { pointer-events: none; } /* отключённая ссылка не переходит; у button[disabled] клик гасит браузер */
 
 /* ---------- кнопка .btn: нажата, загрузка (фокус: общий :focus-visible, --ring) ---------- */
-.btn[aria-pressed="true"], .ask__mic[aria-pressed="true"] { border-color: var(--sel-bd); background: var(--sel-bg); box-shadow: none; color: var(--sel-fg); }
+.btn:where(:not(.fav))[aria-pressed="true"] { border-color: var(--sel-bd); background: var(--sel-bg); box-shadow: none; color: var(--sel-fg); } /* нажатое избранное .fav: красное сердце на стекле, своё правило у карточки выше */
 /* загрузка: текст прозрачен, по центру .spinner из разметки или кольцо currentColor, клики не проходят */
 .btn[aria-busy="true"] { position: relative; -webkit-text-fill-color: transparent; pointer-events: none; }
 .btn[aria-busy="true"] > :not(.spinner) { visibility: hidden; }
@@ -993,28 +993,31 @@ html:has(.zoom[open]) { overflow: hidden; }
 :is(.btn--xs, .btn--s)[aria-busy="true"]::after { width: var(--ic-s); height: var(--ic-s); }
 @media (prefers-reduced-motion: reduce) { .btn[aria-busy="true"]:not(:has(> .spinner))::after { border: 0; border-radius: 0; animation: none; background: radial-gradient(circle, currentColor 2px, transparent 2.5px) 0 50% / 33.34% 100% repeat-x; } } /* без вращения: три точки, как у .spinner */
 
-/* ---------- пилюля .pill: выбор, фильтр, тег-ссылка, «Полезно»; ряд .chips. Алиасы до перевода страниц: .chip span, .qchip, .like, .ask__hints a/button (.achip снят: hb-ui.js пишет pill pill--xs pill--remove) ---------- */
-.pill, .chip span, .qchip, .like, .ask__hints a, .ask__hints button { display: inline-flex; align-items: center; gap: 6px; min-height: var(--h-s); padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); font: 500 var(--fs-small)/18px "IBM Plex Sans", sans-serif; color: var(--ink); text-decoration: none; transition: border-color var(--dur-1), background-color var(--dur-1), color var(--dur-1); }
+/* ---------- пилюля .pill: выбор, фильтр, тег-ссылка, «Полезно»; ряд .chips. Алиас .chip span держится до перевода квиза (A2-25); .qchip, .like и подсказки AI несут классы кита ---------- */
+.pill, .chip span { display: inline-flex; align-items: center; gap: 6px; min-height: var(--h-s); padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); font: 500 var(--fs-small)/18px "IBM Plex Sans", sans-serif; color: var(--ink); text-decoration: none; transition: border-color var(--dur-1), background-color var(--dur-1), color var(--dur-1); }
 label.pill { position: relative; } /* выбор: label.pill > input.sr-only + текст */
-button.pill, label.pill, .qchip, .like, .ask__hints button { cursor: pointer; } /* span.pill и li.pill без действия: без руки и без наведения */
-.pill:where(a, button, label):hover, .chip:hover span, .qchip:hover, .like:hover, .ask__hints a:hover, .ask__hints button:hover { border-color: var(--control); }
-.pill .ic, .chip span .ic, .qchip .ic, .like .ic { width: var(--ic-s); height: var(--ic-s); flex: none; } /* иконка в пилюле 16 */
+button.pill, label.pill { cursor: pointer; } /* span.pill и li.pill без действия: без руки и без наведения */
+.pill:where(a, button, label):hover, .chip:hover span { border-color: var(--control); }
+.pill .ic, .chip span .ic { width: var(--ic-s); height: var(--ic-s); flex: none; } /* иконка в пилюле 16 */
 .pill small { font-size: var(--fs-min); font-weight: 500; color: var(--ink-3); } /* приглушённый счётчик рядом с текстом */
 /* размер XS 32: подсказки AI, активные фильтры, «Полезно» малое; квадрат --sq 44 (спальни) */
-.pill--xs, .like--s, .ask__hints a, .ask__hints button { min-height: var(--h-xs); padding: 0 11px; font-size: var(--fs-cap); }
-.pill--sq, .chip--sq span { justify-content: center; min-width: 52px; min-height: var(--h-touch); border-radius: var(--r-m); }
+.pill--xs { min-height: var(--h-xs); padding: 0 11px; font-size: var(--fs-cap); }
+.ask__hints .pill { font-weight: 400; } /* подсказки AI: вес текста 400, как до системы; при 500 ряд переносится в три строки и окно AI растёт с 363 до 401 (решение владельца 07.10) */
+.pill--sq { justify-content: center; min-width: 52px; min-height: var(--h-touch); border-radius: var(--r-m); }
 /* --remove: активный фильтр, нажатие снимает; иконка x в конце */
 .pill--remove { padding-right: 8px; border-color: transparent; background: var(--sunken); }
+.pill--remove:where(button, a):hover { border-color: transparent; background: var(--line); } /* наведение: фон темнее на ступень, рамки нет (общее правило выше давало рамку --control) */
 /* --count: иконка и число .pill__n (лайк «Полезно»); нажата: иконка залита на 20% */
-.pill__n, .like b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-.pill--count[aria-pressed="true"] .ic, .like[aria-pressed="true"] .ic { fill: currentColor; fill-opacity: .2; }
+.pill__n { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pill--count[aria-pressed="true"] .ic { fill: currentColor; fill-opacity: .2; }
 /* выбрано: нажата, текущая, отмечена */
-.pill[aria-pressed="true"], .pill[aria-current="page"], .pill[aria-current="true"], label.pill:has(:checked), .chip input:checked + span, .qchip[aria-pressed="true"], .like[aria-pressed="true"] { border-color: var(--sel-bd); background: var(--sel-bg); color: var(--sel-fg); }
+.pill[aria-pressed="true"], .pill[aria-current="page"], .pill[aria-current="true"], label.pill:has(:checked), .chip input:checked + span { border-color: var(--sel-bd); background: var(--sel-bg); color: var(--sel-fg); }
 label.pill:has(:focus-visible), .chip input:focus-visible + span { outline: var(--ring); outline-offset: var(--ring-off); }
 .pill[disabled], .pill[aria-disabled="true"], label.pill:has(:disabled) { opacity: .5; cursor: not-allowed; } /* недоступно: вариант без результатов */
 /* ряд: перенос, зазор 8; --center; --line под линией сверху; --scroll одна строка с прокруткой на телефоне */
 .chips--center { justify-content: center; }
 .chips--line { padding-top: 14px; border-top: 1px solid var(--line); }
+.chips--doors .ic { color: var(--ink-3); } /* K34: двери Pro, шеврон в чипе серый */
 @media (max-width: 899px) { .chips--scroll { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; } .chips--scroll::-webkit-scrollbar { display: none; } .chips--scroll > * { flex: none; } }
 
 /* ---------- ссылки: .more --s 13px, --back (назад: стрелка первой в разметке, цвет ink-2); .anchors ряд якорей по странице ---------- */
@@ -1024,6 +1027,12 @@ label.pill:has(:focus-visible), .chip input:focus-visible + span { outline: var(
 .anchors a { font-size: var(--fs-small); line-height: 20px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
 .anchors a:hover { color: var(--accent-text); }
 @media (max-width: 899px) { .anchors:has(> :nth-child(6)) { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; } .anchors:has(> :nth-child(6))::-webkit-scrollbar { display: none; } .anchors > * { flex: none; white-space: nowrap; } } /* 6 и больше: одна строка с прокруткой, не липнет (Р-1) */
+@property --anchors-fade { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@keyframes anchors-fade { from { --anchors-fade: 32px; } to { --anchors-fade: 0px; } }
+@media (max-width: 899px) {
+  .anchors:has(> :nth-child(6)) { mask: linear-gradient(#000 0 0) top / 100% 1px no-repeat, linear-gradient(to right, #000 calc(100% - var(--anchors-fade)), transparent); animation: anchors-fade linear both; animation-timeline: scroll(self inline); animation-range: calc(100% - 32px) 100%; } /* N2: край ленты гаснет, пока есть что листать; на последних 32 px прокрутки затухание сходит на нет (ширина затухания не больше остатка ленты). Первый слой держит линию сверху целой. Без scroll-timeline затухания нет, лента как была */
+  [dir="rtl"] .anchors:has(> :nth-child(6)) { mask: linear-gradient(#000 0 0) top / 100% 1px no-repeat, linear-gradient(to left, #000 calc(100% - var(--anchors-fade)), transparent); } /* N2: у градиента маски нет логического направления, поэтому зеркало для RTL */
+}
 
 /* ========== система компонентов: поля и формы, калькулятор [A2] ========== */
 /* маски полей: стрелка списка и галочка; цвет даёт background-color, поэтому тема меняет его сама */
@@ -1031,19 +1040,22 @@ label.pill:has(:focus-visible), .chip input:focus-visible + span { outline: var(
 
 /* ---------- поле: подсказка, обязательность (подпись и ошибка в базе выше) ---------- */
 .field__hint { font-size: var(--fs-cap); line-height: 18px; color: var(--ink-3); } /* было p-hint */
-.field__req { margin-left: 2px; color: var(--ink-3); } /* звёздочка после подписи, aria-hidden; смысл объясняет .form__req */
+.field__req { margin-inline-start: 2px; color: var(--ink-3); } /* звёздочка после подписи, aria-hidden; смысл объясняет .form__req */
 .form__req { font-size: var(--fs-cap); line-height: 18px; color: var(--ink-3); } /* «Поля со звёздочкой обязательны» */
 
 /* ---------- контрол: размеры xs 32, s 38, t 44, M 48 (база), l 56; радиус по размеру ----------
    Кегль у .input всегда 16: меньше iOS увеличивает страницу при фокусе. У списка (кнопка) кегль уменьшается вместе с высотой. */
-.input--xs, .select--xs, .top__cur .cs__btn /* алиас до перевода страниц */ { min-height: var(--h-xs); padding: 0 10px; border-radius: var(--r-s); }
-.select--xs, .top__cur .cs__btn /* алиас до перевода страниц */ { padding-right: 28px; font-size: var(--fs-cap); }
-.input--s, .select--s, .fmeta__sort .cs__btn /* алиас до перевода страниц */ { min-height: var(--h-s); border-radius: var(--r-s); }
-.select--s, .fmeta__sort .cs__btn /* алиас до перевода страниц */ { font-size: var(--fs-ui); }
-.input--t, .select--t, .fbar__loc .cs__btn, .fbar__q .input /* алиасы до перевода страниц */ { min-height: var(--h-touch); }
+.input--xs, .select--xs { min-height: var(--h-xs); padding: 0 10px; border-radius: var(--r-s); }
+.select--xs { padding-right: 28px; font-size: var(--fs-cap); }
+.input--s, .select--s { min-height: var(--h-s); border-radius: var(--r-s); }
+.select--s { font-size: var(--fs-ui); }
+.input--t, .select--t { min-height: var(--h-touch); }
 .input--l, .select--l { min-height: var(--h-l); padding: 0 16px; border-radius: var(--r-l); }
 .select--l { padding-right: 44px; }
-.select--pill, .top__cur .cs__btn /* алиас до перевода страниц */ { border-radius: var(--r-pill); }
+/* у .textarea высота по содержимому (от 112), размер меняет отступы и радиус, как у поля той же оси; xs и t для многострочного поля не нужны */
+.textarea--s { min-height: 88px; padding: 8px 12px; border-radius: var(--r-s); }
+.textarea--l { min-height: 136px; padding: 16px; border-radius: var(--r-l); }
+.select--pill { border-radius: var(--r-pill); }
 
 /* ---------- контрол: состояния (фокус в базе: рамка и обводка accent, брендбук) ---------- */
 :is(.input, .select, .textarea):hover:not(:focus, :disabled, [readonly], [aria-invalid="true"], .is-err *) { border-color: var(--ink-3); }
@@ -1056,7 +1068,7 @@ label.pill:has(:focus-visible), .chip input:focus-visible + span { outline: var(
 .cs__btn.select { position: relative; background-image: none; }
 .cs__btn::after { content: ""; position: absolute; right: 12px; top: 50%; width: 18px; height: 18px; margin-top: -9px; background-color: var(--ink-3); -webkit-mask: var(--mask-chev) center / contain no-repeat; mask: var(--mask-chev) center / contain no-repeat; pointer-events: none; transition: transform var(--dur-1) var(--ease); }
 .cs.is-open .cs__btn::after { transform: rotate(180deg); }
-.select--xs.cs__btn::after, .top__cur .cs__btn::after /* алиас до перевода страниц */ { right: 8px; width: 14px; height: 14px; margin-top: -7px; }
+.select--xs.cs__btn::after { right: 8px; width: 14px; height: 14px; margin-top: -7px; }
 .select--l.cs__btn::after { right: 14px; }
 
 /* ---------- поиск: поле с лупой слева (было fbar__q, p-bs__f, p-q) ---------- */
@@ -1064,7 +1076,9 @@ label.pill:has(:focus-visible), .chip input:focus-visible + span { outline: var(
 .search > .ic { position: absolute; left: 14px; top: 50%; width: 18px; height: 18px; margin-top: -9px; color: var(--ink-3); pointer-events: none; }
 .search > .input { padding-left: 42px; text-overflow: ellipsis; }
 .search:has(> .input--t, > .input--s) > .ic { left: 12px; }
-.search > :is(.input--t, .input--s), .fbar__q .input /* алиас до перевода страниц */ { padding-left: 38px; text-overflow: ellipsis; }
+.search > :is(.input--t, .input--s) { padding-left: 38px; text-overflow: ellipsis; }
+/* строка вопроса AI: у поля внутри outline снят, фокус показывает сам бар так же, как .input (рамка accent + обводка 2px), а не только сменой рамки 1px */
+.ask__bar:has(input:focus) { outline: 2px solid var(--accent); outline-offset: 0; }
 
 /* ---------- поле-ловушка для ботов: вне экрана, вне табуляции (tabindex="-1", aria-hidden) ---------- */
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
@@ -1073,11 +1087,13 @@ label.pill:has(:focus-visible), .chip input:focus-visible + span { outline: var(
 .form__fail { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--line); border-left: 5px solid var(--err); border-radius: var(--r-m); background: var(--paper); color: var(--ink); } /* hb-ui.js снимает hidden, если data-endpoint ответил ошибкой */
 .form__fail[hidden] { display: none; }
 .form__foot { display: grid; gap: 12px; }
-.split .form { max-width: none; } /* в колонке раскладки .split форма занимает колонку (было .p-split .form на страницах) */
+.split .form, .phead__side > .form, .phead__side.form { max-width: none; } /* в колонке раскладки .split и в боковой колонке шапки (K21) форма занимает колонку (было .p-split .form на страницах) */
 .form__eta { display: flex; align-items: center; gap: 8px; font-size: var(--fs-small); line-height: 20px; color: var(--ink-2); } /* «Эксперт ответит в течение 30 минут» */
 .form__eta .ic { width: var(--ic-s); height: var(--ic-s); color: var(--accent-text); }
 
 /* ---------- чекбокс и радио: отметка (база .check, .radio в разделе формы выше) ---------- */
+.check, .radio { font-size: var(--fs-ui); line-height: 22px; } /* подпись 15/22 везде, и одиночная (согласие в форме), и в группе (SPEC 2.4, решение владельца 07.10) */
+:is(.check, .radio) input { margin-top: 1px; } /* квадрат 20 по центру первой строки 22 */
 .check input::before, .radio input::before { content: ""; width: 14px; height: 14px; background-color: var(--on-accent); -webkit-mask: var(--mask-tick) center / contain no-repeat; mask: var(--mask-tick) center / contain no-repeat; transform: scale(0); transition: transform var(--dur-1) var(--ease); }
 .check input:is(:checked, :indeterminate) { border-color: var(--accent); background-color: var(--accent); }
 .check input:checked::before { transform: scale(1); }
@@ -1094,8 +1110,7 @@ label.pill:has(:focus-visible), .chip input:focus-visible + span { outline: var(
 /* группа выбора: столбик (было checks) или строка */
 .choices { display: grid; gap: 10px; }
 .choices--row { display: flex; flex-wrap: wrap; gap: 10px 20px; }
-.choices :is(.check, .radio, .switch) { font-size: var(--fs-ui); line-height: 22px; color: var(--ink); }
-.choices :is(.check, .radio) input { margin-top: 1px; }
+.choices :is(.check, .radio) { color: var(--ink); } /* в группе подпись цветом ink, одиночная (согласие) ink-2; кегль 15/22 общий */
 
 /* ---------- переключатель 40x24: input role="switch" в label.switch или button.switch role="switch" aria-checked ---------- */
 .switch { display: inline-flex; align-items: center; gap: 10px; font-size: var(--fs-ui); line-height: 22px; color: var(--ink); cursor: pointer; }
@@ -1110,8 +1125,8 @@ button.switch::after { left: 3px; top: 50%; margin-top: -9px; } /* ползун�
 .switch input:disabled::before, button.switch:disabled::after { background: var(--line); }
 
 /* ---------- сегмент: размер s 38 («Списком / На карте», было .view) и во всю ширину (база .seg в разделе формы выше) ---------- */
-.seg--s, .view /* алиас до перевода страниц */ { border-radius: var(--r-s); }
-.seg--s span, .seg--s > button, .view button /* алиас до перевода страниц */ { min-height: 30px; padding: 0 12px; border-radius: calc(var(--r-s) - 3px); }
+.seg--s { border-radius: var(--r-s); }
+.seg--s span, .seg--s > button { min-height: calc(var(--h-s) - 8px) /* 30: сегмент S 38 */; padding: 0 12px; border-radius: calc(var(--r-s) - 3px); }
 .seg--block { display: flex; }
 .seg--block > * { flex: 1; }
 .seg--block span, .seg--block > button { width: 100%; justify-content: center; }
@@ -1140,21 +1155,22 @@ button.switch::after { left: 3px; top: 50%; margin-top: -9px; } /* ползун�
 .fstep { display: grid; gap: 16px; margin: 0; padding: 0; border: 0; min-width: 0; } /* шаг формы [data-fsteps] */
 .fstep > legend { margin-bottom: 4px; }
 /* квиз [data-quiz]: шаг за раз, выбор ведёт дальше (перенесено из blog-statya без изменений вида) */
-.quiz__top { display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
+.quiz__top { display: flex; align-items: center; justify-content: space-between; min-height: var(--h-xs); }
 .quiz__back { display: inline-flex; align-items: center; gap: 4px; min-height: var(--h-touch); border: 0; background: none; color: var(--accent-text); font: inherit; font-weight: 600; cursor: pointer; }
 .quiz__back[hidden] { display: none; } /* на первом шаге «Назад» нет: display выше перебивал hidden */
-.quiz__bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; } /* старая полоса; новая разметка: .progress.progress--steps > i */
-.quiz__bar i { display: block; width: var(--p, 20%); height: 100%; background: var(--accent); transition: width .2s; }
 .quiz__s { display: grid; gap: 14px; margin: 0; padding: 0; border: 0; min-width: 0; } .quiz__s[hidden] { display: none; }
 .quiz__s > legend { margin-bottom: 4px; font: 600 var(--fs-card)/var(--lh-card) Geologica, system-ui, sans-serif; color: var(--ink); }
-.quiz__opts { display: grid; gap: 8px; } .quiz__opts .chip span { width: 100%; justify-content: flex-start; min-height: var(--h-m); padding: 0 16px; }
+.quiz__opts { display: grid; gap: 8px; } .quiz__opts .pill, .quiz__opts .chip span /* алиас до перевода страниц */ { width: 100%; justify-content: flex-start; min-height: var(--h-m); padding: 0 16px; } /* вариант ответа: label.pill > input.sr-only + текст, во всю ширину, 48 */
 .quiz__sum { display: grid; gap: 4px; margin: 0; padding: 12px 14px; border-radius: var(--r-s); background: var(--tint); font-size: var(--fs-small); list-style: none; } .quiz__sum:empty { display: none; }
-@media (prefers-reduced-motion: reduce) { .quiz__bar i { transition: none; } }
+/* без движения: отметка чекбокса и радио, ползунок переключателя, стрелка списка меняются сразу */
+@media (prefers-reduced-motion: reduce) { :is(.check, .radio) input::before, .switch input, .switch input::before, button.switch::before, button.switch::after, .cs__btn::after { transition: none; } }
 
 /* ========== система компонентов: навигация, оверлеи, фильтры, загрузка, отклик [A3] ========== */
 /* ---------- шапка, меню, подвал: хуки, которые стоят в разметке всех страниц ---------- */
 .top__in { flex: none; } /* «Войти»: вид из .btn--s; на <=899 прячется вместе с кнопками шапки, вход есть в меню */
 .top .burger { display: none; } /* вид бургера из .btn--icon, здесь только видимость: кнопка есть на телефоне */
+.mnav { max-width: calc(100% - 38px); } /* меню на узком экране: слева полоса фона 38 для закрытия касанием, как до системы (на 375 ящик 337, не 360) */
+.aid { border-radius: var(--r-xl); } /* окно помощника: радиус окон 16, как у .modal */
 .mnav__row { display: grid; gap: 8px; } /* строка настройки меню: подпись над переключателем */
 .mnav__t { font-size: var(--fs-cap); line-height: 18px; font-weight: 500; color: var(--ink-2); } /* как подпись поля */
 .mnav__row .seg > a { flex: 1; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border-radius: calc(var(--r-m) - 3px); font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; } /* ссылка-вариант (EN) выглядит пунктом сегмента */
@@ -1163,6 +1179,12 @@ button.switch::after { left: 3px; top: 50%; margin-top: -9px; } /* ползун�
 .foot__note + .foot__note { margin-top: 4px; } /* вне подвала (образец) */
 .foot .foot__note + .foot__note { margin-top: -18px; } /* в подвале приписки одной группой: 10 вместо шага сетки .wrap 28 */
 @media (max-width: 899px) { .top .burger { display: inline-flex; } }
+/* страницы .pager на телефоне: пункт 40 в ширину (высота касания 44 остаётся), зазор 4; ряд «назад, 1, 2, 3, ..., 51, вперёд» помещается в 375 без переноса */
+@media (max-width: 639px) { .pager { gap: 4px; } .pager a, .pager span { min-width: 40px; padding: 0 8px; } }
+/* строка фильтров .fbar на телефоне (до 639) не липнет, уезжает со страницей (решение владельца 07.10: 108-160px с шапкой занимали 21-27% экрана).
+   Вернуться к ней: кнопка «Фильтры» .ret внизу слева, её даёт hb-ui.js, как блокам [data-return]. От 640 строка липнет, как раньше,
+   кроме низкого окна 640-899 (телефон боком, высота до 799): там строка в колонку 108-160px занимала 26-44% экрана */
+@media (max-width: 639px), (max-width: 899px) and (max-height: 799px) { .fbar { position: static; } }
 
 /* ---------- оглавление строками .toc--rows: крупные пункты с номером через линию, не липнет (было p-gl на garantii) ---------- */
 .toc--rows { position: static; gap: 0; padding: 0; overflow: hidden; font-size: var(--fs-text); line-height: var(--lh-text); }
@@ -1182,7 +1204,7 @@ button.switch::after { left: 3px; top: 50%; margin-top: -9px; } /* ползун�
 .skel--img { height: auto; aspect-ratio: 4 / 3; border-radius: var(--r-l); }
 @keyframes hb-skel { to { background-position: -50% 0; } }
 /* полоса: заполнение по --v (проценты); --steps режет полосу на --n отрезков, --v ставится кратно шагу (шаг 2 из 5 = 40%) */
-.progress { display: block; height: 6px; border-radius: var(--r-pill); background: var(--sunken); overflow: hidden; }
+.progress { display: block; height: 6px; border-radius: var(--r-pill); background: var(--line); overflow: hidden; } /* дорожка line, как у ползунка: sunken на paper почти не виден, в «Сумерках» совсем (решение владельца 07.10) */
 .progress > i { display: block; width: var(--v, 0%); height: 100%; border-radius: inherit; background: var(--accent); transition: width var(--dur-2) var(--ease); }
 .progress--steps { --g: 4px; border-radius: 0; -webkit-mask: repeating-linear-gradient(90deg, #000 0 calc((100% + var(--g)) / var(--n, 4) - var(--g)), transparent 0 calc((100% + var(--g)) / var(--n, 4))); mask: repeating-linear-gradient(90deg, #000 0 calc((100% + var(--g)) / var(--n, 4) - var(--g)), transparent 0 calc((100% + var(--g)) / var(--n, 4))); }
 .progress--steps > i { border-radius: 0; }
@@ -1208,18 +1230,21 @@ body:has(.pbar:not([hidden])) .toasts { bottom: calc(80px + env(safe-area-inset-
   .skel { animation: none; background-image: none; }
   .progress > i { transition: none; }
   .toast { animation: none; }
+  .fbtn > .ic, .dmap__pin i { transition: none; } /* стрелка кнопки фильтра и метка карты рынков: без поворота и масштаба */
 }
 
 /* ========== система компонентов: текст, списки, ключ-значение, таблицы, код [B1] ========== */
 /* ---------- заголовки-утилиты: вид уровня, когда тег другой (вместо p-h3, p-h4, p-sub, p-tt, p-form__h, p-why__h) ---------- */
-.h2, .h3, .h4 { font-family: "Geologica", "IBM Plex Sans", sans-serif; font-weight: 600; color: var(--ink); text-wrap: balance; }
+.h1, .h2, .h3, .h4 { font-family: "Geologica", "IBM Plex Sans", sans-serif; font-weight: 600; color: var(--ink); text-wrap: balance; }
+.h1 { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: -.01em; } /* вид h1 (48/56, телефон 32/38) у другого тега */
 .h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); }
 .h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); } /* уровень секции 22/26 (телефон 20/26) */
 .h4 { font-size: var(--fs-card); line-height: var(--lh-card); } /* уровень карточки 16/20 */
-legend:is(.h2, .h3, .h4) { padding: 0; }
+legend:is(.h1, .h2, .h3, .h4) { padding: 0; }
 
 /* ---------- текстовые роли: малое примечание, иконка в начале строки ---------- */
 .note--s { font-size: var(--fs-min); line-height: 16px; } /* источник под цифрой, подпись данных */
+.lead.lead--wide { max-width: none; } /* K5: лид на всю колонку, и в шапке, и в голове секции */
 /* иконка первой в .note или .support висит слева, текст переносится ровной колонкой */
 :is(.note, .support):has(> .ic:first-child) { position: relative; padding-left: calc(var(--ic-s) + 8px); }
 :is(.note, .support) > .ic:first-child { position: absolute; left: 0; top: max(0px, calc(.5lh - var(--ic-s) / 2)); width: var(--ic-s); height: var(--ic-s); }
@@ -1230,23 +1255,28 @@ legend:is(.h2, .h3, .h4) { padding: 0; }
 /* ---------- список .list: пункты сеткой без маркеров; --check иконка, --num счётчик, --roof крыша, --links ссылки, --cols две колонки ---------- */
 .list { display: grid; gap: 10px; padding: 0; list-style: none; }
 .list > li { min-width: 0; }
-/* --check: первая иконка в колонке 22, текст рядом; --no иконки приглушены (чего нет, что не входит) */
-.list--check > li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; color: var(--ink); }
-.list--check > li > .ic:first-child { width: var(--ic-m); height: var(--ic-m); margin-top: 2px; color: var(--accent-text); }
+/* маркер пункта (иконка или номер) висит слева абсолютом, текст пункта течёт обычной строкой: svg, текст, b, a, code пишутся подряд, без обёрток */
+/* --check: иконка .ic первой, колонка 22 + зазор 10; --no иконки приглушены (чего нет, что не входит) */
+.list--check > li { position: relative; padding-left: 32px; color: var(--ink); }
+.list--check > li > .ic:first-child { position: absolute; left: 0; top: 2px; width: var(--ic-m); height: var(--ic-m); color: var(--accent-text); }
 .list--no > li > .ic:first-child { color: var(--ink-3); }
 .list--boxed > li { padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-l); background: var(--paper); color: var(--ink); } /* пункт плашкой */
+.list--check.list--boxed > li { padding-left: 48px; }
+.list--check.list--boxed > li > .ic:first-child { left: 16px; top: 16px; }
 .list--s > li { font-size: var(--fs-ui); }
 /* --num: номер крупно в колонке 32 (Plex, цифры одной ширины), линия над пунктом; li[data-n] пишет свой номер */
 .list--num { counter-reset: list; }
-.list--num > li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 2px 10px; padding-top: 14px; border-top: 1px solid var(--line); counter-increment: list; }
-.list--num > li::before { content: counter(list); font: 600 20px/1.2 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); }
+.list--num > li { position: relative; padding: 14px 0 0 42px; border-top: 1px solid var(--line); counter-increment: list; }
+.list--num > li::before { content: counter(list); position: absolute; left: 0; top: 14px; width: 32px; font: 600 20px/1.2 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); }
 .list--num > li[data-n]::before { content: attr(data-n); }
-.list--num > li > * { grid-column: 2; } /* заголовок и пояснение пункта стопкой справа от номера */
-/* --roof: крыша вместо точки (.roofs: алиас до перевода страниц) */
-.list--roof, .roofs { display: grid; gap: 6px; }
-:is(.list--roof, .roofs) > li { padding-left: calc(1em + 10px); text-indent: calc(-1em - 10px); } /* висячий отступ, как в прозе: ссылки и сноски в тексте пункта не разваливаются */
-:is(.list--roof, .roofs) > li > * { text-indent: 0; }
-:is(.list--roof, .roofs) > li::before { content: ""; display: inline-block; width: 1em; height: .33em; margin-right: 10px; background: var(--accent); -webkit-mask: var(--roof) center / contain no-repeat; mask: var(--roof) center / contain no-repeat; transform: translateY(-.15em); }
+.list--num > li > b { color: var(--ink); } /* K20: заголовок пункта цветом ink */
+/* пояснение под заголовком пункта: <li><b>Заголовок</b><span class="support">пояснение</span></li> */
+:is(.list--check, .list--num) > li > :is(.support, .note) { display: block; margin-top: 2px; }
+/* --roof: крыша вместо точки (было .roofs) */
+.list--roof { display: grid; gap: 6px; }
+.list--roof > li { padding-left: calc(1em + 10px); text-indent: calc(-1em - 10px); } /* висячий отступ, как в прозе: ссылки и сноски в тексте пункта не разваливаются */
+.list--roof > li > * { text-indent: 0; }
+.list--roof > li::before { content: ""; display: inline-block; width: 1em; height: .33em; margin-right: 10px; background: var(--accent); -webkit-mask: var(--roof) center / contain no-repeat; mask: var(--roof) center / contain no-repeat; transform: translateY(-.15em); }
 /* --cols: две колонки сеткой, на телефоне одна */
 .list--cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 32px; }
 /* --links: перечень статей или документов, ссылка и дата под ней, линия между пунктами */
@@ -1264,12 +1294,12 @@ legend:is(.h2, .h3, .h4) { padding: 0; }
 .kv > div { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; padding: 10px 0; }
 .kv > div + div { border-top: 1px solid var(--line); }
 .kv dt { color: var(--ink-3); }
-.kv dd { margin-left: auto; font-weight: 600; color: var(--ink); text-align: right; } /* длинное значение уходит под подпись и держится правого края */
+.kv dd { margin-inline-start: auto; font-weight: 600; color: var(--ink); text-align: end; } /* длинное значение уходит под подпись и держится края строки (справа, в RTL слева) */
 .kv--s { font-size: var(--fs-cap); line-height: 18px; } .kv--s > div { padding: 8px 0; }
 /* --side: подпись колонкой слева (1/3), длинное значение текстом справа (было p-rows, p-row) */
 .kv--side > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
 .kv--side dt { font-weight: 600; color: var(--ink); }
-.kv--side dd { display: grid; gap: 4px; margin-left: 0; font-weight: 400; color: var(--ink-2); text-align: left; }
+.kv--side dd { display: grid; gap: 4px; margin-inline-start: 0; font-weight: 400; color: var(--ink-2); text-align: start; }
 .kv--side dd b { color: var(--ink); }
 /* --total: последняя строка итог, сумма крупно цветом цены */
 .kv--total > div:last-child dt { font-weight: 600; color: var(--ink); }
@@ -1279,17 +1309,31 @@ legend:is(.h2, .h3, .h4) { padding: 0; }
 .kv--cols > div:nth-child(2) { border-top: 0; }
 @media (max-width: 639px) { .kv--cols { grid-template-columns: minmax(0, 1fr); } .kv--cols > div:nth-child(2) { border-top: 1px solid var(--line); } .kv--side > div { grid-template-columns: minmax(0, 1fr); } }
 .facts--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* две плитки в ряд на любой ширине (итог калькулятора) */
+.facts--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } /* K14: три плитки в ряд, на телефоне столбиком */
+@media (max-width: 639px) { .facts--3 { grid-template-columns: minmax(0, 1fr); } }
+/* длинное значение не вылезает из плитки: колонка плитки не шире плитки, слово длиннее строки переносится по слогам с дефисом (lang=ru),
+   не меньше 5 букв по обе стороны: «григориан-скому», «измене-ниями», а не «го-судар-ства» и «партнё-ром-»; разрыв без дефиса только запасной
+   (было: обрезка на 375, «по григорианскому» на pravo-zakon) */
+.facts > div { grid-template-columns: minmax(0, 1fr); }
+.facts dd { overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: auto 5 5; }
+.facts dd.facts__txt { font: 500 var(--fs-ui)/20px "IBM Plex Sans", system-ui, sans-serif; letter-spacing: 0; } /* значение словами вместо числа: «6 эмиратов, 82 проекта вне Дубая» (было страничное p-dtext, p-ftext) */
 
 /* ---------- таблица .tbl: ширина прокрутки, --compact плотная, --cmp сравнение, --stack карточки на телефоне ---------- */
 .tbl > table { min-width: var(--tbl-min, 0); } /* уже этой ширины таблица прокручивается в рамке: style="--tbl-min: 720px" */
+/* заголовок строки tbody th[scope=row]: кегль и фон ячейки, 600 ink слева (не утопленная шапка); ссылка в нём как ссылка в td. Вес :where низкий: страничные правила кегля перебивают */
+:where(.tbl tbody) th[scope="row"] { font: inherit; font-weight: 600; color: var(--ink); background: none; text-align: left; white-space: normal; }
+:where(.tbl tbody tr:hover) th[scope="row"] { background: color-mix(in srgb, var(--sunken) 50%, transparent); }
+:where(.tbl tbody tr:last-child) th { border-bottom: 0; }
+:where(.tbl tbody th) a { color: var(--ink); font-weight: 600; text-decoration: none; }
+:where(.tbl tbody th) a:hover { color: var(--accent-text); }
 .tbl--compact :is(th, td) { padding: 10px 12px; }
-.tbl--compact td { font-size: var(--fs-small); line-height: 20px; }
+.tbl--compact td, .tbl--compact tbody th[scope="row"] { font-size: var(--fs-small); line-height: 20px; }
 /* --cmp: первая колонка липкая при прокрутке, шапка переносится, числа в строку, выделенная колонка .is-hl */
 .tbl--cmp thead th, .tbl--cmp th .sort { white-space: normal; }
 .tbl--cmp .num { width: 1%; white-space: nowrap; }
 .tbl--cmp :is(th, td):first-child { position: sticky; left: 0; z-index: 1; background: var(--paper); box-shadow: inset -1px 0 var(--line); }
 .tbl--cmp thead th:first-child { background: var(--sunken); }
-.tbl--cmp tbody tr:hover td { background: color-mix(in srgb, var(--sunken) 50%, var(--paper)); } /* непрозрачно: липкая ячейка закрывает уехавшие */
+.tbl--cmp tbody tr:hover :is(td, th) { background: color-mix(in srgb, var(--sunken) 50%, var(--paper)); } /* непрозрачно: липкая ячейка закрывает уехавшие */
 .tbl--cmp .is-hl { background: var(--tint); }
 /* --stack: на телефоне строка становится карточкой, подпись значения из td[data-label], шапка только для чтения с экрана */
 @media (max-width: 639px) {
@@ -1315,24 +1359,27 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 
 /* ========== система компонентов: картинки, метки, сообщения, раскрывашки [B2] ========== */
 /* метки (.badge, .badges, .tag, .pchip) у карточки проекта; сообщения (.notice, .takeaway, .empty) и вопросы (.faq) на своих местах выше */
+/* .notice без иконки: одна колонка, текст от поля (раньше стоял во 2-й колонке со сдвигом 12px на зазор) */
+.notice:not(:has(> .ic)) { grid-template-columns: minmax(0, 1fr); }
+.notice:not(:has(> .ic)) > * { grid-column: 1; }
 
 /* ---------- картинка .figure: фото и подпись 13 ink-3; пропорция модификатором (aspect-ratio + cover); --ph заглушка без фото паттерном «Кровли» ---------- */
 .figure, .cover { --ar: auto; display: grid; gap: 8px; min-width: 0; margin: 0; }
-.figure img, .cover img { width: 100%; height: auto; aspect-ratio: var(--ar); object-fit: cover; border-radius: var(--r-l); background: var(--tint); }
+.figure > img, .figure > a > img, .figure > picture > img, .cover > img { width: 100%; height: auto; aspect-ratio: var(--ar); object-fit: cover; border-radius: var(--r-l); background: var(--tint); } /* K10: только фото фигуры, не плитки карты внутри */
 .figure figcaption, .cover figcaption { font-size: var(--fs-cap); line-height: 18px; color: var(--ink-3); }
 .figure figcaption a, .cover figcaption a { color: inherit; }
 .figure > a { display: block; border-radius: var(--r-l); } /* картинка-ссылка; a[data-zoom] открывает просмотр (hb-ui.js) */
 .figure > a[data-zoom] { cursor: zoom-in; }
 /* обложка статьи .cover: 16:9, радиус 16, под ней кредит фото */
 .cover { --ar: 16 / 9; }
-.cover img { border-radius: var(--r-xl); }
+.cover > img { border-radius: var(--r-xl); }
 .figure--ph { --ar: 4 / 3; } /* без img: рамка с паттерном вместо фото */
 .figure--ph::before { content: ""; aspect-ratio: var(--ar); border-radius: var(--r-l); background: var(--tint) var(--pat-krovli) center / 640px auto; }
 .figure--4x3 { --ar: 4 / 3; } .figure--3x2, .cover--3x2 { --ar: 3 / 2; } .figure--16x9 { --ar: 16 / 9; } .figure--1x1 { --ar: 1 / 1; }
-.figure--contain img { object-fit: contain; border: 1px solid var(--line); background: #FFFFFF; } /* чертёж и планировка целиком, на белом в обеих темах */
+.figure.figure--contain img { object-fit: contain; border: 1px solid var(--line); background: #FFFFFF; } /* чертёж и планировка целиком, на белом в обеих темах; .figure в селекторе, чтобы перебить .figure > a > img (K10) */
 
 /* ---------- аватар .avatar: круг 32 (--s) / 48 / 64 (--l); инициалы или знак на подложке, фото через img. Лиц людей в макетах не показываем (Р-26) ---------- */
-.avatar, .consult__ava { --av: 48px; flex: none; display: inline-grid; place-items: center; width: var(--av); height: var(--av); overflow: hidden; border-radius: 50%; background: var(--tint); color: var(--accent-text); font: 600 calc(var(--av) * .375)/1 "Geologica", sans-serif; object-fit: cover; } /* .consult__ava: алиас до перевода страниц */
+.avatar { --av: 48px; flex: none; display: inline-grid; place-items: center; width: var(--av); height: var(--av); overflow: hidden; border-radius: 50%; background: var(--tint); color: var(--accent-text); font: 600 calc(var(--av) * .375)/1 "Geologica", sans-serif; object-fit: cover; }
 .avatar--s { --av: 32px; } .avatar--l { --av: 64px; }
 .avatar > img { width: 100%; height: 100%; object-fit: cover; }
 .avatar > svg { width: calc(var(--av) / 2); height: calc(var(--av) / 2); } /* иконка в половину круга */
@@ -1340,10 +1387,12 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 
 /* ---------- раскрывашка .disclose: одиночное «Подробнее», «Источники (N)», «Показать таблицу»; summary ссылкой с шевроном, --pill пилюлей ---------- */
 .disclose > summary { display: inline-flex; align-items: center; gap: 6px; min-height: var(--h-touch); border-radius: var(--r-xs); cursor: pointer; list-style: none; font-size: var(--fs-small); line-height: 20px; font-weight: 600; color: var(--accent-text); }
-.disclose > summary::-webkit-details-marker { display: none; }
+/* .clim__tbl («Показать таблицу по месяцам» под климатом, proekt): тот же summary ссылкой, но в кегле текста вокруг, как на proekt сейчас (стиль жил только в его <style>); переведённая страница пишет details.disclose.clim__tbl и берёт 14/600 (SPEC, карта b2) */
+.clim__tbl > summary { display: inline-flex; align-items: center; gap: 6px; min-height: var(--h-touch); cursor: pointer; list-style: none; font-weight: 600; color: var(--accent-text); }
+:is(.disclose, .clim__tbl) > summary::-webkit-details-marker { display: none; }
 .disclose > summary:hover { color: var(--accent-hover); }
 .disclose > summary .ic { transition: transform var(--dur-2) var(--ease); }
-.disclose[open] > summary .ic { transform: rotate(180deg); }
+:is(.disclose, .clim__tbl)[open] > summary .ic { transform: rotate(180deg); }
 .disclose--pill > summary { padding: 0 18px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); color: var(--ink); transition: border-color var(--dur-1); }
 .disclose--pill > summary:hover { border-color: var(--control); color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { .disclose > summary .ic, .disclose--pill > summary { transition: none; } }
@@ -1352,10 +1401,12 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 /* База плиток стоит на своих местах выше: .lands (страны), .stats (цифры), .cards (карточка проекта), .steps и .who (шаги, плитки-ссылки), .consult. Здесь новое, варианты и их брейкпоинты. */
 
 /* ---------- панель: одна поверхность-коробка; части __i __n __t __b __go; варианты --link --row --s --tint --sunken --warn ---------- */
-.panel, :where(.who) > a { position: relative; display: grid; gap: 12px; align-content: start; min-width: 0; padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-xl); color: var(--ink-2); font-size: var(--fs-ui); line-height: 22px; } /* .who a: алиас до перевода страниц */
+.panel { position: relative; display: grid; gap: 12px; align-content: start; min-width: 0; padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-xl); color: var(--ink-2); font-size: var(--fs-ui); line-height: 22px; }
 .panel__t, :where(.panel) h3 { font-size: var(--fs-card); line-height: var(--lh-card); } /* уровень карточки; крупнее: утилита .h3 */
 .panel__t { font-family: "Geologica", sans-serif; font-weight: 600; color: var(--ink); }
+.panel :is(h2, h3) a { text-decoration: none; color: inherit; } /* K18: ссылка в заголовке панели без подчёркивания */
 .panel > .ic { width: var(--ic-l); height: var(--ic-l); color: var(--accent-text); }
+.panel > .btn { justify-self: start; } /* K31: кнопка панели по содержимому; во всю ширину: .btn--block */
 .panel__i { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: var(--r-m); background: var(--tint); color: var(--accent-text); }
 .panel__i .ic { width: var(--ic-m); height: var(--ic-m); }
 .panel__n { font: 600 var(--fs-num-s)/1 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.01em; color: var(--ink); }
@@ -1365,51 +1416,57 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 .panel__go { position: absolute; right: 18px; top: 18px; color: var(--accent-text); }
 .panel:has(> .panel__go) > :is(.panel__t, h3) { padding-right: 28px; }
 .panel__b { flex: 1 1 220px; display: grid; gap: 6px; align-content: start; min-width: 0; } /* тело в .panel--row */
-.panel--link, :where(.who) > a { display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: var(--r-l); text-decoration: none; transition: border-color var(--dur-1), transform var(--dur-2), box-shadow var(--dur-2); } /* плитка-ссылка 14; .who a: алиас до перевода страниц */
-.panel--link:hover, :where(.who) > a:hover { border-color: var(--control); transform: translateY(-2px); box-shadow: var(--e2); } /* .who a: алиас до перевода страниц */
+.panel--link { display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: var(--r-l); text-decoration: none; transition: border-color var(--dur-1), transform var(--dur-2), box-shadow var(--dur-2); } /* плитка-ссылка 14 */
+.panel--link:hover { border-color: var(--control); transform: translateY(-2px); box-shadow: var(--e2); }
 .panel--link > .more { margin-top: auto; align-self: flex-start; }
+.panel--link > .ic:last-child:not(.panel__go) { color: var(--ink-3); } /* K2: стрелка в конце плитки серая; угловая __go остаётся акцентной */
 .panel--row { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 20px; } /* медиа слева, .panel__b справа; кнопка уходит вниз, когда тесно */
+.panel--row:has(> .ic:last-child:not(.panel__go)) { flex-wrap: nowrap; } /* K3: стрелка в конце ряда не уезжает на вторую строку, сжимается .panel__b */
 .panel--s { gap: 8px; padding: 16px 18px; border-radius: var(--r-l); font-size: var(--fs-small); line-height: 20px; }
+.panel--s h3 { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; } /* K15: слово от 10 букв в узком заголовке переносится по слогам */
 .panel--tint { background: var(--tint); border-color: transparent; }
 .panel--tint .panel__i { background: var(--paper); } /* квадрат иконки не тонет в подложке */
 .panel--sunken { background: var(--sunken); border-color: transparent; }
 .panel--warn { border-left: 3px solid var(--warn); }
 @media (max-width: 899px) { .panel:where(:not(.panel--s)) { padding: 18px; } }
-@media (prefers-reduced-motion: reduce) { .panel--link, :where(.who) > a { transition: none; } } /* .who a: алиас до перевода страниц */
+@media (prefers-reduced-motion: reduce) { .panel--link { transition: none; } }
 
-/* ---------- раскладка: .split две колонки, .grid--2..6 равные колонки (и .who--2..5), .stack вертикальный ритм, .mt-* отступ сверху ---------- */
-.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px 48px; align-items: start; }
+/* ---------- раскладка: .split две колонки, .grid--2..6 равные колонки (и .who--2..4), .stack вертикальный ритм, .mt-* отступ сверху ---------- */
+.split { display: grid; grid-template-columns: var(--split-cols, minmax(0, 1fr) minmax(0, 1fr)); gap: 28px 48px; align-items: start; } /* K6: свои пропорции через --split-cols на самой раскладке (наследуется, вложенной .split задать своё); до 899 одна колонка */
 .split--wide { gap: 24px 56px; }
 .split--tight { gap: 16px; }
-.split--r { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } /* текст шире */
-.split--side { grid-template-columns: minmax(0, 1fr) 340px; } /* основное + боковая */
+.split--r { grid-template-columns: var(--split-cols, minmax(0, 1.25fr) minmax(0, 1fr)); } /* текст шире */
+.split--side { grid-template-columns: var(--split-cols, minmax(0, 1fr) 340px); } /* основное + боковая */
 .grid { display: grid; gap: 16px; }
 .grid--2, .who--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid--3, .who--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid--4, .who--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.grid--5, .who--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.grid--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } /* пять плиток-ссылок: .who без модификатора */
 .grid--6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .grid:is(.grid--4, .grid--5, .grid--6) { gap: 12px; }
+.grid--top { align-items: start; } /* K17: плитки разной высоты по верху, без растяжения */
 .stack { display: grid; gap: var(--sp-3); align-content: start; }
 .stack--s { gap: var(--sp-2); }
 .stack--l { gap: var(--sp-5); }
 .mt-s { margin-top: var(--sp-3); } .mt-m { margin-top: var(--sp-5); } .mt-l { margin-top: var(--sp-6); }
 @media (max-width: 1099px) {
   .split--stack { grid-template-columns: minmax(0, 1fr); }
-  .grid--4, .who--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .grid--5, .grid--6, .who--5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid--3, .grid--4, .who--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid--5, .grid--6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 899px) {
   .split { grid-template-columns: minmax(0, 1fr); }
-  .grid--2, .grid--3, .grid--4, .who--2, .who--3, .who--4, .who--5 { grid-template-columns: minmax(0, 1fr); }
+  .grid--2, .grid--4, .who--3 { grid-template-columns: minmax(0, 1fr); }
   .grid--5, .grid--6, .grid--keep2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* мелкие плитки и --keep2 на телефоне по две */
 }
+@media (max-width: 639px) { .grid--3, .who--2, .who--4 { grid-template-columns: minmax(0, 1fr); } } /* N1: ступень в две колонки на 640-1099, одна колонка только на телефоне */
 
 /* ---------- цифры: варианты .stat (база выше) --s малое число 22, --l крупное 38, --plain без плашки; __d дельта --up --down; .stats--2 --3 ---------- */
 .stat--s { gap: 4px; padding: 16px 18px; }
+@media (max-width: 899px) { .stat--s { padding: 16px; } } /* K26: поле 16 на телефоне, как у .stat; стоит после .stat--s, иначе тот перебивает порядком */
 .stat--s b { font-size: var(--fs-num-s); letter-spacing: -.01em; }
 .stat--l b { font-size: var(--fs-num-l); }
-.stat--plain { padding: 0; background: none; border: 0; border-radius: 0; }
+.stat--plain, .stats--plain > .stat { padding: 0; background: none; border: 0; border-radius: 0; } /* .stats--plain: вся полоса цифр без плашек (SPEC B17), внутри .stat или .stat--plain */
 .stat .stat__d { font: 600 var(--fs-cap)/18px "IBM Plex Sans", system-ui, sans-serif; color: var(--ink-3); }
 .stat .stat__d--up { color: var(--accent-text); }
 .stat .stat__d--down { color: var(--err); }
@@ -1424,6 +1481,10 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 .land--s .land__n b { font-size: var(--fs-num-s); }
 @media (max-width: 899px) { .lands--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 639px) { .lands--3 { grid-template-columns: minmax(0, 1fr); } }
+/* плитка не шире ячейки: длинное имя («Азербайджан» на 375 и 320, в узкой .pick) переносится по слогам с дефисом, не меньше 4 букв по краям;
+   было: плитка распиралась по слову и наезжала на соседнюю, на 320 горизонтальная прокрутка */
+.lands > li { grid-template-columns: minmax(0, 1fr); }
+.land__name { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: auto 4 4; }
 
 /* ---------- шаги: варианты .steps (база выше, номер счётчиком «01») ---------- */
 /* --2 --4 колонки; --list столбиком, номер в круге слева, линия между; --plate все шаги в одной плашке; --chain в ряд со стрелками; --time таймлайн с датой __d */
@@ -1436,6 +1497,13 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 .steps--list .step { position: relative; gap: 6px; min-height: 76px; padding: 18px 0 18px 56px; border-top: 1px solid var(--line); }
 .steps--list .step:first-child { border-top: 0; }
 .steps--list .step::before { position: absolute; left: 0; top: 16px; }
+/* --list колонками: .steps--list.steps--2 / .steps--3 (было p-path), номер в круге слева, без линий; 3 -> 2 (1099) -> 1 (639) */
+.steps--list:is(.steps--2, .steps--3) { gap: 28px 24px; }
+.steps--list.steps--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.steps--list.steps--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.steps--list:is(.steps--2, .steps--3) .step { min-height: 40px; padding: 0 0 0 54px; border-top: 0; }
+.steps--list:is(.steps--2, .steps--3) .step::before { top: 0; }
+.steps--list:is(.steps--2, .steps--3) h3 { padding-top: 10px; } /* первая строка заголовка на середине круга 40 */
 .steps--plate { gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-xl); overflow: hidden; } /* линии между шагами = зазор 1px на фоне line */
 .steps--plate .step { border: 0; border-radius: 0; }
 .steps--plate .step::before { content: counter(step); font: 600 var(--fs-num-l)/1 "IBM Plex Sans", system-ui, sans-serif; letter-spacing: -.02em; color: var(--ink-3); }
@@ -1451,9 +1519,11 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 @media (max-width: 1099px) {
   .steps--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .steps--chain { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); } .steps--chain .step + .step::after { content: none; }
+  .steps--list.steps--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .steps--plate > .step:last-child:nth-child(odd) { grid-column: 1 / -1; } /* N1: в две колонки нечётный последний шаг во всю строку, иначе пустая ячейка плашки видна фоном line */
 }
-@media (max-width: 899px) { .steps--2, .steps--4 { grid-template-columns: minmax(0, 1fr); } .steps--list .step { padding: 16px 0 16px 52px; } .steps--list .step::before { top: 12px; } }
-@media (max-width: 639px) { .steps--chain { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 899px) { .steps--list .step { padding: 16px 0 16px 52px; } .steps--list .step::before { top: 12px; } }
+@media (max-width: 639px) { .steps, .steps--chain, .steps--list:is(.steps--2, .steps--3) { grid-template-columns: minmax(0, 1fr); } } /* N1: --2 и --4 тоже держат две колонки до 639 */
 
 /* ---------- статья в ленте: обложка 16:10, мета (дата, рубрика .eyebrow, время чтения), заголовок-ссылка на всю карточку, лид, подвал (.more и «Полезно») ---------- */
 /* --l крупная главная, --row строка (обложка слева), --text без обложки; сетка .posts (4) и --3 */
@@ -1479,6 +1549,7 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 .post--row .post__img { height: 100%; min-height: 96px; aspect-ratio: auto; border-radius: var(--r-s); }
 .post--row .post__b { gap: 6px; padding: 0; }
 .post--row .post__x { -webkit-line-clamp: 2; }
+.post__x.post__x--full { -webkit-line-clamp: unset; } /* K4: анонс целиком, без обрезки (большая карточка свежей статьи) */
 .post--text { grid-template-rows: 1fr; }
 @media (max-width: 1099px) { .posts, .posts--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 899px) { .post--l .post__b { padding: 16px 18px 18px; } }
@@ -1497,6 +1568,9 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 /* 3D --band-h-3d 280, паттерн --band-h 160, узкая --s --band-h-s 132; на телефоне 180 / 180 / 96 (паттерн на телефоне 180, как сложилось каскадом до токенов) */
 @media (max-width: 899px) { :root { --band-h-3d: 180px; --band-h: 180px; --band-h-s: 96px; } }
 .band--s { height: var(--band-h-s); } /* узкая полоса: кровли в шапке документа */
+/* пин карты рынков в ленте: сам он 0x0, поэтому рамку фокуса рисует точка (иначе с клавиатуры фокус не виден) */
+.dmap__pin:focus-visible { outline: none; }
+.dmap__pin:focus-visible i { outline: var(--ring); outline-offset: 3px; }
 .band--in { width: 100%; margin: 0; } /* внутри .wrap секции: без боковых полей (было p-band-in) */
 .band--top { margin-top: var(--sp-4); } /* D1: лента первым блоком страны, над шапкой .phead, отступ 16 от шапки сайта (было p-band-top) */
 /* сцена кровель в узкой полосе стоит в родной пропорции, полоса показывает её середину: поле крыш заполняет полосу целиком (было p-strip) */
@@ -1504,21 +1578,21 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 @media (max-width: 899px) { .band--s > .hb3d--roofs { aspect-ratio: 4 / 3; } }
 
 /* ---------- шапка .phead: части и варианты; база (крошки, h1, .lead, __meta, --center) в разделе «секции» ---------- */
-/* части: __main текст, __side рабочий блок (карточка, форма, фото, список), __acts кнопки, __facts факты на .stat--plain, __bg слой паттерна */
+/* части: __main текст, __side рабочий блок (карточка, форма, фото, список), __acts кнопки, __bg слой паттерна; факты в шапке собираются из dl.facts или .stats (B1, B3) */
 .phead__main { display: grid; gap: 16px; align-content: start; }
 .phead__acts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.phead__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-4) var(--sp-5); padding-top: var(--sp-4); border-top: 1px solid var(--line); }
+.phead--center .phead__acts { justify-content: center; } /* K29: кнопки шапки по центру вслед за текстом */
 .phead__bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; } /* .patbg[data-pat] под текстом; маску растворения задаёт страница */
 .phead__bg--r { background-position: right center; -webkit-mask: linear-gradient(90deg, transparent 58%, rgba(0, 0, 0, .55) 92%); mask: linear-gradient(90deg, transparent 58%, rgba(0, 0, 0, .55) 92%); } /* D1: паттерн справа растворяется к тексту (было p-hero__bg в гиде страны) */
-.phead__meta > span { display: inline-flex; align-items: center; gap: 6px; } /* D1: иконка и текст пометки одной строкой (было p-gsrc, p-rh0__n) */
+.phead__meta > span:has(> .ic) { display: inline-flex; align-items: center; gap: 6px; } /* D1: иконка и текст пометки одной строкой (p-rh0__n ушёл в .support, C-13); пометка без иконки остаётся строкой, пробел после <b> не теряется */
 .phead__meta .ic { width: var(--ic-s); height: var(--ic-s); }
 /* --split: __main слева, __side справа; крошки, .anchors и прочие дети .wrap во всю ширину (было phead__grid, p-gh, p-kh, p-mh, p-lh, p-bh, p-obj) */
-.phead--split > .wrap, .phead--photo > .wrap { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); column-gap: 48px; align-items: start; }
+.phead--split > .wrap, .phead--photo > .wrap { grid-template-columns: var(--split-cols, minmax(0, 1.25fr) minmax(0, 1fr)); column-gap: 48px; align-items: start; } /* K6: пропорции --split-cols на .phead, до 899 одна колонка */
 .phead--split > .wrap > *, .phead--photo > .wrap > * { grid-column: 1 / -1; }
 .phead--split > .wrap > .phead__main, .phead--photo > .wrap > .phead__main { grid-column: 1; }
 .phead--split > .wrap > .phead__side, .phead--photo > .wrap > .phead__side { grid-column: 2; }
 /* --photo: текст и фото 4:3 в рамке сцены 20, по центру по высоте (было p-rh0: агент, локальный партнёр, застройщик) */
-.phead--photo > .wrap { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: center; }
+.phead--photo > .wrap { grid-template-columns: var(--split-cols, minmax(0, 1.05fr) minmax(0, .95fr)); align-items: center; }
 .phead--photo :is(img.phead__side, .phead__side img) { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r-xxl); background: var(--tint); }
 /* --doc: шапка документа: полоса кровель .band.band--s.band--in, крошки, .ahead с реквизитами и кнопками .noprint (было p-dochead) */
 .phead--doc { padding-top: 20px; } /* и на телефоне */
@@ -1534,6 +1608,7 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
   .phead--split > .wrap > .phead__side, .phead--photo > .wrap > .phead__side { grid-column: 1; margin-top: var(--sp-4); } /* текст и блок через 32, как у __grid */
   .phead--photo :is(img.phead__side, .phead__side img) { aspect-ratio: 16 / 9; }
   .phead--hero { padding-bottom: 64px; }
+  .phead__acts .btn--l { flex: 1 1 100%; } /* K29: крупные кнопки шапки во всю ширину, как .contact .btn--l */
 }
 
 /* ---------- секция .sec: --next и головы --row, --center; фоны --paper, --tint, --band в разделе «секции» ---------- */
@@ -1571,7 +1646,8 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 /* ---------- реферальная сеть .net (Pro): уровни и доли на .panel, пример суммы __ex, путь денег __flow ---------- */
 /* разметка: div.net > article.panel (p.eyebrow, h3.h3, p, p.net__ex) ...; путь: ol.net__flow > li (span, svg.ic, span, svg.ic, b) */
 .net { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.net > .panel { gap: 8px; }
+.net > .panel { gap: 8px; font-size: var(--fs-text); line-height: var(--lh-text); } /* текст уровня 16, как на Pro-страницах */
+.net > .panel > .eyebrow { color: var(--ink-2); } /* ярлык уровня серый, как p-net__k на странице */
 .net__ex { padding: 10px 12px; border-radius: var(--r-s); background: var(--tint); color: var(--ink); font-size: var(--fs-small); line-height: 20px; }
 .net__flow { display: grid; gap: 8px; margin-top: 6px; padding: 0; list-style: none; }
 .net__flow > li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-m); font-size: var(--fs-small); line-height: 20px; color: var(--ink-2); }
@@ -1590,6 +1666,10 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 
 /* ---------- шапка статьи .phead--split.phead--article: текст .ahead слева, обложка .cover 440 справа по центру высоты; на телефоне как --split (было p-ahead на blog-statya) ---------- */
 @media (min-width: 900px) { .phead--article > .wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); column-gap: 40px; align-items: center; } }
+
+/* ---------- нижняя полоса статьи .endbar: под текстом через линию; слева a.more «Вернуться к блогу», справа ряд «Поделиться» .contact с подписью .support; на узком экране ряд переносится. Замена p-endbar с blog-statya: страница пока на своей p-endbar, перевод на .endbar следующим шагом (решение 3 от 07.10) ---------- */
+.endbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5); margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); } /* 28 и 18 как на странице: в конце прозы, после .prose > * + * */
+.endbar > .contact { align-items: center; } /* подпись по центру кнопок */
 
 /* ---------- печать: только содержимое, чёрным по белому; .noprint прячет любой блок (было p-noprint и print-правила документов) ---------- */
 @media print {

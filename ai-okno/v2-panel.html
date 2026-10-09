@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI-подбор: панель справа</title>
+<meta name="description" content="Концепт v2: ответ AI-подбора в боковой панели справа поверх главной, на телефоне нижняя шторка. Демо на записанном ответе боевого сайта.">
+<meta name="theme-color" content="#0E6A40">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<link rel="stylesheet" href="../kit/hb.css">
+<!-- состояние демо из адреса до первой отрисовки: ?state=loading|answer (по умолчанию answer), ?freeze=1 останавливает движение в красивом кадре, ?full=1 раскрывает шторку на всю длину для полностраничного снимка -->
+<script>(function(){var q=new URLSearchParams(location.search),r=document.documentElement;r.dataset.state=q.get('state')==='loading'?'loading':'answer';if(q.get('freeze')==='1')r.classList.add('freeze');if(q.get('full')==='1')r.classList.add('full');r.classList.add('js')})();</script>
+<style>
+/* ---------- концепт v2 «Панель справа»: свои стили окна на токенах кита; сырой hex только в оттенках сфер (смеси цветов брендбука) ---------- */
+:root { --panel-w: 560px; --sheet-h: 92dvh; --pad: 24px; }
+html, body { height: 100%; }
+body { overflow: hidden; }
+
+/* главная под окном: снимок страницы, кнопка «Спросить AI» поверх снимка открывает панель снова, в неё же возвращается фокус */
+.home { position: fixed; inset: 0; overflow: hidden; background: var(--page); }
+.home__shot { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 1440 / 900; }
+.home__shot img { width: 100%; height: 100%; }
+.home__ask { position: absolute; left: 33.82%; top: 58.56%; width: 9.44%; height: 5.56%; padding: 0; border: 0; border-radius: var(--r-m); background: transparent; color: transparent; cursor: pointer; }
+.home__ask:focus-visible { outline: var(--ring); outline-offset: var(--ring-off); }
+
+/* окно: нативный dialog во весь экран, прозрачный; панель внутри. Клик мимо панели закрывает окно */
+.aip { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; color: var(--ink-2); overflow: hidden; }
+.aip::backdrop { background: rgba(18, 21, 23, .34); }
+.aip[open]::backdrop { animation: aip-fade var(--dur-3) var(--ease); }
+.aip__panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(var(--panel-w), 100%); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--paper); border-left: 1px solid var(--line); box-shadow: -32px 0 64px -32px rgba(18, 21, 23, .34); overflow: hidden; }
+.aip[open] .aip__panel { animation: aip-in .48s var(--ease); }
+@keyframes aip-in { from { transform: translateX(100%); } }
+@keyframes aip-up { from { transform: translateY(100%); } }
+@keyframes aip-fade { from { opacity: 0; } }
+.aip__grab { display: none; }
+
+/* голова */
+.aip__head { display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px var(--pad); border-bottom: 1px solid var(--line); }
+.aip__mark { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--tint); }
+.aip__mark svg { width: 24px; height: 9px; fill: var(--accent); }
+.aip__ttl { display: grid; gap: 2px; min-width: 0; margin-right: auto; }
+.aip__ttl h2 { font-size: 18px; line-height: 24px; }
+.aip__ttl h2:focus { outline: none; }
+.aip__ttl p { display: flex; }
+
+/* тело: разговор одним ходом, без истории */
+.aip__body { display: grid; align-content: start; gap: 18px; padding: 16px var(--pad) 28px; overflow-y: auto; overscroll-behavior: contain; background: var(--page); scrollbar-width: thin; }
+.q { display: grid; justify-items: end; gap: 6px; }
+.q__b { display: flex; align-items: flex-start; gap: 6px; max-width: 88%; padding: 12px 8px 12px 16px; border-radius: 18px 18px 6px 18px; background: var(--jade); color: #FFFFFF; font-size: var(--fs-text); line-height: 23px; box-shadow: var(--e1); overflow-wrap: anywhere; }
+.q__b p { text-wrap: balance; }
+.q__edit { position: relative; flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin: -3px 0 -3px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .14); color: #FFFFFF; cursor: pointer; transition: background-color var(--dur-1); }
+.q__edit:hover { background: rgba(255, 255, 255, .26); }
+.q__edit:focus-visible { outline-color: #FFFFFF; outline-offset: 2px; }
+.q__edit::before { content: ""; position: absolute; inset: -8px; } /* зона касания 44 */
+.q__edit .ic { width: 15px; height: 15px; }
+
+/* ответ: одна область, aria-live; два состояния */
+.ans { display: grid; gap: 14px; }
+html:not([data-state="loading"]) .think, html[data-state="loading"] .res { display: none; }
+
+/* думает: сферы, шаг, скелетоны */
+.think { display: grid; gap: 10px; }
+.think__stage { display: grid; grid-template-columns: 120px minmax(0, 1fr); align-items: center; gap: 20px; padding: 18px 22px 18px 18px; border: 1px solid var(--line); border-radius: var(--r-xl); background: radial-gradient(140px 120px at 78px 50%, rgba(218, 241, 220, .9), rgba(218, 241, 220, 0) 72%), var(--paper); box-shadow: var(--e1); }
+.think__slot { display: grid; place-items: center; width: 120px; height: 120px; }
+.think__txt { display: grid; gap: 6px; min-width: 0; }
+.think__step { min-height: 26px; font: 600 20px/26px "Geologica", "IBM Plex Sans", sans-serif; color: var(--ink); }
+.think__note { font-size: var(--fs-small); line-height: 20px; color: var(--ink-3); text-wrap: balance; }
+.hcard--skel { pointer-events: none; box-shadow: none; }
+.hcard--skel .skel--ph { align-self: stretch; height: auto; aspect-ratio: 4 / 3; border-radius: var(--r-s); }
+.hcard--skel .hcard__b { gap: 10px; }
+
+/* думающие сферы: ядро + три сферы на наклонённых эллипсах (ось Y и масштаб глубины на обёртке, ось X на вложенной точке) */
+.orbs { --s: 120px; --fz: 0s; position: relative; flex: none; width: var(--s); height: var(--s); isolation: isolate; transform-origin: 0 0; }
+.orbs__halo { position: absolute; inset: -26%; border-radius: 50%; background: radial-gradient(closest-side, rgba(115, 178, 140, .5), rgba(218, 241, 220, .42) 52%, rgba(218, 241, 220, 0) 100%); animation: orb-breathe 3.4s ease-in-out calc(-1.2s + var(--fz)) infinite alternate; }
+/* орбита: тонкий эллипс под наклоном пути сфер, отсылка к планете главной */
+.orbs__ring { position: absolute; left: 50%; top: 50%; width: calc(var(--s) * 1.02); height: calc(var(--s) * .4); margin: calc(var(--s) * -.2) calc(var(--s) * -.51); border: 1px solid rgba(14, 106, 64, .2); border-radius: 50%; transform: rotate(-14deg); }
+.orbs__core { position: absolute; left: 50%; top: 50%; z-index: 3; width: calc(var(--s) * .56); height: calc(var(--s) * .56); margin: calc(var(--s) * -.28); border-radius: 50%; background: radial-gradient(circle at 38% 32%, #FFFFFF 0, #EEF8EF 10%, #DAF1DC 24%, #8FC1A3 52%, #4E9A73 74%, rgba(38, 121, 83, .55) 90%, rgba(38, 121, 83, 0) 100%); box-shadow: 0 0 calc(var(--s) * .22) rgba(115, 178, 140, .55); filter: blur(calc(var(--s) * .004)); animation: orb-core 2.4s ease-in-out calc(-.8s + var(--fz)) infinite alternate; }
+.orb { position: absolute; left: 50%; top: 50%; width: calc(var(--s) * var(--k)); height: calc(var(--s) * var(--k)); margin: calc(var(--s) * var(--k) / -2); transform: translateY(calc(var(--s) * var(--sy))); animation: orb-y calc(var(--T) / 2) ease-in-out calc(var(--ph) - var(--T) / 4 + var(--fz)) infinite alternate; }
+.orb > i { display: block; width: 100%; height: 100%; border-radius: 50%; background: var(--g); box-shadow: 0 0 calc(var(--s) * .16) var(--glow); filter: blur(calc(var(--s) * .005)); transform: translateX(calc(var(--s) * var(--sx))); animation: orb-x calc(var(--T) / 2) ease-in-out calc(var(--ph) + var(--fz)) infinite alternate; }
+.orb--jade { --k: .42; --rx: .32; --ry: .1; --tl: .08; --T: 3.6s; --ph: 0s; --sx: -.24; --sy: .08; --g: radial-gradient(circle at 36% 30%, #F1FAF2 0, #8FC1A3 20%, #267953 56%, #0E6A40 80%, rgba(14, 106, 64, .6) 92%, rgba(14, 106, 64, 0) 100%); --glow: rgba(38, 121, 83, .38); }
+.orb--mint { --k: .34; --rx: .3; --ry: .13; --tl: .08; --T: 4.2s; --ph: -1.3s; --sx: .26; --sy: -.1; --g: radial-gradient(circle at 38% 32%, #FFFFFF 0, #DAF1DC 26%, #8FC1A3 58%, rgba(115, 178, 140, .7) 84%, rgba(115, 178, 140, 0) 100%); --glow: rgba(115, 178, 140, .55); }
+.orb--sun { --k: .2; --rx: .36; --ry: .15; --tl: .09; --T: 3s; --ph: -2.1s; --sx: .16; --sy: .28; --g: radial-gradient(circle at 38% 34%, #FFFFFF 0, #F3DA91 34%, #E6B422 72%, rgba(230, 180, 34, .55) 90%, rgba(230, 180, 34, 0) 100%); --glow: rgba(230, 180, 34, .42); }
+@keyframes orb-x { from { transform: translate(calc(var(--s) * var(--rx) * -1), calc(var(--s) * var(--tl))); } to { transform: translate(calc(var(--s) * var(--rx)), calc(var(--s) * var(--tl) * -1)); } }
+@keyframes orb-y { from { transform: translateY(calc(var(--s) * var(--ry) * -1)) scale(.82); z-index: 1; } to { transform: translateY(calc(var(--s) * var(--ry))) scale(1.14); z-index: 6; } }
+@keyframes orb-core { from { transform: scale(.96); } to { transform: scale(1.05); } }
+@keyframes orb-breathe { from { transform: scale(.9); opacity: .7; } to { transform: scale(1.06); opacity: 1; } }
+/* в ответе сферы сжаты в знак у метки и стоят: бесконечного движения в спокойном окне нет */
+html[data-state="answer"] .orbs, html[data-state="answer"] .orbs * { animation-play-state: paused; }
+.rec__slot .orbs { --s: 32px; }
+.rec__slot .orbs__halo { inset: -30%; }
+.rec__slot .orbs__ring { opacity: 0; }
+
+/* рекомендация */
+.res { display: grid; gap: 14px; }
+.rec { display: grid; gap: 10px; padding: 16px 18px; border-radius: var(--r-xl); background: var(--tint); }
+.rec__head { display: flex; align-items: center; gap: 10px; min-height: 32px; }
+.rec__slot { position: relative; flex: none; width: 32px; height: 32px; }
+.rec__t { font: 600 var(--fs-min)/16px "Geologica", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text); }
+.rec__text { font-size: var(--fs-text); line-height: 24px; color: var(--ink); }
+.rec__fact { display: flex; align-items: flex-start; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(14, 106, 64, .16); font-size: var(--fs-small); line-height: 20px; color: var(--ink-3); }
+.rec__fact .ic { width: 16px; height: 16px; margin-top: 2px; }
+.res__meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; padding: 4px 2px 0; }
+.res__count { font-size: var(--fs-small); line-height: 20px; font-weight: 600; color: var(--ink); }
+.res__note { font-size: var(--fs-min); line-height: 16px; color: var(--ink-3); }
+
+/* горизонтальная карточка: фото слева, вся карточка ссылка, стрелка справа */
+.hcards { display: grid; gap: 10px; }
+.hcard { position: relative; display: grid; grid-template-columns: 148px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 10px 14px 10px 10px; border: 1px solid var(--line); border-radius: var(--r-l); background: var(--paper); box-shadow: var(--e1); transition: border-color var(--dur-1), box-shadow var(--dur-2), transform var(--dur-2); }
+.hcard:hover { border-color: var(--control); box-shadow: var(--e2); transform: translateY(-1px); }
+.hcard:has(.hcard__a:focus-visible) { outline: var(--ring); outline-offset: 2px; }
+.hcard__ph { position: relative; aspect-ratio: 4 / 3; border-radius: var(--r-s); overflow: hidden; background: var(--tint) url("../kit/patterns/krovli-podlozhka.svg") center / 320px auto; }
+.hcard__ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hcard__b { display: grid; gap: 4px; min-width: 0; }
+.hcard__t { font-size: var(--fs-card); line-height: var(--lh-card); }
+.hcard__a { color: inherit; text-decoration: none; }
+.hcard__a::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.hcard__a:focus-visible { outline: none; }
+.hcard__place { display: flex; align-items: flex-start; gap: 4px; font-size: var(--fs-cap); line-height: 18px; color: var(--ink-3); }
+.hcard__place .ic { width: 14px; height: 14px; margin-top: 2px; }
+.hcard__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
+.hcard__price { font-size: var(--fs-text); line-height: 22px; font-weight: 600; color: var(--price); white-space: nowrap; }
+.hcard__price small { margin-left: 4px; font-size: var(--fs-cap); font-weight: 500; color: var(--ink-3); }
+.hcard__go { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--sunken); color: var(--ink-2); transition: background-color var(--dur-1), color var(--dur-1); }
+.hcard__go .ic { width: 18px; height: 18px; }
+.hcard:hover .hcard__go { background: var(--accent); color: var(--on-accent); }
+
+/* подвал: заявка над полем уточнения */
+.aip__foot { position: relative; display: grid; gap: 12px; padding: 14px var(--pad) 18px; border-top: 1px solid var(--line); background: var(--paper); box-shadow: 0 -14px 28px -24px rgba(18, 21, 23, .4); }
+.aip__cta { display: flex; align-items: center; gap: 16px; }
+.aip__cta .btn { flex: none; }
+.aip__classic { position: relative; max-width: 15em; font-size: var(--fs-small); line-height: 19px; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 3px; }
+.aip__classic:hover { color: var(--ink); text-decoration-color: currentColor; }
+.aip__ask { display: grid; gap: 10px; }
+.aip__ask .ask__bar { min-height: 56px; padding: 6px 6px 6px 16px; box-shadow: var(--e1); }
+.aip__ask .ask__bar input { font-size: 16px; }
+.aip__ask .ask__bar .btn { flex: none; }
+.aip__hints { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.aip__hints::-webkit-scrollbar { display: none; }
+.aip__hints .pill { flex: none; }
+.aip__hints .pill { position: relative; font-weight: 400; }
+.aip__hints .pill::before { content: ""; position: absolute; inset: -6px 0; } /* касание 44 на телефоне без роста ряда */
+.aip__toast { position: absolute; left: var(--pad); right: var(--pad); bottom: calc(100% + 10px); width: auto; }
+
+/* плашка демо-состояния: вне панели, в углу экрана */
+.demo { position: absolute; left: 16px; bottom: 16px; z-index: 5; display: flex; align-items: center; gap: 4px; padding: 4px 4px 4px 14px; border-radius: var(--r-pill); background: rgba(18, 21, 23, .84); color: #FFFFFF; font: 500 var(--fs-cap)/18px "IBM Plex Sans", sans-serif; box-shadow: var(--e2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.demo__l { margin-right: 6px; color: #E2E7EA; }
+.demo button { min-height: 32px; padding: 0 14px; border: 0; border-radius: var(--r-pill); background: transparent; color: #FFFFFF; font-weight: 600; cursor: pointer; }
+.demo button:hover { background: rgba(255, 255, 255, .14); }
+.demo button[aria-pressed="true"] { background: #FFFFFF; color: #121517; }
+.demo button:focus-visible { outline-color: #FFFFFF; }
+
+/* ---------- телефон: нижняя шторка 92% с ручкой ---------- */
+@media (max-width: 699px) {
+  :root { --pad: 16px; }
+  .home__shot { aspect-ratio: 375 / 812; }
+  .home__ask { left: 57.33%; top: 79.8%; width: 31.2%; height: 5.42%; }
+  .aip__panel { top: auto; left: 0; right: 0; width: 100%; height: var(--sheet-h); grid-template-rows: auto auto minmax(0, 1fr) auto; border-left: 0; border-radius: var(--r-xxl) var(--r-xxl) 0 0; box-shadow: 0 -24px 56px -24px rgba(18, 21, 23, .42); }
+  .aip[open] .aip__panel { animation-name: aip-up; }
+  .aip__grab { display: block; height: 18px; touch-action: none; cursor: grab; }
+  .aip__grab::before { content: ""; display: block; width: 40px; height: 5px; margin: 8px auto 0; border-radius: var(--r-pill); background: var(--control); opacity: .5; }
+  .aip__head { padding: 0 12px 10px var(--pad); touch-action: none; }
+  .aip__mark { width: 36px; height: 36px; }
+  .aip__ttl h2 { font-size: 17px; line-height: 22px; }
+  .aip__body { gap: 14px; padding: 12px var(--pad) 22px; }
+  .res { gap: 12px; }
+  .res__meta { flex-wrap: nowrap; }
+  .q__b { max-width: 92%; font-size: 15px; line-height: 22px; padding: 11px 14px; }
+  .think__stage { grid-template-columns: 88px minmax(0, 1fr); gap: 14px; padding: 14px 16px 14px 12px; background: radial-gradient(110px 100px at 56px 50%, rgba(218, 241, 220, .9), rgba(218, 241, 220, 0) 72%), var(--paper); }
+  .think__slot { width: 88px; height: 88px; }
+  .think__slot .orbs { --s: 88px; }
+  .think__step { font-size: 18px; line-height: 24px; }
+  .think__note { font-size: var(--fs-cap); line-height: 18px; }
+  .rec { gap: 8px; padding: 14px 16px; }
+  .rec__text { font-size: 15px; line-height: 22px; }
+  .rec__fact { font-size: var(--fs-cap); line-height: 18px; }
+  .hcard { grid-template-columns: 104px minmax(0, 1fr); align-items: start; gap: 12px; padding: 8px 10px 8px 8px; }
+  .hcard__b { padding-top: 4px; }
+  .hcard__t { padding-right: 22px; }
+  .hcard__ph { align-self: stretch; aspect-ratio: auto; min-height: 92px; }
+  .hcard--skel .skel--ph { aspect-ratio: auto; min-height: 92px; }
+  .hcard__go { position: absolute; right: 8px; top: 12px; width: 20px; height: 20px; background: none; color: var(--ink-3); }
+  .hcard:hover .hcard__go { background: none; color: var(--accent); }
+  .hcard__foot { margin-top: 4px; gap: 4px 8px; }
+  .hcard__price { font-size: 15px; }
+  .aip__foot { gap: 8px; padding: 10px var(--pad) calc(12px + env(safe-area-inset-bottom)); }
+  .aip__cta { flex-direction: column; align-items: stretch; gap: 0; }
+  .aip__cta .btn { width: 100%; }
+  .aip__classic { align-self: center; display: inline-flex; align-items: center; min-height: 30px; margin-top: 2px; max-width: none; font-size: var(--fs-cap); }
+  .aip__classic::before { content: ""; position: absolute; inset: -7px -8px; } /* касание 44 */
+  .aip__ask { gap: 8px; }
+  .aip__ask .ask__bar { min-height: 54px; padding: 5px 5px 5px 14px; }
+  .aip__hints { margin: 0 calc(var(--pad) * -1); padding: 6px var(--pad); -webkit-mask: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 24px), transparent); mask: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 24px), transparent); }
+  .demo { left: 12px; right: auto; top: 10px; bottom: auto; padding-left: 12px; }
+  .demo button { min-height: 36px; padding: 0 12px; }
+}
+
+/* снимки: без движения; полный снимок шторки раскрывает её на всю длину */
+.freeze .aip[open] .aip__panel, .freeze .aip[open]::backdrop { animation: none; }
+.freeze .orbs, .freeze .orbs * { animation-play-state: paused !important; }
+.freeze .orbs { --fz: -1.1s; }
+.freeze .skel { animation-play-state: paused; animation-delay: -.55s; }
+.full body, .full .aip { overflow: visible; }
+.full .aip__panel { height: auto; }
+.full .aip__body { overflow: visible; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aip[open] .aip__panel, .aip[open]::backdrop { animation: none; }
+  .orbs__halo, .orbs__core, .orb, .orb > i { animation: none; } /* статичные сферы: позиции из --sx, --sy */
+  .hcard, .hcard__go { transition: none; }
+  .hcard:hover { transform: none; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<symbol id="hb-roof" viewBox="0 0 83 28"><path d="M73.761 27.7616C72.879 27.7612 72.0026 27.6207 71.1648 27.3451L41.4006 17.66L11.4238 27.354C9.36463 27.8506 7.19392 27.5519 5.3455 26.5175C3.49708 25.4831 2.10712 23.7892 1.45343 21.7744C0.799743 19.7596 0.930486 17.5723 1.81953 15.6498C2.70858 13.7272 4.29044 12.211 6.24892 11.4041L41.4183 0L76.3662 11.3687C78.2719 11.985 79.8946 13.2619 80.9418 14.9692C81.9891 16.6765 82.3918 18.7017 82.0775 20.6798C81.7631 22.6578 80.7524 24.4584 79.2275 25.757C77.7026 27.0555 75.7639 27.7664 73.761 27.7616V27.7616Z"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+<symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+<symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+</svg>
+
+<!-- главная под окном (снимок макета) -->
+<main class="home">
+  <picture class="home__shot">
+    <source media="(max-width: 699px)" srcset="fon-375.png" width="375" height="812">
+    <img src="fon-1440.png" width="1440" height="900" alt="Главная Housebook: «Все новостройки мира на одной платформе», поле запроса и кнопка «Спросить AI»">
+  </picture>
+  <button type="button" class="home__ask" id="open" aria-haspopup="dialog" aria-controls="aip">Спросить AI</button>
+</main>
+
+<dialog class="aip" id="aip" aria-labelledby="aip-t">
+  <div class="aip__panel">
+    <div class="aip__grab" aria-hidden="true"></div>
+    <header class="aip__head">
+      <span class="aip__mark" aria-hidden="true"><svg viewBox="0 0 83 28"><use href="#hb-roof"/></svg></span>
+      <div class="aip__ttl"><h2 id="aip-t" tabindex="-1">AI-ассистент</h2><p><span class="badge badge--sample badge--txt">Демо: записанный ответ</span></p></div>
+      <button type="button" class="btn btn--icon btn--quiet btn--round x" data-close aria-label="Закрыть"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </header>
+
+    <div class="aip__body">
+      <section class="q" aria-label="Ваш запрос">
+        <div class="q__b"><p id="q-text">Квартира у моря на Северном Кипре до 200&nbsp;000 евро</p><button type="button" class="q__edit" id="q-edit" aria-label="Изменить запрос" title="Изменить запрос"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></button></div>
+      </section>
+
+      <section class="ans" id="ans" aria-live="polite" aria-busy="false" aria-label="Ответ AI-ассистента">
+        <!-- думает -->
+        <div class="think">
+          <div class="think__stage">
+            <div class="think__slot">
+              <div class="orbs" id="orbs" aria-hidden="true">
+                <span class="orbs__halo"></span>
+                <span class="orbs__ring"></span>
+                <span class="orbs__core"></span>
+                <span class="orb orb--jade"><i></i></span>
+                <span class="orb orb--mint"><i></i></span>
+                <span class="orb orb--sun"><i></i></span>
+              </div>
+            </div>
+            <div class="think__txt">
+              <p class="eyebrow">AI-ассистент думает</p>
+              <p class="sr-only">Ищу варианты по Вашему запросу</p>
+              <p class="think__step" id="step" aria-hidden="true">Смотрю каталог</p>
+              <p class="think__note" id="think-note">Обычно ответ приходит за 2-3 секунды</p>
+            </div>
+          </div>
+          <div class="hcards" aria-hidden="true">
+            <div class="hcard hcard--skel"><span class="skel skel--ph"></span><span class="hcard__b"><span class="skel" style="width:44%;height:16px"></span><span class="skel" style="width:62%"></span><span class="skel" style="width:34%"></span></span></div>
+            <div class="hcard hcard--skel"><span class="skel skel--ph"></span><span class="hcard__b"><span class="skel" style="width:52%;height:16px"></span><span class="skel" style="width:58%"></span><span class="skel" style="width:30%"></span></span></div>
+            <div class="hcard hcard--skel"><span class="skel skel--ph"></span><span class="hcard__b"><span class="skel" style="width:40%;height:16px"></span><span class="skel" style="width:66%"></span><span class="skel" style="width:36%"></span></span></div>
+          </div>
+        </div>
+
+        <!-- ответ одним сообщением -->
+        <div class="res">
+          <div class="rec">
+            <div class="rec__head"><span class="rec__slot"></span><h3 class="rec__t" id="rec-t">Рекомендация AI</h3></div>
+            <p class="rec__text">Поиск кондоминиумов на Северном Кипре у моря с максимальной ценой 200&nbsp;000 евро.</p>
+            <p class="rec__fact"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg><span>Северный Кипр - один из самых доступных средиземноморских рынков.</span></p>
+          </div>
+          <div class="res__meta"><p class="res__count">6 комплексов из каталога</p><p class="res__note">≈ в долларах по курсу дня</p></div>
+          <ul class="hcards" aria-labelledby="rec-t">
+            <li><article class="hcard">
+              <div class="hcard__ph"><img src="https://storage.googleapis.com/housebook-revamp.firebasestorage.app/projects/ps-cy-n-68b69a9b329dfbd8a06b63af/thumbnails/f3b36facdb1e103b.avif" alt="" width="296" height="222"></div>
+              <div class="hcard__b"><h4 class="hcard__t"><a class="hcard__a" href="../proekt.html">SUNSHINE</a></h4><p class="hcard__place"><svg class="ic" aria-hidden="true"><use href="#i-map-pin"/></svg>Искеле, Северный Кипр</p><div class="hcard__foot"><p class="hcard__price">от ≈ $152&nbsp;016<small>£115&nbsp;000</small></p><span class="tag">Кондоминиум</span></div></div>
+              <span class="hcard__go" aria-hidden="true"><svg class="ic"><use href="#i-chevron-right"/></svg></span>
+            </article></li>
+            <li><article class="hcard">
+              <div class="hcard__ph"><img src="https://storage.googleapis.com/housebook-revamp.firebasestorage.app/projects/ps-cy-s-6847ff39c6a9575e2ebc79e3/thumbnails/68481d3b149b782b.avif" alt="" width="296" height="222"></div>
+              <div class="hcard__b"><h4 class="hcard__t"><a class="hcard__a" href="../proekt.html">Dörtyol Towers</a></h4><p class="hcard__place"><svg class="ic" aria-hidden="true"><use href="#i-map-pin"/></svg>Фамагуста, Северный Кипр</p><div class="hcard__foot"><p class="hcard__price">от ≈ $99&nbsp;141</p><span class="tag">Кондоминиум</span></div></div>
+              <span class="hcard__go" aria-hidden="true"><svg class="ic"><use href="#i-chevron-right"/></svg></span>
+            </article></li>
+            <li><article class="hcard">
+              <div class="hcard__ph"><img src="https://storage.googleapis.com/housebook-revamp.firebasestorage.app/projects/ps-cy-n-6a60a6e4550eda82ad426d78/thumbnails/88d302b9dc7c9c4a.avif" alt="" width="296" height="222" loading="lazy"></div>
+              <div class="hcard__b"><h4 class="hcard__t"><a class="hcard__a" href="../proekt.html">Ardem Elegance</a></h4><p class="hcard__place"><svg class="ic" aria-hidden="true"><use href="#i-map-pin"/></svg>Никосия, Северный Кипр</p><div class="hcard__foot"><p class="hcard__price">от ≈ $111&nbsp;038</p><span class="tag">Кондоминиум</span></div></div>
+              <span class="hcard__go" aria-hidden="true"><svg class="ic"><use href="#i-chevron-right"/></svg></span>
+            </article></li>
+            <li><article class="hcard">
+              <div class="hcard__ph"><img src="https://storage.googleapis.com/housebook-revamp.firebasestorage.app/projects/ps-cy-s-6847ff39c6a9575e2ebc79e3/thumbnails/7712b8a097fcbe6b.avif" alt="" width="296" height="222" loading="lazy"></div>
+              <div class="hcard__b"><h4 class="hcard__t"><a class="hcard__a" href="../proekt.html">Ocean Life Residence</a></h4><p class="hcard__place"><svg class="ic" aria-hidden="true"><use href="#i-map-pin"/></svg>Искеле, Северный Кипр</p><div class="hcard__foot"><p class="hcard__price">от ≈ $111&nbsp;038</p><span class="tag">Кондоминиум</span></div></div>
+              <span class="hcard__go" aria-hidden="true"><svg class="ic"><use href="#i-chevron-right"/></svg></span>
+            </article></li>
+            <li><article class="hcard">
+              <div class="hcard__ph"><img src="https://storage.googleapis.com/housebook-revamp.firebasestorage.app/projects/ps-cy-s-6847ff39c6a9575e2ebc79e3/thumbnails/8994a3cabc5024e1.avif" alt="" width="296" height="222" loading="lazy"></div>
+              <div class="hcard__b"><h4 class="hcard__t"><a class="hcard__a" href="../proekt.html">Riverside Life Residence</a></h4><p class="hcard__place"><svg class="ic" aria-hidden="true"><use href="#i-map-pin"/></svg>Искеле, Северный Кипр</p><div class="hcard__foot"><p class="hcard__price">от ≈ $122&nbsp;935</p><span class="tag">Кондоминиум</span></div></div>
+              <span class="hcard__go" aria-hidden="true"><svg class="ic"><use href="#i-chevron-right"/></svg></span>
+            </article></li>
+            <li><article class="hcard">
+              <div class="hcard__ph"><img src="https://storage.googleapis.com/housebook-revamp.firebasestorage.app/projects/ps-cy-s-6847ff39c6a9575e2ebc79e3/thumbnails/d6e6eda2e0ba4ed4.avif" alt="" width="296" height="222" loading="lazy"></div>
+              <div class="hcard__b"><h4 class="hcard__t"><a class="hcard__a" href="../proekt.html">Neo Residence</a></h4><p class="hcard__place"><svg class="ic" aria-hidden="true"><use href="#i-map-pin"/></svg>Фамагуста, Северный Кипр</p><div class="hcard__foot"><p class="hcard__price">от ≈ $130&nbsp;866</p><span class="tag">Кондоминиум</span></div></div>
+              <span class="hcard__go" aria-hidden="true"><svg class="ic"><use href="#i-chevron-right"/></svg></span>
+            </article></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <footer class="aip__foot">
+      <div class="aip__toast toast toast--ok" id="toast" role="status" hidden><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><p class="toast__t">В рабочей версии откроется заявка: специалист получит Ваш запрос и эту подборку.</p></div>
+      <div class="aip__cta">
+        <button type="button" class="btn btn--acc" id="lead">Подобрать со специалистом</button>
+        <a class="aip__classic" href="../nedvizhimost.html">Или воспользуйтесь классическим поиском</a>
+      </div>
+      <form class="aip__ask" id="ask" action="../nedvizhimost.html" method="get" role="search">
+        <label class="sr-only" for="aip-q">Новый запрос заменит текущий ответ</label>
+        <div class="ask__bar"><input id="aip-q" name="q" type="text" placeholder="Новый запрос заменит ответ" autocomplete="off" enterkeyhint="send"><button type="submit" class="btn btn--icon btn--tint btn--round" aria-label="Спросить AI"><svg class="ic" aria-hidden="true"><use href="#i-arrow-up"/></svg></button></div>
+        <div class="aip__hints" role="group" aria-label="Подставить запрос">
+          <button type="button" class="pill pill--xs">Искеле до 150&nbsp;000 евро</button>
+          <button type="button" class="pill pill--xs">Студия на Кипре под аренду</button>
+          <button type="button" class="pill pill--xs">Вилла с бассейном</button>
+        </div>
+      </form>
+    </footer>
+  </div>
+
+  <!-- только для макета: переключатель состояния, вне панели -->
+  <div class="demo" role="group" aria-label="Демо-состояние">
+    <span class="demo__l">Демо-состояние:</span>
+    <button type="button" data-state="loading" aria-pressed="false">Думает</button>
+    <button type="button" data-state="answer" aria-pressed="false">Ответ</button>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  const root = document.documentElement;
+  const $ = (s, c = document) => c.querySelector(s), $$ = (s, c = document) => [...c.querySelectorAll(s)];
+  const freeze = root.classList.contains('freeze');
+  const still = () => freeze || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ease = 'cubic-bezier(.2,.7,.2,1)';
+  const dlg = $('#aip'), panel = $('.aip__panel'), title = $('#aip-t'), opener = $('#open'), body = $('.aip__body');
+  const orbs = $('#orbs'), thinkSlot = $('.think__slot'), recSlot = $('.rec__slot');
+  const ans = $('#ans'), stepEl = $('#step'), noteEl = $('#think-note');
+  const input = $('#aip-q'), qText = $('#q-text'), toast = $('#toast');
+  const mobile = () => matchMedia('(max-width: 699px)').matches;
+
+  // шаги-подписи: честные фазы без отметок «сделано»; последний шаг держится, пока не пришёл ответ
+  const steps = ['Разбираю запрос', 'Смотрю каталог', 'Сверяю цены и города', 'Собираю подборку'];
+  const NOTE = 'Обычно ответ приходит за 2-3 секунды', NOTE_LONG = 'На мобильной сети ответ иногда идёт до 10 секунд';
+  let stepTimer = 0, noteTimer = 0, answerTimer = 0;
+  const showStep = (i, anim) => {
+    stepEl.textContent = steps[i];
+    if (anim && !still()) stepEl.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: ease });
+  };
+  const stopSteps = () => { clearInterval(stepTimer); clearTimeout(noteTimer); };
+  const runSteps = () => {
+    stopSteps(); noteEl.textContent = NOTE;
+    if (freeze) { showStep(1, false); return; } // кадр для снимка: второй шаг
+    let i = 0; showStep(0, false);
+    stepTimer = setInterval(() => { if (i < steps.length - 1) showStep(++i, true); else clearInterval(stepTimer); }, 1500);
+    noteTimer = setTimeout(() => { noteEl.textContent = NOTE_LONG; }, 7000);
+  };
+
+  // состояние: сферы переезжают между сценой и знаком у метки (FLIP), ответ приходит одним куском
+  const setState = (next, animate) => {
+    const prev = root.dataset.state, first = orbs.getBoundingClientRect();
+    root.dataset.state = next;
+    ans.setAttribute('aria-busy', String(next === 'loading'));
+    (next === 'answer' ? recSlot : thinkSlot).appendChild(orbs);
+    for (const b of $$('.demo [data-state]')) b.setAttribute('aria-pressed', String(b.dataset.state === next));
+    try { const u = new URL(location.href); u.searchParams.set('state', next); history.replaceState(null, '', u); } catch (e) { /* file:// в части браузеров не даёт менять адрес: состояние уже на странице */ }
+    if (next === 'loading') runSteps(); else stopSteps();
+    if (!animate || still() || prev === next) return;
+    const last = orbs.getBoundingClientRect();
+    if (first.width && last.width) orbs.animate([{ transform: `translate(${first.left - last.left}px, ${first.top - last.top}px) scale(${first.width / last.width})` }, { transform: 'none' }], { duration: 640, easing: ease });
+    const items = next === 'answer' ? [$('.rec__t'), $('.rec__text'), $('.rec__fact'), $('.res__meta'), ...$$('.res .hcards > li')] : [$('.think__txt'), ...$$('.think .hcard')];
+    items.forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: 140 + i * 50, easing: ease, fill: 'backwards' }));
+  };
+
+  // окно: открыто сразу; Esc, крестик, клик мимо панели закрывают; фокус в окно и обратно на «Спросить AI»
+  const open = () => {
+    if (!dlg.open) dlg.showModal();
+    panel.style.transform = '';
+    title.focus({ preventScroll: true });
+    opener.setAttribute('aria-expanded', 'true');
+  };
+  const close = () => {
+    if (still()) { dlg.close(); return; }
+    const to = mobile() ? 'translateY(100%)' : 'translateX(100%)';
+    panel.animate([{ transform: getComputedStyle(panel).transform === 'none' ? 'none' : getComputedStyle(panel).transform }, { transform: to }], { duration: 280, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished.then(a => { dlg.close(); panel.getAnimations().forEach(x => x.cancel()); });
+  };
+  dlg.addEventListener('cancel', e => { e.preventDefault(); close(); });
+  dlg.addEventListener('close', () => { opener.setAttribute('aria-expanded', 'false'); panel.style.transform = ''; opener.focus(); });
+  dlg.addEventListener('click', e => { if (e.target === dlg) close(); });
+  for (const x of $$('[data-close]', dlg)) x.addEventListener('click', close);
+  opener.addEventListener('click', open);
+
+  // шторка на телефоне: потянуть за ручку или голову вниз, чтобы закрыть
+  let drag = null;
+  for (const h of [$('.aip__grab'), $('.aip__head')]) h.addEventListener('pointerdown', e => {
+    if (!mobile() || e.target.closest('button')) return;
+    drag = { y: e.clientY, dy: 0 }; h.setPointerCapture(e.pointerId);
+    h.onpointermove = ev => { drag.dy = Math.max(0, ev.clientY - drag.y); panel.style.transform = `translateY(${drag.dy}px)`; };
+    h.onpointerup = h.onpointercancel = () => {
+      h.onpointermove = h.onpointerup = h.onpointercancel = null;
+      if (drag.dy > 120) close(); else if (drag.dy) panel.animate([{ transform: `translateY(${drag.dy}px)` }, { transform: 'none' }], { duration: 220, easing: ease }).finished.then(() => { panel.style.transform = ''; });
+      if (drag.dy <= 120) panel.style.transform = '';
+      drag = null;
+    };
+  });
+
+  // подсказки подставляют текст в поле; «Изменить» возвращает запрос в поле
+  const fill = text => { input.value = text; input.focus(); input.setSelectionRange(text.length, text.length); };
+  for (const chip of $$('.aip__hints .pill')) chip.addEventListener('click', () => fill(chip.textContent.trim()));
+  $('#q-edit').addEventListener('click', () => fill(qText.textContent.trim()));
+
+  // новый запрос заменяет ответ целиком: не чат, истории нет. В демо после паузы снова приходит записанный ответ
+  $('#ask').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = input.value.trim();
+    if (!v) { input.focus(); return; }
+    qText.textContent = v; input.value = '';
+    body.scrollTo({ top: 0, behavior: still() ? 'auto' : 'smooth' });
+    clearTimeout(answerTimer); setState('loading', true);
+    answerTimer = setTimeout(() => setState('answer', true), 2600);
+  });
+
+  // заявка: в макете только пояснение
+  $('#lead').addEventListener('click', () => { toast.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { toast.hidden = true; }, 4200); });
+
+  for (const b of $$('.demo [data-state]')) b.addEventListener('click', () => { clearTimeout(answerTimer); setState(b.dataset.state, true); });
+
+  setState(root.dataset.state, false);
+  open();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Окно ответа AI: три варианта</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../kit/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@600&amp;family=IBM+Plex+Sans:wght@400;600&amp;display=swap">
+<link rel="stylesheet" href="../kit/hb.css">
+<style>
+  .aw { max-width: 1120px; margin: 0 auto; padding: 48px var(--gutter, 16px) 72px; display: grid; gap: 40px; }
+  .aw > header { display: grid; gap: 12px; max-width: 46em; }
+  .aw > header p { margin: 0; }
+  .av { display: grid; gap: 16px; padding-top: 32px; border-top: 1px solid var(--line, #dfe5e2); }
+  .av h2 { margin: 0; }
+  .av p { margin: 0; max-width: 46em; }
+  .av__shots { display: grid; grid-template-columns: 1fr 1fr 0.42fr; gap: 12px; align-items: start; }
+  .av__shots figure { margin: 0; display: grid; gap: 6px; }
+  .av__shots img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line, #dfe5e2); }
+  .av__shots figcaption { font-size: 13px; color: var(--muted, #5b6662); }
+  .av__links { display: flex; flex-wrap: wrap; gap: 8px; }
+  @media (max-width: 899px) {
+    .av__shots { grid-template-columns: 1fr 1fr; }
+    .av__shots figure:last-child { grid-column: 1 / -1; max-width: 220px; }
+  }
+  @media (max-width: 639px) {
+    .av__shots { grid-template-columns: 1fr; }
+    .av__shots figure:last-child { max-width: 240px; }
+  }
+</style>
+</head>
+<body>
+<main class="aw">
+  <header>
+    <p class="eyebrow">Housebook · концепты</p>
+    <h1>Окно ответа AI‑подбора: три варианта</h1>
+    <p>После нажатия «Спросить AI» ответ открывается окном поверх страницы. Пока AI думает, на экране «думающие сферы» и сменяющиеся подписи; затем рекомендация AI, шесть объектов из каталога и одна кнопка заявки «Подобрать со специалистом». Чипы под полем подставляют запрос в поле.</p>
+    <p>Во всех вариантах показан настоящий ответ боевого сайта на запрос «Квартира у моря на Северном Кипре до 200 000 евро», записанный 9 октября 2026 (пометка «Демо»). Переключатель «Думает / Ответ» в углу страницы показывает оба состояния. Окно закрывается крестиком или клавишей Esc.</p>
+  </header>
+
+  <section class="av" aria-labelledby="v1">
+    <h2 id="v1">1. Окно по центру</h2>
+    <p>Модальное окно над затемнённой главной. Все шесть объектов на одном экране компьютера, сеткой в две колонки. Пока AI думает, внизу уже стоит кнопка заявки для тех, кто не хочет ждать. На телефоне окно занимает весь экран, кнопка заявки закреплена внизу.</p>
+    <div class="av__links">
+      <a class="btn btn--acc" href="v1-okno.html?state=answer">Открыть: ответ</a>
+      <a class="btn btn--ghost" href="v1-okno.html?state=loading">Открыть: AI думает</a>
+    </div>
+    <div class="av__shots">
+      <figure><img src="shots/v1-okno-loading-1440.jpg" width="960" height="600" alt="Вариант 1, компьютер: AI думает" loading="lazy"><figcaption>Компьютер, AI думает</figcaption></figure>
+      <figure><img src="shots/v1-okno-answer-1440.jpg" width="960" height="600" alt="Вариант 1, компьютер: ответ" loading="lazy"><figcaption>Компьютер, ответ</figcaption></figure>
+      <figure><img src="shots/v1-okno-answer-375.jpg" width="375" height="812" alt="Вариант 1, телефон: ответ" loading="lazy"><figcaption>Телефон, ответ</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="av" aria-labelledby="v2">
+    <h2 id="v2">2. Панель справа</h2>
+    <p>Панель выезжает справа, главная остаётся видна слева. Подача как у ассистента: пузырь с запросом и карандашом для правки, затем ответ одним сообщением со списком объектов. На телефоне это нижняя шторка.</p>
+    <div class="av__links">
+      <a class="btn btn--acc" href="v2-panel.html?state=answer">Открыть: ответ</a>
+      <a class="btn btn--ghost" href="v2-panel.html?state=loading">Открыть: AI думает</a>
+    </div>
+    <div class="av__shots">
+      <figure><img src="shots/v2-panel-loading-1440.jpg" width="960" height="600" alt="Вариант 2, компьютер: AI думает" loading="lazy"><figcaption>Компьютер, AI думает</figcaption></figure>
+      <figure><img src="shots/v2-panel-answer-1440.jpg" width="960" height="600" alt="Вариант 2, компьютер: ответ" loading="lazy"><figcaption>Компьютер, ответ</figcaption></figure>
+      <figure><img src="shots/v2-panel-answer-375.jpg" width="375" height="812" alt="Вариант 2, телефон: ответ" loading="lazy"><figcaption>Телефон, ответ</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="av" aria-labelledby="v3">
+    <h2 id="v3">3. Полноэкранный фокус</h2>
+    <p>Окно на весь экран на глубоком фирменном зелёном. Пока AI думает, по центру крупный рой сфер; в ответе крупная рекомендация, полоса с цифрами и шесть объектов с фото. На телефоне объекты идут горизонтальной лентой.</p>
+    <div class="av__links">
+      <a class="btn btn--acc" href="v3-fokus.html?state=answer">Открыть: ответ</a>
+      <a class="btn btn--ghost" href="v3-fokus.html?state=loading">Открыть: AI думает</a>
+    </div>
+    <div class="av__shots">
+      <figure><img src="shots/v3-fokus-loading-1440.jpg" width="960" height="600" alt="Вариант 3, компьютер: AI думает" loading="lazy"><figcaption>Компьютер, AI думает</figcaption></figure>
+      <figure><img src="shots/v3-fokus-answer-1440.jpg" width="960" height="600" alt="Вариант 3, компьютер: ответ" loading="lazy"><figcaption>Компьютер, ответ</figcaption></figure>
+      <figure><img src="shots/v3-fokus-answer-375.jpg" width="375" height="812" alt="Вариант 3, телефон: ответ" loading="lazy"><figcaption>Телефон, ответ</figcaption></figure>
+    </div>
+  </section>
+
+  <p><a href="../index.html">Все макеты Housebook</a></p>
+</main>
+</body>
+</html>
