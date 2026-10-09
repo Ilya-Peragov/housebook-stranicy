@@ -1,7 +1,7 @@
 # Общие блоки страниц макетов: python3 kit/obshchee/sobrat.py (сверка без записи: --check)
 # Источники рядом со скриптом: ikonki.svg (спрайт), shapka.html (skip, шапка, мобильное меню), podval.html (подвал),
 # ai.html (кнопка и окно AI), zayavka.html (окно заявки). Пишутся как для страницы в корне: пути от корня, без aria-current,
-# ссылка EN плейсхолдером {{EN}}. Цели: все *.html корня, кроме index.html, и kit/glavnaya.html.
+# ссылка EN плейсхолдером {{EN}}, номер WhatsApp плейсхолдером {{WA}}. Цели: все *.html корня, кроме index.html, и kit/glavnaya.html.
 # По каждой странице EN и aria-current="page" (сразу после href) берутся из её текущей шапки (мобильное меню обязано
 # совпадать), пути страниц в подпапке пересчитываются, каждый блок заменяется ровно по границам элемента (теги внутри
 # комментариев <!-- --> не считаются), переводы строк страницы сохраняются. Окно заявки меняется только там, где есть,
@@ -36,8 +36,11 @@ def span(s, pat):
         if not depth: return ms[0].start(), ms[0].start() + t.end()
     raise LookupError('блок не закрыт')
 def hrefs(s, attr): return re.findall(r'<a\b[^>]*?\bhref="([^"]*)"[^>]*\b%s' % attr, s)
-def fit(frag, d, en, cur, name):
-    frag = frag.replace('{{EN}}', en)
+# WhatsApp в общих блоках ({{WA}}): клиентский на клиентских страницах, партнёрский на страницах раздела /pro (pro.html, pro-*.html),
+# как на бою (src/lib/constants.ts HOUSEBOOK_WA_GLOBAL и HOUSEBOOK_WA_PARTNERSHIP, выбор isPartnerSurface в src/lib/whatsapp/wa-link.ts)
+WA_CLIENT, WA_PRO, PRO = '447418315506', '447418316042', re.compile(r'pro(-[^.]*)?\.html$')
+def fit(frag, d, en, cur, name, wa):
+    frag = frag.replace('{{EN}}', en).replace('{{WA}}', wa)
     if d: frag = re.sub(r'\b(href|src|action)="([^"]*)"', lambda m: m.group(0) if not m.group(2) or KEEP.match(m.group(2)) else '%s="%s"' % (m.group(1), posixpath.relpath(m.group(2), d)), frag)
     if cur and name in ('header', 'mnav'):  # текущий раздел отмечается в nav шапки и в ссылках меню
         a, b = span(frag, r'<nav\b'); link = '<a href="%s">' % cur
@@ -72,7 +75,7 @@ def main():
         new, changed = s, []
         for name in sorted(spans, key=lambda k: spans[k][0], reverse=True):  # с конца страницы, чтобы границы не сдвигались
             a, b = spans[name]
-            try: frag = fit(src[name], d, en[0], cur[0] if cur else None, name).replace('\n', nl)
+            try: frag = fit(src[name], d, en[0], cur[0] if cur else None, name, WA_PRO if PRO.match(os.path.basename(p)) else WA_CLIENT).replace('\n', nl)
             except LookupError as e: errs.append('%s:%s %s' % (rel, name, e)); continue
             if frag != s[a:b]: changed.insert(0, name); new = new[:a] + frag + new[b:]
         if changed: out.append((p, rel, new, changed))
