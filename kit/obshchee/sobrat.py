@@ -1,11 +1,13 @@
 # Общие блоки страниц макетов: python3 kit/obshchee/sobrat.py (сверка без записи: --check)
 # Источники рядом со скриптом: ikonki.svg (спрайт), shapka.html (skip, шапка, мобильное меню), podval.html (подвал),
-# ai.html (кнопка и окно AI), zayavka.html (окно заявки). Пишутся как для страницы в корне: пути от корня, без aria-current,
+# ai.html (кнопка и окно AI), zayavka.html (окно заявки), kuki.html (плашка согласия на куки и окно настроек, div#kuki).
+# Пишутся как для страницы в корне: пути от корня, без aria-current,
 # ссылка EN плейсхолдером {{EN}}, номер WhatsApp плейсхолдером {{WA}}. Цели: все *.html корня, кроме index.html, и kit/glavnaya.html.
 # По каждой странице EN и aria-current="page" (сразу после href) берутся из её текущей шапки (мобильное меню обязано
 # совпадать), пути страниц в подпапке пересчитываются, каждый блок заменяется ровно по границам элемента (теги внутри
 # комментариев <!-- --> не считаются), переводы строк страницы сохраняются. Окно заявки меняется только там, где есть,
-# и без ловушки .hp в источнике не раскладывается.
+# и без ловушки .hp или галочки согласия (ссылка на soglasie.html) в источнике не раскладывается. Блок куки, которого на странице
+# ещё нет, вставляется с новой строки сразу после окна помощника AI (перед скриптами), дальше меняется по месту как остальные.
 # Любая ошибка - код 2 с причиной; ошибка блока называет страницу и блок, и тогда ничего не пишется. Без аргументов пишет
 # только изменившиеся страницы: сначала все во временные файлы, затем подмена, права страниц сохраняются. --check ничего
 # не пишет: код 1 и строки страница:блок при расхождении, 0 если всё совпадает.
@@ -20,7 +22,8 @@ BLOCKS = (  # имя, источник, начало элемента, обяз�
     ('aid-fab', 'ai.html', r'<button\b[^>]*\bid="aid-fab"', True),
     ('aid', 'ai.html', r'<dialog\b[^>]*\bid="aid"', True),
     ('lead', 'zayavka.html', r'<dialog\b[^>]*\bid="lead"', False),
-)
+    ('kuki', 'kuki.html', r'<div\b[^>]*\bid="kuki"', 'aid'),
+)  # обязателен: True есть везде, False меняется только там, где есть, имя блока - нет на странице, встаёт сразу после него
 KEEP = re.compile(r'[#/?]|[a-z][a-z0-9+.-]*:', re.I)  # якоря, пути от корня, запросы и ссылки со схемой в подпапке не пересчитываются
 def rd(p):
     try: return open(p, encoding='utf-8', newline='').read()
@@ -57,14 +60,17 @@ def main():
         except LookupError as e: print('ОШИБКА в источнике %s:%s %s' % (f, name, e), file=sys.stderr); sys.exit(2)
         src[name] = t[a:b]
     if 'class="hp"' not in src['lead']: print('ОШИБКА в источнике zayavka.html: нет ловушки .hp', file=sys.stderr); sys.exit(2)
+    if 'href="soglasie.html"' not in src['lead']: print('ОШИБКА в источнике zayavka.html: нет галочки согласия со ссылкой на soglasie.html', file=sys.stderr); sys.exit(2)
     pages = sorted(p for p in glob.glob(os.path.join(glob.escape(ROOT), '*.html')) if os.path.basename(p) != 'index.html')
     if not pages: print('ОШИБКА: в %s нет страниц *.html' % ROOT, file=sys.stderr); sys.exit(2)
     pages.append(os.path.join(ROOT, 'kit', 'glavnaya.html'))
     errs, out = [], []
     for p in pages:
-        rel = os.path.relpath(p, ROOT); d = os.path.dirname(rel); s = rd(p); spans = {}; n = len(errs); nl = '\r\n' if '\r\n' in s else '\n'
+        rel = os.path.relpath(p, ROOT); d = os.path.dirname(rel); s = rd(p); spans = {}; n = len(errs); nl = '\r\n' if '\r\n' in s else '\n'; ins = set()
         for name, f, pat, need in BLOCKS:
-            if not need and not re.search(pat, nocom(s)): continue
+            if need is not True and not re.search(pat, nocom(s)):
+                if need and need in spans: spans[name] = (spans[need][1],) * 2; ins.add(name)  # нет на странице: пустое место сразу после блока need (нет и его - ошибка уже записана)
+                continue
             try: spans[name] = span(s, pat)
             except LookupError as e: errs.append('%s:%s %s' % (rel, name, e))
         if len(errs) > n: continue
@@ -75,7 +81,7 @@ def main():
         new, changed = s, []
         for name in sorted(spans, key=lambda k: spans[k][0], reverse=True):  # с конца страницы, чтобы границы не сдвигались
             a, b = spans[name]
-            try: frag = fit(src[name], d, en[0], cur[0] if cur else None, name, WA_PRO if PRO.match(os.path.basename(p)) else WA_CLIENT).replace('\n', nl)
+            try: frag = (nl if name in ins else '') + fit(src[name], d, en[0], cur[0] if cur else None, name, WA_PRO if PRO.match(os.path.basename(p)) else WA_CLIENT).replace('\n', nl)
             except LookupError as e: errs.append('%s:%s %s' % (rel, name, e)); continue
             if frag != s[a:b]: changed.insert(0, name); new = new[:a] + frag + new[b:]
         if changed: out.append((p, rel, new, changed))

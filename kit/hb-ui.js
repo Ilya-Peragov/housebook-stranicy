@@ -17,7 +17,8 @@
       mapFail: 'Карта не загрузилась. Проверьте соединение и откройте снова.', osm: '&copy; участники OpenStreetMap',
       rateDay: 'Посуточная ставка, USD', rateMonth: 'Месячная ставка, USD', rateAsk: 'Введите ставку аренды и заполняемость, чтобы увидеть расчёт',
       scen: (p, g, c, n) => `<b>${p}</b> чистыми в год: доход ${g}, расходы ${c}, остаётся ${n}`,
-      projects: 'проект|проекта|проектов', inCat: ' в каталоге', andMore: (a, n) => `${a} и ещё ${n}`, useful: n => `Полезно: ${n}`, dismiss: 'Закрыть уведомление' },
+      projects: 'проект|проекта|проектов', inCat: ' в каталоге', andMore: (a, n) => `${a} и ещё ${n}`, useful: n => `Полезно: ${n}`, dismiss: 'Закрыть уведомление',
+      consentSaved: 'Выбор сохранён. Изменить его можно по ссылке «Настройки куки» внизу страницы.' },
     en: { loc: 'en-US', find: 'Search', findIn: 'Search the list', none: 'No matches', reset: 'Reset', done: 'Done', all: 'All', picked: n => `${n} selected`,
       nouns: 'property|properties', show: (n, w) => `Show ${n} ${w}`, allFilters: 'All filters', close: 'Close', filters: 'Filters',
       of: (i, n) => `${i} of ${n}`, viewer: 'Image viewer', zoomOut: 'Zoom out', fit: 'Fit to screen', zoomIn: 'Zoom in', prev: 'Previous', next: 'Next',
@@ -25,7 +26,8 @@
       mapFail: 'The map didn’t load. Check your connection and open it again.', osm: '&copy; OpenStreetMap contributors',
       rateDay: 'Nightly rate, USD', rateMonth: 'Monthly rate, USD', rateAsk: 'Enter the rental rate and occupancy to see the estimate',
       scen: (p, g, c, n) => `<b>${p}</b> net per year: income ${g}, costs ${c}, you keep ${n}`,
-      projects: 'project|projects', inCat: ' in the catalog', andMore: (a, n) => `${a} and ${n} more`, useful: n => `Helpful: ${n}`, dismiss: 'Dismiss notification' }
+      projects: 'project|projects', inCat: ' in the catalog', andMore: (a, n) => `${a} and ${n} more`, useful: n => `Helpful: ${n}`, dismiss: 'Dismiss notification',
+      consentSaved: 'Your choice is saved. You can change it via “Cookie settings” at the bottom of the page.' }
   };
   const T = I18N[root.lang.toLowerCase().startsWith('en') ? 'en' : 'ru'];
   // числа, цены и проценты только через Intl; валюта как в макетах: знак $ перед числом, процент без пробела
@@ -382,6 +384,7 @@
   for (const b of $$('.fav')) b.addEventListener('click', () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? T.favOn : T.favOff); });
 
   // форма заявки: проверка на клиенте, ошибки у полей, состояние успеха; отправку делает страница (data-endpoint), без него показывается успех
+  let agreeN = 0;
   for (const f of $$('form.form')) {
     f.noValidate = true;
     f.addEventListener('submit', async e => {
@@ -389,6 +392,9 @@
       for (const el of f.querySelectorAll('[required]:not(:disabled)')) { // отключённое поле скрытого блока [data-when] не проверяется и не отправляется
         const box = el.closest('.field, .check'), ok = el.type === 'checkbox' ? el.checked : el.value.trim() !== '' && el.checkValidity();
         if (box) box.classList.toggle('is-err', !ok); el.setAttribute('aria-invalid', String(!ok)); if (!ok && !first) first = el;
+        // галочка согласия .agree: текст ошибки читается вместе с ней, пока она не отмечена (скрытый текст в описании диктор прочёл бы всегда)
+        const msg = el.closest('.agree') && $('.field__err', el.closest('.agree'));
+        if (msg) { msg.id = msg.id || 'agree-err-' + ++agreeN; if (ok) el.removeAttribute('aria-describedby'); else el.setAttribute('aria-describedby', msg.id); }
       }
       if (first) { first.focus(); return; }
       // поле-ловушка .hp заполнено (бот): тот же успех, но без запроса, как на бою (/api/leads при заполненном website отвечает ok и ничего не пишет)
@@ -396,7 +402,7 @@
       if (ep && !bot) { try { const r = await fetch(ep, { method: 'POST', body: new FormData(f) }); if (!r.ok) throw new Error(r.status); } catch (err) { const n = f.querySelector('.form__fail'); if (n) n.hidden = false; return; } }
       f.classList.add('is-ok'); const ok = f.querySelector('.form__ok'); if (ok) { ok.tabIndex = -1; ok.focus(); }
     });
-    f.addEventListener('input', e => { const box = e.target.closest('.is-err'); if (box && (e.target.type === 'checkbox' ? e.target.checked : e.target.value.trim())) { box.classList.remove('is-err'); e.target.removeAttribute('aria-invalid'); } });
+    f.addEventListener('input', e => { const box = e.target.closest('.is-err'); if (box && (e.target.type === 'checkbox' ? e.target.checked : e.target.value.trim())) { box.classList.remove('is-err'); e.target.removeAttribute('aria-invalid'); if (box.closest('.agree')) e.target.removeAttribute('aria-describedby'); } });
   }
 
   // оглавление статьи: подсветка текущего раздела в каждом .toc на странице (кроме .toc--rows: список-переход, не липнет)
@@ -499,6 +505,42 @@
   // модалки и ящики по [data-dlg="id"]: закрытый каталог, формы-ворота, любые dialog.modal и dialog.drawer; закрывают фон и [data-close]
   document.addEventListener('click', e => { const b = e.target.closest('[data-dlg]'); if (!b) return; const d = document.getElementById(b.dataset.dlg); if (d && d.showModal) { e.preventDefault(); d.showModal(); } });
   for (const d of $$('dialog:is(.leadm, .modal, .drawer):not(#lead, #mnav, #aid, .fpanel)')) d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
+
+  // согласие на куки (решение владельца 09.10.2026, 152-ФЗ): разметка - общий блок kit/obshchee/kuki.html. Плашка section#consent немодальная:
+  // видна при первом визите, страница под ней доступна, фокус не ловится. Кнопки [data-consent] где угодно: all («Принять все»),
+  // necessary («Только необходимые»), settings (окно dialog#consent-set: «Настроить» в плашке, «Настройки куки» в подвале, витрина).
+  // Выбор в localStorage['hb-consent'] = {v: версия текста (data-v плашки), at: ISO-дата, analytics, ads}; другая версия или выбор старше
+  // 12 месяцев не считаются, и плашка показывается снова. Пока плашка видна, html.has-consent и --consent-h поднимают кнопки и тосты над ней.
+  // На сайте (не в макете): скрипты аналитики (Яндекс Метрика с Вебвизором, GA4, GTM) и рекламы (Meta Pixel, рекламные метки Google) грузятся
+  // только после согласия по своей категории (событие hb:consent), до него не грузятся вовсе; при отзыве перестают грузиться, а их куки
+  // (_ym*, _ga*, _fbp) стираются. Выбор пишется ещё и на сервер, в журнал согласий (время, версия текста, выбор, идентификатор посетителя):
+  // это доказательство согласия по ст. 9 ч. 3 152-ФЗ, бремя которого на операторе; localStorage браузера доказательством не является.
+  const cBar = $('#consent'), cDlg = $('#consent-set');
+  if (cDlg && cDlg.showModal) {
+    const KEY = 'hb-consent', V = cBar ? cBar.dataset.v : '', cForm = $('form', cDlg);
+    const read = () => { let c = null; try { c = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+      if (!c || c.v !== V) return null; const end = new Date(c.at); end.setMonth(end.getMonth() + 12); return end > new Date() ? c : null; };
+    const ro = window.ResizeObserver && cBar ? new ResizeObserver(() => root.style.setProperty('--consent-h', cBar.offsetHeight + 'px')) : null;
+    const bar = on => { if (!cBar) return; cBar.hidden = !on; root.classList.toggle('has-consent', on);
+      if (!ro) return; if (on) ro.observe(cBar); else { ro.disconnect(); root.style.removeProperty('--consent-h'); } };
+    let cur = read(), opener = null, saved = false;
+    // фокус из спрятанной плашки не падает на body: переходит на main, и Tab продолжает с начала содержимого страницы
+    const toMain = () => { const m = $('main'); if (!m) return; if (!m.hasAttribute('tabindex')) m.tabIndex = -1; m.focus({ preventScroll: true }); };
+    const save = (analytics, ads) => {
+      cur = { v: V, at: new Date().toISOString(), analytics, ads };
+      try { localStorage.setItem(KEY, JSON.stringify(cur)); } catch (e) {} // без хранилища выбор живёт до перезагрузки
+      const lost = cBar && cBar.contains(document.activeElement);
+      bar(false); if (lost) toMain(); document.dispatchEvent(new CustomEvent('hb:consent', { detail: { analytics, ads } }));
+    };
+    document.addEventListener('click', e => { const b = e.target.closest('[data-consent]'); if (!b) return; const k = b.dataset.consent;
+      if (k === 'all') save(true, true); else if (k === 'necessary') save(false, false);
+      else if (k === 'settings') { opener = b; cForm.analytics.checked = !!(cur && cur.analytics); cForm.ads.checked = !!(cur && cur.ads); saved = false; cDlg.showModal(); } });
+    cForm.addEventListener('submit', () => { save(cForm.analytics.checked, cForm.ads.checked); saved = true; }); // method="dialog": окно закрывает браузер
+    // Esc и крестик закрывают без сохранения; фокус возвращается к кнопке, открывшей окно, а если она спряталась вместе с плашкой - на main
+    cDlg.addEventListener('close', () => { if (opener && opener.isConnected && opener.getClientRects().length) opener.focus(); else toMain();
+      if (saved && window.hbToast) window.hbToast(T.consentSaved, 'ok'); saved = false; });
+    bar(!cur);
+  }
 
   // пошаговый квиз [data-quiz]: шаги fieldset.quiz__s, выбор варианта ведёт дальше, «Назад» возвращает,
   // на последнем шаге в [data-qsum] сводка ответов; отправка как у любой .form

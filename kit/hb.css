@@ -1671,6 +1671,53 @@ pre code { font: inherit; padding: 0; background: none; } /* код внутри
 .endbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5); margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); } /* 28 и 18 как на странице: в конце прозы, после .prose > * + * */
 .endbar > .contact { align-items: center; } /* подпись по центру кнопок */
 
+/* ---------- согласие на куки и ПДн (решение владельца 09.10.2026, 152-ФЗ). Разметка - общий блок kit/obshchee/kuki.html, поведение - hb-ui.js.
+   .consent: немодальная полоса внизу при первом визите (role=region, фокус не ловит), на телефоне не выше 20% экрана; «Принять все» и «Только
+   необходимые» одного вида (без тёмных паттернов), «Настроить» тише. dialog.modal.consent-set: категории .consent-cat с переключателями .switch.
+   .agree: галочка согласия в форме заявки, отдельно от ссылки на политику; ошибку показывает отметка aria-invalid ---------- */
+.consent { position: fixed; inset: auto 0 0; z-index: calc(var(--z-fab) + 1); padding: 14px var(--gutter) calc(14px + env(safe-area-inset-bottom)); background: var(--paper); border-top: 1px solid var(--line); box-shadow: 0 -10px 28px -14px rgba(18,21,23,.22); color: var(--ink-2); animation: consent-in var(--dur-3) var(--ease); }
+.consent[hidden] { display: none; }
+.consent__in { display: flex; align-items: center; gap: 12px 32px; max-width: var(--wrap); margin: 0 auto; }
+.consent__t { flex: 1; min-width: 0; max-width: 780px; font-size: var(--fs-small); line-height: 20px; }
+.consent__t a { color: var(--accent-text); }
+.consent__act { display: flex; flex: none; gap: 8px; }
+.consent--demo { position: static; z-index: auto; padding: 14px 18px; border: 1px solid var(--line); border-radius: var(--r-l); box-shadow: var(--e1); animation: none; } /* образец в витрине: на месте, а не внизу экрана */
+@keyframes consent-in { from { transform: translateY(100%); } }
+html.has-consent body { padding-bottom: var(--consent-h, 0px); } /* конец подвала не уходит под плашку */
+html.has-consent :is(.aid-fab, .ret) { bottom: calc(var(--consent-h, 0px) + 12px); }
+html.has-consent .pbar { bottom: var(--consent-h, 0px); }
+html.has-consent .toasts, html.has-consent body:has(.pbar:not([hidden])) .toasts { bottom: calc(var(--consent-h, 0px) + 80px); }
+@media (max-width: 1099px) { .consent__in { display: grid; gap: 10px; } .consent__t { max-width: none; } .consent__act { justify-content: flex-end; } }
+@media (max-width: 639px) {
+  .consent { padding: 8px var(--gutter) calc(8px + env(safe-area-inset-bottom)); }
+  .consent__in { gap: 6px; }
+  .consent__t { font-size: var(--fs-min); line-height: 16px; }
+  .consent__act { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px; } /* «Настроить» по тексту, две равные кнопки делят остаток поровну */
+  .consent__act .btn { min-height: 38px; padding: 2px 6px; font-size: 13px; line-height: 16px; text-wrap: balance; }
+}
+@media (max-width: 639px) and (max-height: 600px) { /* старые малые экраны (320x568): строки и кнопки плотнее, чтобы плашка осталась не выше 20% */
+  .consent { padding-block: 6px calc(6px + env(safe-area-inset-bottom)); }
+  .consent__in { gap: 4px; }
+  .consent__t { line-height: 15px; }
+  .consent__act .btn { min-height: 34px; line-height: 14px; }
+}
+.consent-set { --modal-w: 560px; }
+.consent-cat { display: grid; gap: 6px; padding-top: 14px; border-top: 1px solid var(--line); }
+.consent-cat .switch { display: flex; flex-direction: row-reverse; justify-content: space-between; color: var(--ink); font-weight: 600; } /* название слева, переключатель справа */
+.consent-cat .switch input:disabled:checked { border-color: var(--control); background: var(--control); } /* «Необходимые»: включено и не меняется, а не выключено */
+.consent-cat .switch input:disabled:checked::before { background: var(--paper); }
+.consent-cat__d { font-size: var(--fs-small); line-height: 20px; color: var(--ink-3); }
+.consent-set .note a { color: var(--accent-text); }
+main:focus { outline: none; } /* после выбора в плашке фокус переходит на main (tabindex=-1): плашка спрятана, вернуть его некуда */
+.foot__legal button { padding: 0; border: 0; background: none; font: inherit; color: var(--ink-3); text-decoration: underline; cursor: pointer; } /* «Настройки куки»: действие, вид как у ссылок строки */
+.foot__legal button:hover { color: var(--ink); }
+.agree { display: grid; gap: 6px; }
+.agree > :not(.check) { padding-left: 30px; } /* под текстом галочки: квадрат 20 и отступ 10 */
+.agree:has([aria-invalid="true"]) .field__err { display: flex; }
+.agree .field__hint a { color: var(--accent-text); }
+@media (prefers-reduced-motion: reduce) { .consent { animation: none; } }
+@media print { .consent { display: none !important; } }
+
 /* ---------- печать: только содержимое, чёрным по белому; .noprint прячет любой блок (было p-noprint и print-правила документов) ---------- */
 @media print {
   :root, html.dusk, :root[data-theme="dark"] { --page: #FFFFFF; --paper: #FFFFFF; --tint: #FFFFFF; --sunken: #F2F2F2; --ink: #000000; --ink-2: #000000; --ink-3: #333333; --line: #BBBBBB; --accent-text: #000000; }

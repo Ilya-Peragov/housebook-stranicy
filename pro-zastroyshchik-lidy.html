@@ -185,7 +185,7 @@ html.dusk .p-pil, :root[data-theme="dark"] .p-pil { background: var(--paper); bo
       <div data-when="via=mail"><div class="field"><label for="l-mail">Почта<span class="field__req" aria-hidden="true"> *</span></label><input class="input" id="l-mail" name="email" type="email" required autocomplete="email" placeholder="you@company.com"><span class="field__err"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>Напишите почту</span></div></div>
       <div class="field"><label for="l-cty">Страна Ваших проектов<span class="field__req" aria-hidden="true"> *</span></label><select class="select" id="l-cty" name="country" required><option value="">Выберите страну</option><option>Азербайджан</option><option>Грузия</option><option>Индонезия</option><option>ОАЭ</option><option>Оман</option><option>Панама</option><option>Республика Кипр</option><option>Саудовская Аравия</option><option>США</option><option>Таиланд</option><option>ТРСК (Северный Кипр)</option><option>Турция</option><option>Узбекистан</option><option>Чили</option><option>Другая страна</option></select></div>
       <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <label class="check"><input type="checkbox" name="consent" required> <span>Согласен на обработку моих данных и на связь со мной по указанным контактам. <a href="politika.html">Политика обработки данных</a></span></label>
+      <div class="agree"><label class="check"><input type="checkbox" name="consent" required><span>Я даю <a href="soglasie.html" target="_blank" rel="noopener">согласие на обработку персональных данных</a></span></label><span class="field__err"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>Отметьте согласие: без него мы не можем принять заявку</span><span class="field__hint">Как мы обрабатываем данные: <a href="politika.html" target="_blank" rel="noopener">Политика обработки персональных данных</a></span></div>
       <button class="btn btn--acc btn--l" type="submit">Запросить звонок по пилоту</button>
       <p class="form__req">Поля со звёздочкой обязательны</p>
       <div class="form__ok" role="status"><h3><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg>Заявка принята</h3><p>Партнёрский отдел свяжется с Вами в течение одного рабочего дня.</p><p>Если удобнее начать самим, напишите нам: <a href="mailto:partner@housebook.ae">partner@housebook.ae</a></p></div>
@@ -209,7 +209,7 @@ html.dusk .p-pil, :root[data-theme="dark"] .p-pil { background: var(--paper); bo
   </div>
   <p class="foot__note">Оператор платформы: Housebook Investment LLC, лицензия 1061992, Office No. 2701-089, The Prime Tower, Business Bay, Дубай, ОАЭ. Брокерские услуги и выплаты: Housebook Real Estate LLC, лицензия 1128098.</p>
   <p class="foot__note">* Meta Platforms Inc. признана экстремистской организацией, её деятельность запрещена на территории РФ.</p>
-  <div class="foot__legal"><span>Housebook. Все права защищены.</span><a href="politika.html">Политика конфиденциальности</a><a href="usloviya.html">Условия использования</a><a href="oferta.html">Партнёрская оферта</a><span class="right">Медианы и остатки пересчитаны 6&nbsp;октября 2026</span></div>
+  <div class="foot__legal"><span>Housebook. Все права защищены.</span><a href="politika.html">Политика конфиденциальности</a><a href="soglasie.html">Согласие на обработку персональных данных</a><a href="usloviya.html">Условия использования</a><a href="oferta.html">Партнёрская оферта</a><button type="button" data-consent="settings" aria-haspopup="dialog" aria-controls="consent-set">Настройки куки</button><span class="right">Медианы и остатки пересчитаны 6&nbsp;октября 2026</span></div>
 </div></footer>
 <!-- помощник AI: плавающая кнопка с крышей и окно на dialog; не менять -->
 <button type="button" class="aid-fab" id="aid-fab" aria-haspopup="dialog" aria-controls="aid" aria-expanded="false" aria-label="Спросить AI" title="Спросить AI"><svg class="aid-fab__roof" viewBox="0 0 83 28" aria-hidden="true"><use href="#hb-roof"/></svg></button>
@@ -219,6 +219,32 @@ html.dusk .p-pil, :root[data-theme="dark"] .p-pil { background: var(--paper); bo
   <form class="ask" action="nedvizhimost.html" method="get" role="search"><label class="sr-only" for="aid-q">Ваш запрос</label><div class="ask__bar"><input id="aid-q" name="q" type="text" placeholder="Напишите Ваш запрос" autocomplete="off"><button class="btn btn--acc" type="submit">Спросить AI</button></div><div class="ask__hints"><a class="pill pill--xs" href="nedvizhimost-strana.html">Квартира в Грузии до $100&nbsp;000</a><a class="pill pill--xs" href="investitsii.html">Объект под сдачу в аренду</a><a class="pill pill--xs" href="nedvizhimost-strana.html">Квартира в ОАЭ до $300&nbsp;000</a></div></form>
   <div class="contact"><a class="btn btn--l btn--tint" href="https://wa.me/447418316042?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%2C%20%D1%85%D0%BE%D1%87%D1%83%20%D0%BF%D0%B5%D1%80%D1%81%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%83%D1%8E%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8E." target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Написать в WhatsApp</a><a class="btn btn--l btn--tint" href="https://t.me/charlie_hb_bot?start=c1_ru_hb_general" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Написать в Telegram</a></div>
 </div></dialog>
+<div id="kuki">
+<section class="consent" id="consent" role="region" aria-label="Согласие на файлы cookie" data-v="2026-10-09" hidden><div class="consent__in">
+  <p class="consent__t">Мы используем файлы cookie: необходимые работают всегда, а аналитика (Яндекс Метрика, Google Analytics, Rybbit) и реклама включаются только с Вашего согласия. <a href="politika.html">Политика</a>, <a href="soglasie.html">согласие</a>.</p>
+  <div class="consent__act"><button type="button" class="btn btn--s" data-consent="settings" aria-haspopup="dialog" aria-controls="consent-set">Настроить</button><button type="button" class="btn btn--s btn--acc" data-consent="necessary">Только необходимые</button><button type="button" class="btn btn--s btn--acc" data-consent="all">Принять все</button></div>
+</div></section>
+<dialog class="modal consent-set" id="consent-set" aria-labelledby="consent-set-t"><form class="modal__in" method="dialog">
+  <div class="modal__head"><h2 id="consent-set-t">Настройки файлов cookie</h2><button type="button" class="btn btn--icon btn--quiet btn--round x" data-close aria-label="Закрыть окно"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+  <div class="modal__body">
+    <p class="support">Файлы cookie (куки) сайт сохраняет в Вашем браузере. Выберите, что из них можно включить. Выбор хранится 12 месяцев, изменить его можно в любой момент по ссылке «Настройки куки» внизу каждой страницы.</p>
+    <div class="consent-cat">
+      <label class="switch"><input type="checkbox" role="switch" name="necessary" checked disabled aria-describedby="consent-nec-d"><span>Необходимые</span></label>
+      <p class="consent-cat__d" id="consent-nec-d">Включены всегда: без них не работают вход в кабинет, доступ к материалам после заявки, привязка заявки к партнёру, который Вас пригласил, тема оформления и этот выбор.</p>
+    </div>
+    <div class="consent-cat">
+      <label class="switch"><input type="checkbox" role="switch" name="analytics" aria-describedby="consent-an-d"><span>Аналитика</span></label>
+      <p class="consent-cat__d" id="consent-an-d">Яндекс Метрика с Вебвизором (запись действий на странице), Google Analytics и наш счётчик посещений Rybbit: какие страницы открывают и как ими пользуются. Получатели: ООО «Яндекс» (Россия) и Google LLC (США); Rybbit работает на нашем сервере в Германии.</p>
+    </div>
+    <div class="consent-cat">
+      <label class="switch"><input type="checkbox" role="switch" name="ads" aria-describedby="consent-ads-d"><span>Реклама</span></label>
+      <p class="consent-cat__d" id="consent-ads-d">Meta Pixel* и рекламные метки Google: показ рекламы Housebook на других сайтах и оценка её отдачи. Получатели: Meta Platforms Inc. и Google LLC (США).</p>
+    </div>
+    <p class="note">Подробнее: <a href="politika.html">Политика обработки персональных данных</a> и <a href="soglasie.html">Согласие на обработку персональных данных</a>. * Meta Platforms Inc. признана экстремистской организацией, её деятельность запрещена на территории РФ.</p>
+  </div>
+  <div class="modal__foot"><button type="submit" class="btn btn--acc">Сохранить выбор</button></div>
+</form></dialog>
+</div>
 <!-- скрипты: порядок важен (данные, сцена, интерфейс; three.js сцена грузит сама и только на сильных устройствах); не менять -->
 <script src="kit/hb-data.js"></script>
 <script src="kit/hb-scene.js"></script>

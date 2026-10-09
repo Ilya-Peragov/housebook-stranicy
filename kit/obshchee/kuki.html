@@ -1,0 +1,29 @@
+<!-- Общий блок всех страниц макетов: правьте здесь, затем python3 kit/obshchee/sobrat.py разложит его по страницам (новая страница получает его сам, сразу после окна помощника AI). Пути от корня папки макетов.
+  Плашка согласия на куки (section#consent, немодальная, видна при первом визите) и окно настроек (dialog#consent-set). Поведение в kit/hb-ui.js, модуль «согласие на куки».
+  data-v - версия текста: поменяли текст плашки или окна, поставьте новую дату, и плашка покажется всем снова (выбор с другой версией не считается). -->
+<div id="kuki">
+<section class="consent" id="consent" role="region" aria-label="Согласие на файлы cookie" data-v="2026-10-09" hidden><div class="consent__in">
+  <p class="consent__t">Мы используем файлы cookie: необходимые работают всегда, а аналитика (Яндекс Метрика, Google Analytics, Rybbit) и реклама включаются только с Вашего согласия. <a href="politika.html">Политика</a>, <a href="soglasie.html">согласие</a>.</p>
+  <div class="consent__act"><button type="button" class="btn btn--s" data-consent="settings" aria-haspopup="dialog" aria-controls="consent-set">Настроить</button><button type="button" class="btn btn--s btn--acc" data-consent="necessary">Только необходимые</button><button type="button" class="btn btn--s btn--acc" data-consent="all">Принять все</button></div>
+</div></section>
+<dialog class="modal consent-set" id="consent-set" aria-labelledby="consent-set-t"><form class="modal__in" method="dialog">
+  <div class="modal__head"><h2 id="consent-set-t">Настройки файлов cookie</h2><button type="button" class="btn btn--icon btn--quiet btn--round x" data-close aria-label="Закрыть окно"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+  <div class="modal__body">
+    <p class="support">Файлы cookie (куки) сайт сохраняет в Вашем браузере. Выберите, что из них можно включить. Выбор хранится 12 месяцев, изменить его можно в любой момент по ссылке «Настройки куки» внизу каждой страницы.</p>
+    <div class="consent-cat">
+      <label class="switch"><input type="checkbox" role="switch" name="necessary" checked disabled aria-describedby="consent-nec-d"><span>Необходимые</span></label>
+      <p class="consent-cat__d" id="consent-nec-d">Включены всегда: без них не работают вход в кабинет, доступ к материалам после заявки, привязка заявки к партнёру, который Вас пригласил, тема оформления и этот выбор.</p>
+    </div>
+    <div class="consent-cat">
+      <label class="switch"><input type="checkbox" role="switch" name="analytics" aria-describedby="consent-an-d"><span>Аналитика</span></label>
+      <p class="consent-cat__d" id="consent-an-d">Яндекс Метрика с Вебвизором (запись действий на странице), Google Analytics и наш счётчик посещений Rybbit: какие страницы открывают и как ими пользуются. Получатели: ООО «Яндекс» (Россия) и Google LLC (США); Rybbit работает на нашем сервере в Германии.</p>
+    </div>
+    <div class="consent-cat">
+      <label class="switch"><input type="checkbox" role="switch" name="ads" aria-describedby="consent-ads-d"><span>Реклама</span></label>
+      <p class="consent-cat__d" id="consent-ads-d">Meta Pixel* и рекламные метки Google: показ рекламы Housebook на других сайтах и оценка её отдачи. Получатели: Meta Platforms Inc. и Google LLC (США).</p>
+    </div>
+    <p class="note">Подробнее: <a href="politika.html">Политика обработки персональных данных</a> и <a href="soglasie.html">Согласие на обработку персональных данных</a>. * Meta Platforms Inc. признана экстремистской организацией, её деятельность запрещена на территории РФ.</p>
+  </div>
+  <div class="modal__foot"><button type="submit" class="btn btn--acc">Сохранить выбор</button></div>
+</form></dialog>
+</div>
