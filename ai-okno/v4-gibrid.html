@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AI‑подбор: гибрид v4</title>
-<meta name="robots" content="noindex">
-<meta name="description" content="Концепт v4: окно AI‑подбора по центру (основа v1), фото на карточках и полоса с цифрами (из v3), пузырь запроса с карандашом (из v2), думающая сфера thinking-orbs. Демо на записанном ответе.">
+<meta name="description" content="Концепт v4: окно AI‑подбора по центру (основа v1), фото на карточках и полоса с цифрами (из v3), пузырь запроса с карандашом (из v2), думающая сфера thinking-orbs. Четыре состояния: думает, ответ (записанный ответ), пусто и ошибка (тексты из кода сайта); всё демо.">
 <meta name="theme-color" content="#0E6A40">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +12,7 @@
 <link rel="stylesheet" href="../kit/hb.css">
 <style>
 /* Вариант v4 «Гибрид»: основа v1 (окно по центру над главной), из v3 фото на карточках и полоса с цифрами под рекомендацией,
-   из v2 пузырь запроса с карандашом. Глянцевых шаров нет: думающая сфера thinking-orbs (composing, палитра housebook) на canvas.
+   из v2 пузырь запроса с карандашом. Состояния: ?state=loading, answer, empty, error (&kind=rate - лимит запросов 429). Глянцевых шаров нет: думающая сфера thinking-orbs (composing, палитра housebook) на canvas.
    Стили на токенах кита (hb.css только читается), сырых HEX в стилях нет. */
 
 /* ---------- страница под окном: снимок главной ---------- */
@@ -32,6 +31,9 @@ html:has(.aiw[open]) { overflow: hidden; }
 .aiw::backdrop { background: rgba(18,21,23,.46); -webkit-backdrop-filter: blur(6px) saturate(.9); backdrop-filter: blur(6px) saturate(.9); animation: aiw-fade .45s ease; }
 @keyframes aiw-in { from { opacity: 0; transform: translateY(16px) scale(.985); } }
 @keyframes aiw-fade { from { opacity: 0; } }
+/* с 1400 плашка #demo (position: fixed) живёт внутри dialog: transform у dialog на время анимации сделал бы его
+   containing block, и плашка стояла бы поверх подвала окна. Здесь dialog проявляется только прозрачностью */
+@media (min-width: 1400px) { .aiw[open] { animation-name: aiw-fade; } }
 
 /* голова: малая сфера 20 px как знак AI, название, закрыть */
 .aiw__head { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px 10px var(--pad); border-bottom: 1px solid var(--line); background: radial-gradient(90% 260% at 0% 0%, var(--tint) 0%, transparent 52%), var(--paper); }
@@ -41,8 +43,10 @@ html:has(.aiw[open]) { overflow: hidden; }
 .aiw__x { color: var(--ink-2); }
 
 .aiw__body { position: relative; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; overscroll-behavior: contain; padding: 20px var(--pad) 28px; }
-.aiw[data-state="loading"] .ans, .aiw[data-state="answer"] .think { display: none; }
-.aiw[data-state="loading"] .aiw__body { overflow: hidden; }
+/* четыре состояния: думает, ответ, пусто, ошибка; в теле видна только секция текущего */
+.aiw:not([data-state="loading"]) .think, .aiw:not([data-state="answer"]) .ans, .aiw:not([data-state="empty"]) .emp, .aiw:not([data-state="error"]) .err { display: none; }
+/* заголовок или текст нового состояния получает фокус скриптом: рамку не рисуем, это не элемент управления */
+.aiw__body [tabindex="-1"]:focus { outline: none; }
 
 /* ---------- пузырь запроса (из v2): карандаш превращает запрос в поле, Enter или кнопка отправляют заново ---------- */
 .q { display: grid; justify-items: end; gap: 6px; }
@@ -63,7 +67,9 @@ html:has(.aiw[open]) { overflow: hidden; }
 .q__note { text-align: right; }
 
 /* ---------- думает: крупная сфера composing, сменяющаяся подпись хода, скелетоны ---------- */
-.think { flex: 1 1 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 20px; min-height: 0; }
+/* скелетоны занимают только остаток высоты (contain: size - своей высоты у них нет), сфера с подписью не сжимается:
+   на низком экране (320x568, 1024x600) плашка демо встаёт под подписью, а не на неё, и тело прокручивается */
+.think { flex: 1 1 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 20px; }
 .think__stage { display: grid; justify-items: center; gap: 4px; padding-top: 8px; text-align: center; }
 .think__orb { position: relative; display: grid; place-items: center; width: 240px; height: 184px; }
 .think__orb::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(closest-side, var(--tint), transparent); }
@@ -72,7 +78,7 @@ html:has(.aiw[open]) { overflow: hidden; }
 .think__step span { display: inline-block; }
 .think__step.is-in span { animation: step-in .5s cubic-bezier(.2,.7,.2,1); }
 @keyframes step-in { from { opacity: 0; transform: translateY(8px); filter: blur(2px); } }
-.think__skel { display: grid; align-content: start; gap: 12px; min-height: 0; overflow: hidden; -webkit-mask-image: linear-gradient(#000 40%, transparent 100%); mask-image: linear-gradient(#000 40%, transparent 100%); }
+.think__skel { display: grid; align-content: start; gap: 12px; min-height: 0; overflow: hidden; contain: size; -webkit-mask-image: linear-gradient(#000 40%, transparent 100%); mask-image: linear-gradient(#000 40%, transparent 100%); }
 .rec.rec--skel { gap: 10px; border-left-color: var(--line); background: var(--paper); }
 .ai-card--skel, .ai-card--skel:hover { transform: none; border-color: var(--line); box-shadow: none; }
 .ai-card--skel .skel--ph { height: auto; min-height: calc(var(--ph-w) * .75); border-radius: 0; }
@@ -108,6 +114,23 @@ html:has(.aiw[open]) { overflow: hidden; }
 .ai-card:has(.card__link:focus-visible) { outline: 2px solid var(--accent-hover); outline-offset: 2px; }
 .ai-card .card__link:focus-visible { outline: none; }
 
+/* ---------- пусто: честное пояснение сервера в той же рамке, что рекомендация, текст «не найдено» из переводов, подсказки ---------- */
+/* полоса нейтральная, а не цвета акцента: это ответ без подбора, но и не ошибка; полосы с цифрами нет, цифр в пустом ответе нет */
+.emp, .err { display: grid; gap: 14px; align-content: start; }
+.rec--empty { border-left-color: var(--control); background: var(--paper); }
+.rec--empty .rec__t { max-width: none; text-wrap: pretty; }
+.rec--empty .rec__f { color: var(--ink-2); font-size: var(--fs-ui); line-height: 22px; }
+.rec--empty .rec__f .ic { margin-top: 3px; color: var(--ink-3); }
+.tips { display: grid; gap: 8px; }
+.tips__k { font-size: var(--fs-small); line-height: 20px; color: var(--ink-3); }
+.tips .pill { min-height: var(--h-touch); text-align: left; }
+
+/* ---------- ошибка: плашка брендбука п.9.11 (.notice), сбой поиска красной полосой, лимит запросов оранжевой ---------- */
+.err .notice { padding: 16px 18px 18px; }
+.err__top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 6px 12px; }
+.err .notice__t { flex: 1 1 260px; font: 600 17px/24px "Geologica", "IBM Plex Sans", sans-serif; }
+.err .notice > .ic { width: 22px; height: 22px; margin-top: 1px; }
+
 /* ---------- подвал: заявка одна; слева пояснение к ней по состоянию, в ответе под кнопкой классический поиск ---------- */
 .aiw__foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 24px; padding: 14px var(--pad) 16px; border-top: 1px solid var(--line); background: var(--page); }
 .foot-t { font-size: var(--fs-small); line-height: 20px; color: var(--ink-2); text-wrap: balance; }
@@ -116,21 +139,27 @@ html:has(.aiw[open]) { overflow: hidden; }
 .cta .btn { white-space: nowrap; }
 .cta__alt { display: inline-flex; align-items: center; min-height: 32px; font-size: var(--fs-small); line-height: 20px; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 3px; }
 .cta__alt:hover { color: var(--accent-text); text-decoration-color: currentColor; }
-.aiw[data-state="answer"] .foot-t--loading, .aiw[data-state="loading"] .foot-t--answer, .aiw[data-state="loading"] .cta__alt { display: none; }
+.aiw[data-state="loading"] .cta__alt { display: none; }
 .more-slot { display: contents; }
 
 /* ---------- демо-переключатель: вне окна, в углу ---------- */
 .demo { position: fixed; left: 16px; bottom: 16px; z-index: 30; display: grid; gap: 6px; padding: 10px 12px; border: 1px dashed var(--control); border-radius: var(--r-m); background: var(--paper); box-shadow: var(--e2); font-size: var(--fs-min); line-height: 16px; color: var(--ink-3); }
-.demo__b { display: flex; gap: 6px; }
+/* четыре кнопки сеткой 2 на 2: с 1400 плашка (правый край 195) стоит левее окна (левый край от 220) и не ложится на подвал */
+.demo__b { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.demo .pill { justify-content: center; }
 .demo .pill[aria-pressed="true"] { border-color: var(--sel-bd); background: var(--sel-bg); color: var(--sel-fg); }
 .aiw .toasts { bottom: 24px; }
+/* при ширине меньше 1400 слева от окна места нет (при 1280 окно начинается со 160): плашка уходит в конец тела окна,
+   кнопки одним рядом (не съедает скелетоны «думает»), с переносом, чтобы на 320 не быть шире тела */
+@media (max-width: 1399px) {
+  .aiw .demo { position: static; justify-self: start; margin-top: 4px; box-shadow: none; }
+  .aiw .demo__b { display: flex; flex-wrap: wrap; }
+}
 
 /* ---------- планшет: окно почти во весь экран, фото меньше ---------- */
 @media (max-width: 899px) {
   .aiw { --pad: 20px; --ph-w: 116px; width: calc(100vw - 32px); height: calc(100dvh - 32px); }
   .aiw__foot { gap: 10px 20px; }
-  /* окно почти во весь экран: плашка демо уходит в конец тела, иначе ложится на подвал */
-  .aiw .demo { position: static; justify-self: start; margin-top: 4px; box-shadow: none; }
 }
 @media (max-width: 759px) { .ai-cards { grid-template-columns: minmax(0, 1fr); } }
 
@@ -163,13 +192,13 @@ html:has(.aiw[open]) { overflow: hidden; }
   .ai-card__go { margin-right: 8px; }
   .aiw__foot { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--paper); box-shadow: 0 -8px 20px -14px rgba(18,21,23,.3); }
   .foot-t { font-size: var(--fs-cap); line-height: 18px; text-align: center; }
-  .aiw .foot-t--answer { display: none; }
+  .aiw[data-state="answer"] .foot-t { display: none; }
   .cta { grid-column: auto; }
   .cta .btn { width: 100%; min-height: var(--h-m); }
   /* ссылка на классический поиск переезжает в тело (скрипт), внизу закреплена только кнопка заявки; касание 44 */
   .more-slot { display: grid; gap: 14px; margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--line); }
   .more-slot .cta__alt { justify-self: start; min-height: var(--h-touch); }
-  .aiw .demo .pill { min-height: var(--h-touch); padding: 0 16px; }
+  .aiw .demo .pill { min-height: var(--h-touch); padding: 0 12px; }
   .aiw .toasts { bottom: calc(80px + env(safe-area-inset-bottom)); }
 }
 
@@ -188,6 +217,10 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
 <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
 <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-search-x" viewBox="0 0 24 24"><path d="m13.5 8.5-5 5"/><path d="m8.5 8.5 5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
 <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
 </svg>
 
@@ -214,10 +247,11 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
         <label class="sr-only" for="q-in">Изменить запрос: ответ ниже заменится новым подбором</label>
         <div class="ask__bar"><input id="q-in" name="q" type="text" placeholder="Напишите, что ищете" autocomplete="off" enterkeyhint="send"><button class="btn btn--tint" type="submit">Спросить AI</button></div>
         <div class="q__row">
+          <!-- подсказки из кода сайта: src/locales/ru.json aiSearch.example1-3 (строки 1617, 1620, 1621), неразрывные пробелы только типографика -->
           <div class="ask__hints">
-            <button type="button" class="pill pill--xs" data-q>Студия в Искеле до 120&nbsp;000 евро</button>
-            <button type="button" class="pill pill--xs" data-q>Вилла в Кирении у моря</button>
-            <button type="button" class="pill pill--xs" data-q>Квартира в Никосии</button>
+            <button type="button" class="pill pill--xs" data-q>Квартира в Грузии до&nbsp;100&nbsp;000 долларов</button>
+            <button type="button" class="pill pill--xs" data-q>Объект с высокой арендной доходностью</button>
+            <button type="button" class="pill pill--xs" data-q>Квартира в ОАЭ до&nbsp;$300,000</button>
           </div>
           <button type="button" class="btn btn--quiet btn--s" id="q-cancel">Отмена</button>
         </div>
@@ -244,7 +278,7 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
     <section class="ans" aria-labelledby="rec-k">
       <div class="rec" data-rv>
         <div class="rec__top">
-          <h3 class="eyebrow rec__k" id="rec-k">Рекомендация AI</h3>
+          <h3 class="eyebrow rec__k" id="rec-k" tabindex="-1">Рекомендация AI</h3>
           <span class="badge badge--sample badge--txt">Демо: записанный ответ</span>
         </div>
         <p class="rec__t">Поиск кондоминиумов на Северном Кипре у моря с максимальной ценой 200&nbsp;000 евро.</p>
@@ -264,17 +298,52 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
         <li data-rv><article class="card ai-card"><div class="ai-card__ph"><img src="img/northern-cyprus-3.webp" alt="" decoding="async"></div><div class="ai-card__b"><span class="card__place">Искеле, Северный Кипр</span><h4><a class="card__link" href="../proekt.html">Riverside Life Residence</a></h4><span class="card__price">от&nbsp;≈&nbsp;$122&nbsp;935</span><span class="tag">Кондоминиум</span></div><svg class="ic ai-card__go" aria-hidden="true"><use href="#i-chevron-right"/></svg></article></li>
         <li data-rv><article class="card ai-card"><div class="ai-card__ph"><img src="img/cyprus-3.webp" alt="" decoding="async"></div><div class="ai-card__b"><span class="card__place">Фамагуста, Северный Кипр</span><h4><a class="card__link" href="../proekt.html">Neo Residence</a></h4><span class="card__price">от&nbsp;≈&nbsp;$130&nbsp;866</span><span class="tag">Кондоминиум</span></div><svg class="ic ai-card__go" aria-hidden="true"><use href="#i-chevron-right"/></svg></article></li>
       </ul>
-      <div class="more-slot" id="more-slot"></div>
+      <div class="more-slot" id="more-slot" data-slot="answer"></div>
+    </section>
+
+    <!-- пусто: запрос из теста маршрута (src/app/api/ai-search/__tests__/ai-search-route.test.ts:254), рынок назван, но его нет в каталоге;
+         пояснение сервера тогда не текст модели, а постоянная строка AI_SEARCH_UNKNOWN_MARKET_EXPLANATION.ru (src/lib/ai/ai-search.ts:77) -->
+    <section class="emp" aria-labelledby="emp-k">
+      <div class="rec rec--empty">
+        <div class="rec__top">
+          <h3 class="eyebrow rec__k" id="emp-k">Рекомендация AI</h3>
+          <span class="badge badge--sample badge--txt">Демо: тексты из кода сайта</span>
+        </div>
+        <!-- «Вами» с прописной по правилу владельца об обращении; в коде сайта (src/lib/ai/ai-search.ts:77) «вами» со строчной - правка для волны В6 -->
+        <p class="rec__t" id="emp-t" tabindex="-1">Названного Вами направления пока нет в нашем каталоге - честно нечего предложить именно там.</p>
+        <p class="rec__f"><svg class="ic ic--16" aria-hidden="true"><use href="#i-search-x"/></svg><span id="emp-none" role="status">Подходящих объектов не найдено. Попробуйте другой запрос.</span></p>
+      </div>
+      <div class="tips" role="group" aria-labelledby="tips-k">
+        <p class="tips__k" id="tips-k">Попробуйте спросить:</p>
+        <div class="ask__hints">
+          <button type="button" class="pill" data-ask>Квартира в Грузии до&nbsp;100&nbsp;000 долларов</button>
+          <button type="button" class="pill" data-ask>Объект с высокой арендной доходностью</button>
+          <button type="button" class="pill" data-ask>Квартира в ОАЭ до&nbsp;$300,000</button>
+        </div>
+      </div>
+      <div class="more-slot" data-slot="empty"></div>
+    </section>
+
+    <!-- ошибка: текст сбоя из переводов (aiSearch.error), а не серверная строка с внутренним сообщением; ?kind=rate - лимит запросов (429) -->
+    <section class="err" aria-labelledby="err-t">
+      <div class="notice notice--err" id="err-box">
+        <svg class="ic" aria-hidden="true"><use id="err-ic" href="#i-triangle-alert"/></svg>
+        <div class="err__top">
+          <h3 class="notice__t" id="err-t" tabindex="-1"><span id="err-msg" role="alert">AI-поиск временно недоступен.</span></h3>
+          <span class="badge badge--sample badge--txt">Демо: текст из кода сайта</span>
+        </div>
+        <div class="notice__act"><button type="button" class="btn btn--s btn--t" id="retry"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Повторить</button></div>
+      </div>
+      <div class="more-slot" data-slot="error"></div>
     </section>
     <div id="demo-slot"></div>
   </div>
 
   <footer class="aiw__foot">
-    <p class="foot-t foot-t--loading"><b>Не хотите ждать?</b> Специалист подберёт варианты вручную.</p>
-    <p class="foot-t foot-t--answer"><b>Хотите точнее?</b> Специалист подберёт варианты вручную.</p>
+    <p class="foot-t"><b>Удобнее, когда подбирает человек?</b></p><!-- во всех состояниях: src/locales/ru.json aiSecondLeadText -->
     <div class="cta" id="cta">
       <button type="button" class="btn btn--acc btn--l" id="lead"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg>Подобрать со специалистом</button>
-      <a class="cta__alt" id="alt" href="../nedvizhimost.html">Или воспользуйтесь классическим поиском</a>
+      <a class="cta__alt" id="alt" href="../nedvizhimost.html">Или воспользуйтесь классическим поиском&nbsp;→</a><!-- ru.json aiSearch.useClassicFilters / orUseFilters, стрелка из кода -->
     </div>
   </footer>
   <div class="toasts" id="toasts" role="status"></div>
@@ -285,6 +354,8 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
   <div class="demo__b">
     <button type="button" class="pill pill--xs" data-demo="loading" aria-pressed="false">Думает</button>
     <button type="button" class="pill pill--xs" data-demo="answer" aria-pressed="true">Ответ</button>
+    <button type="button" class="pill pill--xs" data-demo="empty" aria-pressed="false">Пусто</button>
+    <button type="button" class="pill pill--xs" data-demo="error" aria-pressed="false">Ошибка</button>
   </div>
 </div>
 
@@ -303,7 +374,19 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
   const dlg = $('#aiw'), body = $('#aiw-body'), title = $('#aiw-t'), stepT = $('#step-t');
   const demo = $('#demo'), opener = $('#opener'), note = $('#rq-note');
   const qB = $('#q-b'), qText = $('#q-text'), qEdit = $('#q-edit'), qForm = $('#q-form'), qIn = $('#q-in');
-  let state = null, query = Q0, step = 0, tick = null, wait = null;
+  // пусто: запрос из теста маршрута (ai-search-route.test.ts:254) - рынок назван, но его нет в каталоге, пояснение сервера постоянное
+  const Q_EMPTY = 'дом в Монако';
+  const STATES = ['loading', 'answer', 'empty', 'error'];
+  // тексты пустого ответа и ошибок только из кода сайта (ветка hb2/perenos), текст ошибки дословно как в ru.json (обычный дефис), в заголовках дефис неразрывный
+  const T_NONE = 'Подходящих объектов не найдено. Попробуйте другой запрос.';      // src/locales/ru.json:1614 aiSearch.noResults
+  const ERR = {
+    fail: { cls: 'notice--err', ic: '#i-triangle-alert', t: 'AI-поиск временно недоступен.' },                // src/locales/ru.json:1610 aiSearch.error
+    rate: { cls: 'notice--warn', ic: '#i-clock', t: 'Превышен лимит запросов. Попробуйте через минуту.' },  // src/app/api/ai-search/route.ts:75 rateLimit (429)
+  };
+  const errBox = $('#err-box'), errIc = $('#err-ic'), errMsg = $('#err-msg'), empNone = $('#emp-none');
+  // при смене состояния фокус переходит на его заголовок или текст
+  const FOCUS = { loading: title, answer: $('#rec-k'), empty: $('#emp-t'), error: $('#err-t') };
+  let state = null, query = Q0, kind = 'fail', step = 0, tick = null, wait = null;
 
   // ---------- сферы thinking-orbs: composing, палитра housebook ----------
   // крупная 150 px крутится, пока AI думает; малая 20 px в шапке крутится в загрузке, в ответе стоит статичным кадром
@@ -346,11 +429,23 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
   const reveal = () => $$('[data-rv]', body).forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
     { duration: 420, delay: 80 + i * 50, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' }));
 
+  // текст из скрипта: группы разрядов (200 000) и «до» перед числом не рвутся, пробелы между ними неразрывные (U+00A0)
+  const nb = s => s.replace(/(\d) (?=\d{3}(?!\d))/g, '$1 ').replace(/(^|\s)(до) (?=[$€£≈]?\d)/gi, '$1$2 ');
+  // живая область объявляет текст, когда он появляется: сначала пусто, на следующем кадре текст
+  const say = (el, text) => { el.textContent = ''; requestAnimationFrame(() => { el.textContent = nb(text); }); };
+  const paintErr = () => {
+    const k = ERR[kind];
+    for (const c of Object.values(ERR)) errBox.classList.toggle(c.cls, c === k);
+    errIc.setAttribute('href', k.ic);
+    say(errMsg, k.t);
+  };
+
   const setState = (s, o = {}) => {
     stop();
     const prev = state; state = s;
     if (o.query) query = o.query;
-    qText.textContent = query;
+    if (s === 'error') kind = o.kind === 'rate' ? 'rate' : 'fail';
+    qText.textContent = nb(query);
     dlg.dataset.state = s;
     if (s === 'loading') {
       body.setAttribute('aria-busy', 'true'); body.scrollTop = 0; note.hidden = true;
@@ -362,20 +457,28 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
       body.setAttribute('aria-busy', 'false');
       bigLive(false); markLive(false);
       if (o.reveal && prev === 'loading' && !RM && dlg.open) { body.scrollTop = 0; reveal(); }
+      if (s === 'empty') { body.scrollTop = 0; say(empNone, T_NONE); }
+      if (s === 'error') { body.scrollTop = 0; paintErr(); }
     }
+    placeFoot();
+    if (o.focus) FOCUS[s].focus({ preventScroll: true });
     syncDemo();
-    try { const u = new URL(location.href); u.searchParams.set('state', s); history.replaceState(null, '', u); } catch (e) { /* file:// в части браузеров не даёт менять адрес: состояние уже на странице */ }
+    try {
+      const u = new URL(location.href); u.searchParams.set('state', s);
+      if (s === 'error' && kind === 'rate') u.searchParams.set('kind', 'rate'); else u.searchParams.delete('kind');
+      history.replaceState(null, '', u);
+    } catch (e) { /* file:// в части браузеров не даёт менять адрес: состояние уже на странице */ }
   };
 
   // демо-плашка: в открытом окне живёт внутри dialog (иначе её закрыл бы инертный фон), в закрытом на странице
   const placeDemo = () => (dlg.open ? $('#demo-slot') : document.body).append(demo);
-  // на телефоне ссылка на классический поиск уходит в тело листа, внизу закреплена только кнопка заявки
-  const placeFoot = () => (PHONE.matches ? $('#more-slot') : $('#cta')).append($('#alt'));
+  // на телефоне ссылка на классический поиск уходит в тело листа (в секцию текущего состояния), внизу закреплена только кнопка заявки
+  const placeFoot = () => (PHONE.matches ? ($(`.more-slot[data-slot="${state}"]`) || $('#more-slot')) : $('#cta')).append($('#alt'));
   PHONE.addEventListener('change', placeFoot); placeFoot();
 
   const open = () => { if (!dlg.open) { dlg.showModal(); placeDemo(); title.focus(); } };
-  // форма правки прячется на время загрузки, поэтому фокус уводим в заголовок окна, а не теряем в body
-  const ask = q => { open(); title.focus(); setState('loading', { query: q, then: () => { setState('answer', { reveal: true }); if (q !== Q0) note.hidden = false; } }); };
+  // форма правки прячется на время загрузки, поэтому фокус уводим в заголовок окна, а не теряем в body; в ответе фокус на рекомендации
+  const ask = q => { open(); setState('loading', { query: q, focus: true, then: () => { setState('answer', { reveal: true, focus: true }); if (q !== Q0) note.hidden = false; } }); };
 
   // ---------- правка запроса в пузыре ----------
   const editing = () => !qForm.hidden;
@@ -387,7 +490,7 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
   qEdit.addEventListener('click', editOpen);
   $('#q-cancel').addEventListener('click', () => editClose());
   qIn.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); editClose(); } });
-  for (const c of $$('[data-q]', qForm)) c.addEventListener('click', () => { qIn.value = c.textContent.replace(/ /g, ' '); qIn.focus(); });
+  for (const c of $$('[data-q]', qForm)) c.addEventListener('click', () => { qIn.value = c.textContent.replace(/ /g, ' '); qIn.focus(); });
   qForm.addEventListener('submit', e => {
     e.preventDefault();
     const q = qIn.value.trim().replace(/\s+/g, ' ');
@@ -396,10 +499,15 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
   });
 
   opener.addEventListener('click', () => ask(Q0));
+  // демо-переключатель: у каждого состояния свой запрос в пузыре (пусто - «дом в Монако», остальные - записанный)
   for (const b of $$('[data-demo]', demo)) b.addEventListener('click', () => {
     const s = b.dataset.demo; open(); if (editing()) editClose(false);
-    if (s === 'loading') setState('loading'); else setState('answer', { reveal: true });
+    note.hidden = true;
+    setState(s, { query: s === 'empty' ? Q_EMPTY : Q0, reveal: s === 'answer', focus: true });
   });
+  // пусто: подсказка подставляет запрос и уводит в «думает»; ошибка: «Повторить» отправляет тот же запрос заново
+  for (const c of $$('[data-ask]')) c.addEventListener('click', () => ask(c.textContent.replace(/\u00a0/g, ' ')));
+  $('#retry').addEventListener('click', () => ask(query));
   // Esc во время правки закрывает только поле, второе нажатие закрывает окно
   dlg.addEventListener('cancel', e => { if (editing()) { e.preventDefault(); editClose(); } });
   $('[data-close]', dlg).addEventListener('click', () => dlg.close());
@@ -412,9 +520,9 @@ html.freeze .aiw[open], html.freeze .aiw::backdrop { animation: none; }
   });
 
   // старт: окно открыто сразу, состояние из адреса
-  const s0 = P.get('state') === 'loading' ? 'loading' : 'answer';
+  const s0 = STATES.includes(P.get('state')) ? P.get('state') : 'answer';
   dlg.showModal(); placeDemo(); title.focus();
-  setState(s0);
+  setState(s0, { query: s0 === 'empty' ? Q_EMPTY : Q0, kind: P.get('kind'), focus: s0 === 'empty' || s0 === 'error' });
   if (FREEZE) {
     document.documentElement.classList.add('freeze');
     // CSS-анимации стоят: появление в финале, блик скелетона посередине
