@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Думающие сферы: демо</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Девять анимаций thinking-orbs (Jakub Antalik, MIT) перенесены в ванильный JS без сборки и показаны в двух палитрах: исходной и зелёной гамме Housebook.">
+<meta name="theme-color" content="#0E6A40">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+/* Демо переноса thinking-orbs. Токены Housebook скопированы из kit/hb.css (:root и тема «Сумерки»), чтобы страница
+   была автономной. Источник анимаций: https://github.com/Jakubantalik/thinking-orbs, автор Jakub Antalik, лицензия MIT
+   (LICENSE рядом). Сам код анимаций в thinking-orbs.js. Внешних запросов нет, кроме шрифтов кита. */
+:root {
+  --paper:#FFFFFF; --page:#F3F8FC; --sunken:#EDF2F5; --tint:#DAF1DC; --line:#E2E7EA;
+  --ink:#121517; --ink-2:#4D5254; --ink-3:#656A6D;
+  --accent:#00732D; --accent-hover:#005820; --accent-text:var(--accent); --on-accent:#FFFFFF;
+  --jade:#0E6A40; --jade2:#267953; --yellow:#E6B422;
+  --glass: rgba(255,255,255,.9);
+  --e1: 0 1px 2px rgba(18,21,23,.06); --e2: 0 10px 30px -12px rgba(18,21,23,.16); --e3: 0 24px 60px -24px rgba(18,21,23,.22);
+  --r-s: 10px; --r-m: 12px; --r-l: 14px; --r-xl: 16px; --r-pill: 999px;
+  --dark-pane: #0B0C0D; --dark-pane-ink: #E8EAEB; --dark-pane-line: #26292B;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --page:#121517; --paper:#262A2C; --sunken:#303436; --tint:#0E2C1C; --line:#505456;
+  --ink:#FFFFFF; --ink-2:#E2E7EA; --ink-3:#B0B5B8;
+  --accent:#73B28C; --accent-hover:#8FC1A3; --accent-text:var(--accent); --on-accent:#121517;
+  --glass: rgba(18,21,23,.84);
+  --e1: 0 1px 2px rgba(0,0,0,.4); --e2: 0 10px 30px -12px rgba(0,0,0,.5); --e3: 0 24px 60px -24px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--page); }
+body { margin: 0; background: var(--page); color: var(--ink-2); font: 400 16px/25px "IBM Plex Sans", system-ui, -apple-system, Arial, sans-serif; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; overflow-x: clip; }
+h1, h2, h3, p, figure, ul { margin: 0; }
+ul { padding: 0; list-style: none; }
+h1, h2, h3 { font-family: "Geologica", "IBM Plex Sans", sans-serif; font-weight: 600; color: var(--ink); text-wrap: balance; }
+h1 { font-size: 40px; line-height: 48px; letter-spacing: -.01em; }
+h2 { font-size: 24px; line-height: 32px; }
+h3 { font-size: 18px; line-height: 24px; }
+a { color: var(--accent-text); }
+code { font: 500 .9em/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
+:focus-visible { outline: 2px solid var(--accent-hover); outline-offset: 3px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+.eyebrow { font: 600 12px/16px "Geologica", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text); }
+.lead { font-size: 18px; line-height: 28px; color: var(--ink-2); max-width: 46em; }
+.support { font-size: 14px; line-height: 20px; color: var(--ink-3); }
+
+/* ---------- шапка и панель управления ---------- */
+.hero { padding: 48px 0 24px; display: grid; gap: 14px; }
+.src { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; font-size: 14px; line-height: 20px; color: var(--ink-3); }
+.chip { display: inline-flex; align-items: center; min-height: 28px; padding: 3px 10px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); color: var(--ink-2); font-size: 13px; line-height: 18px; }
+.chip--ok { border-color: var(--jade2); color: var(--accent-text); background: var(--tint); font-weight: 500; }
+.bar { position: sticky; top: 0; z-index: 20; background: var(--glass); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.bar__in { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; min-height: 56px; padding-top: 8px; padding-bottom: 8px; }
+.bar__grow { flex: 1; min-width: 0; }
+.btn { appearance: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); color: var(--ink); font: 500 15px/20px "IBM Plex Sans", sans-serif; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.seg { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); }
+.seg button { appearance: none; min-height: 34px; padding: 0 14px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--ink-2); font: 500 14px/20px "IBM Plex Sans", sans-serif; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.motion-note { display: none; margin: 16px 0 0; padding: 10px 14px; border-radius: var(--r-s); background: var(--tint); color: var(--ink-2); font-size: 14px; line-height: 20px; }
+
+/* ---------- секции ---------- */
+section { padding: 40px 0 8px; display: grid; gap: 20px; }
+.sec-head { display: grid; gap: 8px; }
+
+/* ---------- панели: исходная (тёмная подложка) и Housebook ---------- */
+.pane { position: relative; display: grid; justify-items: center; align-content: start; gap: 14px; padding: 18px 14px 16px; border-radius: var(--r-l); border: 1px solid var(--line); background: var(--paper); }
+.pane--orig { background: var(--dark-pane); border-color: var(--dark-pane-line); color: var(--dark-pane-ink); }
+.pane__tag { justify-self: start; font: 600 12px/16px "Geologica", sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.pane--orig .pane__tag { color: #9AA0A3; }
+.pane__big { display: grid; place-items: center; min-height: 168px; }
+.pane__row { display: flex; align-items: center; gap: 14px; width: 100%; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; line-height: 18px; color: var(--ink-3); }
+.pane--orig .pane__row { border-color: var(--dark-pane-line); color: #9AA0A3; }
+.pane__row > span { display: grid; gap: 2px; }
+.inline { display: inline-flex; align-items: center; gap: 8px; }
+.pane--orig .inline { color: var(--dark-pane-ink); }
+.pane:not(.pane--orig) .inline { color: var(--ink-2); }
+
+/* ---------- сетка карточек ---------- */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.card { display: grid; gap: 14px; padding: 18px; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--paper); box-shadow: var(--e1); }
+.card__head { display: grid; gap: 4px; }
+.card__name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.card__name h3 { font-size: 20px; line-height: 26px; }
+.card__mode { font-size: 13px; line-height: 18px; color: var(--ink-3); }
+.card__desc { font-size: 15px; line-height: 22px; }
+.panes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.card__stat { font-size: 13px; line-height: 18px; color: var(--ink-3); }
+
+/* ---------- как встанет в окно AI-ответа ---------- */
+.wins { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.win { display: grid; grid-template-rows: auto 1fr auto; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--paper); box-shadow: var(--e3); overflow: hidden; }
+.win__head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: radial-gradient(90% 260% at 0% 0%, var(--tint) 0%, transparent 52%), var(--paper); }
+.win__head > span { display: grid; gap: 1px; min-width: 0; }
+.win__eyebrow { font: 600 12px/16px "Geologica", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text); }
+.win__q { font: 600 15px/20px "Geologica", "IBM Plex Sans", sans-serif; color: var(--ink); }
+.win__body { display: grid; justify-items: center; align-content: center; gap: 6px; padding: 22px 16px 20px; text-align: center; }
+.win__step { font: 600 20px/26px "Geologica", "IBM Plex Sans", sans-serif; color: var(--ink); margin-top: 6px; }
+.win__n { font-size: 14px; line-height: 20px; color: var(--ink-3); }
+.prog { display: flex; gap: 4px; margin-top: 10px; }
+.prog i { display: block; width: 64px; height: 4px; border-radius: 2px; background: var(--line); }
+.prog i.on { background: var(--accent); }
+.win__foot { padding: 12px 16px; border-top: 1px solid var(--line); background: var(--sunken); font-size: 13px; line-height: 18px; color: var(--ink-2); }
+
+/* ---------- таблица нагрузки ---------- */
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-l); overflow: hidden; }
+.tbl th, .tbl td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+.tbl th { font: 600 12px/16px "Geologica", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); background: var(--sunken); }
+.tbl td.n { text-align: right; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tblwrap { overflow-x: auto; border-radius: var(--r-l); }
+footer { margin-top: 40px; padding: 24px 0 48px; border-top: 1px solid var(--line); font-size: 14px; line-height: 20px; color: var(--ink-3); }
+footer .wrap { display: grid; gap: 6px; }
+
+@media (max-width: 1023px) { .wins { grid-template-columns: 1fr; } .win { max-width: 520px; width: 100%; } }
+@media (max-width: 899px) { .grid { grid-template-columns: 1fr; } }
+@media (max-width: 639px) {
+  .wrap { padding: 0 16px; }
+  h1 { font-size: 30px; line-height: 36px; }
+  .panes { grid-template-columns: 1fr; }
+  .hero { padding-top: 32px; }
+  .bar__grow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .motion-note { display: block; }
+  #pause { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="wrap hero">
+  <span class="eyebrow">Окно AI-ответа, анимации ожидания</span>
+  <h1>Думающие сферы</h1>
+  <p class="lead">Девять состояний из открытой библиотеки thinking-orbs перенесены в ванильный JavaScript без сборки. Каждое показано в двух палитрах: исходной монохромной и в зелёной гамме Housebook с золотистым акцентом.</p>
+  <p class="src">
+    <span class="chip chip--ok">Лицензия MIT, коммерческое использование разрешено</span>
+    <span>Автор Jakub Antalik, репозиторий <a href="https://github.com/Jakubantalik/thinking-orbs" rel="noopener">github.com/Jakubantalik/thinking-orbs</a>, текст лицензии в файле <code>LICENSE</code> рядом.</span>
+  </p>
+  <p class="motion-note" id="motion-note">В системе включено ограничение анимации: сферы показаны статичным кадром.</p>
+</header>
+
+<div class="bar">
+  <div class="wrap bar__in">
+    <button class="btn" id="pause" type="button" aria-pressed="false">Пауза</button>
+    <div class="seg" role="group" aria-label="Тема страницы">
+      <button type="button" data-theme-btn="light" aria-pressed="true">Светлая</button>
+      <button type="button" data-theme-btn="dark" aria-pressed="false">Сумерки</button>
+    </div>
+    <span class="support bar__grow">Сферы ставятся на паузу вне экрана и на скрытой вкладке.</span>
+  </div>
+</div>
+
+<main class="wrap">
+  <section aria-labelledby="h-ctx">
+    <div class="sec-head">
+      <h2 id="h-ctx">Как это встаёт в окно AI-ответа</h2>
+      <p class="support">Три шага ожидания из концепта v1 (шаг 1 из 3, 2 из 3, 3 из 3). Крупная сфера по центру, малая (20 px) в шапке окна. Анимации те же, что в каталоге ниже.</p>
+    </div>
+    <div class="wins" id="wins"></div>
+  </section>
+
+  <section aria-labelledby="h-all">
+    <div class="sec-head">
+      <h2 id="h-all">Все девять анимаций</h2>
+      <p class="support">Слева исходная палитра на тёмной подложке, справа палитра Housebook. Крупная сфера 168 px (тот же рисунок, увеличенный), ниже родные размеры библиотеки: 64 px для аватара чата и 20 px для строки текста.</p>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section aria-labelledby="h-load">
+    <div class="sec-head">
+      <h2 id="h-load">Нагрузка на этом устройстве</h2>
+      <p class="support">Измеряется вживую на этой странице: сколько точек рисует кадр сферы 64 px и сколько миллисекунд на него уходит. Одна сфера это один холст 2D, без blur-слоёв и фильтров.</p>
+    </div>
+    <div class="tblwrap"><table class="tbl" id="stats"><thead><tr><th>Состояние</th><th>Режим</th><th class="n">Точек, 64 px</th><th class="n">Линий, 64 px</th><th class="n">Кадр, мс</th></tr></thead><tbody></tbody></table></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Анимации: thinking-orbs © 2026 Jakub Antalik, лицензия MIT. Перенос на ванильный JS и палитры Housebook: <code>thinking-orbs.js</code> (в шапке файла перечислены внесённые изменения).</p>
+    <p>Тексты и палитра Housebook: токены кита hb.css. Внешних запросов страница не делает, кроме шрифтов кита.</p>
+  </div>
+</footer>
+
+<script src="thinking-orbs.js"></script>
+<script>
+(function () {
+  'use strict';
+  var TO = window.ThinkingOrbs;
+  var INFO = {
+    working:    ['orbits', 'Частицы на наклонных орбитах'],
+    searching:  ['globe', 'Сканирующий меридиан бежит по точечному глобусу'],
+    solving:    ['rubik', 'Полосы перемешиваются, затем со щелчком собираются обратно'],
+    listening:  ['wave', 'Волна прокатывается по кольцам сферы'],
+    connecting: ['web', 'Созвездие соединяется линиями, по рёбрам бегут импульсы'],
+    weaving:    ['braid', 'Три нити плетутся вокруг сферы'],
+    composing:  ['ribbon', 'Волнистая многополосная лента'],
+    breathing:  ['ring', 'Кольцо медленно меняет форму'],
+    shaping:    ['morph', 'Точечный контур: круг, треугольник, квадрат']
+  };
+  var INLINE = {
+    working: 'Работаю', searching: 'Ищу', solving: 'Решаю', listening: 'Слушаю', connecting: 'Соединяю',
+    weaving: 'Плету', composing: 'Составляю', breathing: 'Думаю', shaping: 'Формирую'
+  };
+  var hbHandles = [];   // холсты в палитре Housebook: перекрашиваются при смене темы
+  var statHandles = {}; // state -> handle крупной сферы, для замера
+
+  function canvas(label) {
+    var c = document.createElement('canvas');
+    if (label) { c.setAttribute('role', 'img'); c.setAttribute('aria-label', label); } else { c.setAttribute('aria-hidden', 'true'); }
+    return c;
+  }
+  function hbPalette() { return document.documentElement.getAttribute('data-theme') === 'dark' ? 'housebookDusk' : 'housebook'; }
+  function mountHB(c, cfg) { cfg.palette = hbPalette(); var h = TO.mount(c, cfg); hbHandles.push(h); return h; }
+
+  function pane(state, kind) {
+    var orig = kind === 'orig';
+    var p = document.createElement('figure');
+    p.className = 'pane' + (orig ? ' pane--orig' : '');
+    var tag = document.createElement('span'); tag.className = 'pane__tag'; tag.textContent = orig ? 'Исходная' : 'Housebook';
+    var big = document.createElement('div'); big.className = 'pane__big';
+    var cb = canvas('Анимация ' + state + ', ' + (orig ? 'исходная палитра' : 'палитра Housebook') + ': ' + INFO[state][1].toLowerCase());
+    big.appendChild(cb);
+    var row = document.createElement('div'); row.className = 'pane__row';
+    var c64 = canvas(), c20 = canvas();
+    var s64 = document.createElement('span'); s64.textContent = '64 px';
+    var inl = document.createElement('span'); inl.className = 'inline';
+    inl.appendChild(c20); inl.appendChild(document.createTextNode(INLINE[state] + '…'));
+    row.appendChild(c64); row.appendChild(s64); row.appendChild(inl);
+    p.appendChild(tag); p.appendChild(big); p.appendChild(row);
+    if (orig) {
+      TO.mount(cb, { state: state, big: 168, palette: 'original' });
+      TO.mount(c64, { state: state, size: 64, palette: 'original' });
+      TO.mount(c20, { state: state, size: 20, palette: 'original' });
+    } else {
+      statHandles[state] = mountHB(cb, { state: state, big: 168 });
+      mountHB(c64, { state: state, size: 64 });
+      mountHB(c20, { state: state, size: 20 });
+    }
+    return p;
+  }
+
+  var grid = document.getElementById('grid');
+  TO.STATES.forEach(function (st) {
+    var card = document.createElement('article'); card.className = 'card';
+    var head = document.createElement('div'); head.className = 'card__head';
+    head.innerHTML = '<div class="card__name"><h3><code>' + st + '</code></h3><span class="card__mode">режим ' + INFO[st][0] + '</span></div><p class="card__desc">' + INFO[st][1] + '</p>';
+    var panes = document.createElement('div'); panes.className = 'panes';
+    panes.appendChild(pane(st, 'orig')); panes.appendChild(pane(st, 'hb'));
+    card.appendChild(head); card.appendChild(panes);
+    grid.appendChild(card);
+  });
+
+  /* три окна: шаги ожидания */
+  var STEPS = [
+    { state: 'breathing', title: 'Разбираю запрос', n: 1 },
+    { state: 'searching', title: 'Смотрю каталог', n: 2 },
+    { state: 'composing', title: 'Собираю ответ', n: 3 }
+  ];
+  var wins = document.getElementById('wins');
+  STEPS.forEach(function (s) {
+    var w = document.createElement('article'); w.className = 'win';
+    var head = document.createElement('div'); head.className = 'win__head';
+    var hc = canvas();
+    var ht = document.createElement('span');
+    ht.innerHTML = '<span class="win__eyebrow">AI-подбор</span><span class="win__q">Квартира у моря на Северном Кипре до 200 000 евро</span>';
+    head.appendChild(hc); head.appendChild(ht);
+    var body = document.createElement('div'); body.className = 'win__body';
+    var bc = canvas('Сфера ожидания: ' + s.title);
+    var prog = '<div class="prog" aria-hidden="true">' + [1, 2, 3].map(function (i) { return '<i' + (i <= s.n ? ' class="on"' : '') + '></i>'; }).join('') + '</div>';
+    var cap = document.createElement('div'); cap.style.display = 'grid'; cap.style.justifyItems = 'center';
+    cap.innerHTML = '<span class="win__step">' + s.title + '</span><span class="win__n">Шаг ' + s.n + ' из 3</span>' + prog;
+    body.appendChild(bc); body.appendChild(cap);
+    var foot = document.createElement('div'); foot.className = 'win__foot';
+    foot.innerHTML = '<strong>Не хотите ждать?</strong> Специалист подберёт варианты вручную.';
+    w.appendChild(head); w.appendChild(body); w.appendChild(foot);
+    wins.appendChild(w);
+    mountHB(hc, { state: s.state, size: 20 });
+    mountHB(bc, { state: s.state, big: 150 });
+  });
+
+  /* таблица нагрузки: точки и время кадра сферы 64 px, замер вживую */
+  var tbody = document.querySelector('#stats tbody');
+  var rows = {};
+  TO.STATES.forEach(function (st) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td><code>' + st + '</code></td><td>' + INFO[st][0] + '</td><td class="n" data-d></td><td class="n" data-l></td><td class="n" data-ms></td>';
+    tbody.appendChild(tr); rows[st] = tr;
+    var r = TO.resolvePreset(st, 64);
+    var f = TO.MODE_FRAMES[r.mode](64, 0.6, r.opts);
+    tr.querySelector('[data-d]').textContent = f.dots.length;
+    tr.querySelector('[data-l]').textContent = f.lines.length;
+  });
+  function measure() {
+    var c = document.createElement('canvas'); c.width = 128; c.height = 128;
+    var ctx = c.getContext('2d');
+    TO.STATES.forEach(function (st) {
+      var r = TO.resolvePreset(st, 64), pal = TO.PALETTES.housebook, N = 30, t0 = performance.now();
+      for (var i = 0; i < N; i++) {
+        var fr = TO.MODE_FRAMES[r.mode](64, 0.6 + i * 0.05, r.opts);
+        ctx.setTransform(2, 0, 0, 2, 0, 0); ctx.clearRect(0, 0, 64, 64);
+        TO.paintFrame(ctx, fr, pal);
+      }
+      rows[st].querySelector('[data-ms]').textContent = ((performance.now() - t0) / N).toFixed(2);
+    });
+  }
+  window.addEventListener('load', function () { setTimeout(measure, 300); });
+
+  /* управление */
+  var pause = document.getElementById('pause');
+  pause.addEventListener('click', function () {
+    var on = pause.getAttribute('aria-pressed') !== 'true';
+    pause.setAttribute('aria-pressed', on ? 'true' : 'false');
+    pause.textContent = on ? 'Продолжить' : 'Пауза';
+    TO.setPaused(on);
+  });
+  var themeBtns = document.querySelectorAll('[data-theme-btn]');
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+    themeBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-theme-btn') === t ? 'true' : 'false'); });
+    hbHandles.forEach(function (h) { h.setPalette(hbPalette()); });
+    try { localStorage.setItem('hb-orbs-theme', t); } catch (e) {}
+  }
+  themeBtns.forEach(function (b) { b.addEventListener('click', function () { setTheme(b.getAttribute('data-theme-btn')); }); });
+  var q = new URLSearchParams(location.search);
+  var saved = null; try { saved = localStorage.getItem('hb-orbs-theme'); } catch (e) {}
+  var want = q.get('theme') || saved;
+  if (want === 'dark') setTheme('dark');
+  if (q.get('freeze') === '1') { TO.setPaused(true); pause.setAttribute('aria-pressed', 'true'); pause.textContent = 'Продолжить'; }
+})();
+</script>
+</body>
+</html>
